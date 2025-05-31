@@ -1,0 +1,1257 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TaskApp - мини-приложение ВКонтакте</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://unpkg.com/@vkontakte/vk-bridge/dist/bridge.min.js"></script>
+    <style>
+    :root {
+        --primary-color: #07F;
+        --primary-dark: #06E;
+        --primary-light: #E5EDFD;
+        --secondary-color: #4BB34B;
+        --accent-color: #FFA000;
+        --danger-color: #E64646;
+        --light-bg: #F5F5F5;
+        --card-bg: #FFFFFF;
+        --text: #000000;
+        --text-light: #818C99;
+        --border: #E7E8EC;
+        --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+        --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        --rounded-sm: 8px;
+        --rounded: 12px;
+        --rounded-lg: 16px;
+        --rounded-xl: 20px;
+        --section-padding: 16px;
+    }
+
+    * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+    }
+
+    body {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        background-color: var(--light-bg);
+        color: var(--text);
+        line-height: 1.5;
+        -webkit-font-smoothing: antialiased;
+    }
+
+    h1, h2, h3 {
+        color: var(--text);
+        margin-bottom: 16px;
+        font-weight: 600;
+    }
+
+    .container {
+        max-width: 100%;
+        margin: 0 auto;
+        padding: var(--section-padding);
+    }
+
+    /* Шапка */
+    .header {
+        background-color: var(--card-bg);
+        color: var(--text);
+        padding: 12px var(--section-padding);
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .header-content {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        max-width: 100%;
+        margin: 0 auto;
+    }
+
+    .logo {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 18px;
+        font-weight: 600;
+        color: var(--primary-color);
+    }
+
+    .logo i {
+        font-size: 20px;
+    }
+
+    .user-avatar {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background-color: var(--primary-light);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--primary-color);
+        font-weight: 600;
+        border: 2px solid var(--primary-color);
+    }
+
+    /* Баланс */
+    .balance-card {
+        background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+        color: white;
+        padding: 16px;
+        border-radius: var(--rounded-lg);
+        margin-bottom: 16px;
+        box-shadow: var(--shadow);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .balance-card::after {
+        content: '';
+        position: absolute;
+        top: -50px;
+        right: -50px;
+        width: 150px;
+        height: 150px;
+        background-color: rgba(255, 255, 255, 0.1);
+        border-radius: 50%;
+    }
+
+    .balance-label {
+        font-size: 14px;
+        margin-bottom: 4px;
+        opacity: 0.9;
+    }
+
+    .balance-amount {
+        font-size: 28px;
+        font-weight: 700;
+        letter-spacing: -0.025em;
+    }
+
+    /* Действия */
+    .actions-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+        gap: 12px;
+        margin-bottom: 16px;
+    }
+
+    .action-card {
+        background-color: var(--card-bg);
+        border-radius: var(--rounded);
+        padding: 16px 8px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.2s;
+        box-shadow: var(--shadow-sm);
+        border: 1px solid var(--border);
+    }
+
+    .action-card:hover {
+        transform: translateY(-3px);
+        box-shadow: var(--shadow);
+        border-color: var(--primary-color);
+    }
+
+    .action-icon {
+        font-size: 24px;
+        margin-bottom: 8px;
+        color: var(--primary-color);
+        background-color: var(--primary-light);
+        width: 48px;
+        height: 48px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+    }
+
+    .action-title {
+        font-size: 14px;
+        font-weight: 500;
+    }
+
+    /* Карточки заданий */
+    .task-card {
+        background-color: var(--card-bg);
+        border-radius: var(--rounded);
+        padding: 16px;
+        margin-bottom: 12px;
+        box-shadow: var(--shadow-sm);
+        border: 1px solid var(--border);
+        transition: all 0.2s;
+    }
+
+    .task-card:hover {
+        box-shadow: var(--shadow);
+    }
+
+    .task-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 8px;
+    }
+
+    .task-card-title {
+        font-weight: 600;
+        font-size: 16px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .task-card-reward {
+        background-color: var(--primary-color);
+        color: white;
+        padding: 4px 12px;
+        border-radius: 16px;
+        font-size: 14px;
+        font-weight: 600;
+    }
+
+    .task-card-description {
+        font-size: 14px;
+        color: var(--text-light);
+        margin-bottom: 12px;
+        line-height: 1.5;
+    }
+
+    .task-card-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .task-card-status {
+        font-size: 12px;
+        padding: 4px 12px;
+        border-radius: 16px;
+        background-color: rgba(75, 179, 75, 0.1);
+        color: var(--secondary-color);
+        font-weight: 500;
+    }
+
+    .task-card-status.completed {
+        background-color: rgba(239, 68, 68, 0.1);
+        color: var(--danger-color);
+    }
+
+    .task-card-btn {
+        padding: 12px 16px;
+        background-color: var(--primary-color);
+        color: white;
+        border: none;
+        border-radius: var(--rounded);
+        font-weight: 600;
+        cursor: pointer;
+        transition: background-color 0.2s;
+        font-size: 14px;
+        min-width: 140px;
+    }
+
+    .task-card-btn:hover {
+        background-color: var(--primary-dark);
+    }
+
+    .task-card-btn:disabled {
+        background-color: var(--border);
+        color: var(--text-light);
+        cursor: not-allowed;
+    }
+
+    /* Реферальная система */
+    .referral-card {
+        background-color: var(--card-bg);
+        border-radius: var(--rounded-lg);
+        padding: 16px;
+        margin-bottom: 16px;
+        box-shadow: var(--shadow-sm);
+        border: 1px solid var(--border);
+        text-align: center;
+    }
+
+    .referral-code {
+        background-color: var(--light-bg);
+        padding: 12px;
+        border-radius: var(--rounded);
+        font-family: monospace;
+        font-size: 16px;
+        margin: 12px 0;
+        word-break: break-all;
+        border: 1px dashed var(--border);
+        color: var(--primary-color);
+        font-weight: 600;
+    }
+
+    .referral-stats {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+        margin-top: 16px;
+    }
+
+    .referral-stat {
+        background-color: var(--light-bg);
+        padding: 12px;
+        border-radius: var(--rounded);
+        text-align: center;
+        border: 1px solid var(--border);
+    }
+
+    .referral-stat-value {
+        font-size: 20px;
+        font-weight: 700;
+        color: var(--primary-color);
+        margin-bottom: 4px;
+    }
+
+    .referral-stat-label {
+        font-size: 14px;
+        color: var(--text-light);
+    }
+
+    /* Премиум карточка */
+    .premium-card {
+        background: linear-gradient(135deg, #FFA000, #FF8F00);
+        color: white;
+        border-radius: var(--rounded-lg);
+        padding: 16px;
+        margin-bottom: 16px;
+        box-shadow: var(--shadow);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .premium-card::after {
+        content: '';
+        position: absolute;
+        top: -50px;
+        right: -50px;
+        width: 150px;
+        height: 150px;
+        background-color: rgba(255, 255, 255, 0.1);
+        border-radius: 50%;
+    }
+
+    .premium-title {
+        font-size: 20px;
+        font-weight: 700;
+        margin-bottom: 8px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .premium-price {
+        font-size: 24px;
+        font-weight: 700;
+        margin-bottom: 12px;
+    }
+
+    .premium-features {
+        margin-bottom: 16px;
+    }
+
+    .premium-feature {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 8px;
+        font-size: 14px;
+    }
+
+    .premium-btn {
+        width: 100%;
+        padding: 12px;
+        background-color: white;
+        color: #FF8F00;
+        border: none;
+        border-radius: var(--rounded);
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .premium-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow);
+    }
+
+    /* Шторка с заданиями */
+    .task-drawer {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background-color: var(--card-bg);
+        border-radius: var(--rounded-lg) var(--rounded-lg) 0 0;
+        padding: 16px;
+        z-index: 2000;
+        box-shadow: 0 -10px 25px rgba(0,0,0,0.15);
+        transform: translateY(100%);
+        transition: transform 0.3s ease;
+        max-height: 80vh;
+        overflow-y: auto;
+    }
+
+    .task-drawer.open {
+        transform: translateY(0);
+    }
+
+    .task-drawer-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(0,0,0,0.5);
+        z-index: 1500;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s ease;
+    }
+
+    .task-drawer-overlay.open {
+        opacity: 1;
+        pointer-events: all;
+    }
+
+    .task-drawer-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 16px;
+        padding-bottom: 16px;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .task-drawer-title {
+        font-size: 18px;
+        font-weight: 600;
+        color: var(--text);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .task-drawer-close {
+        background: none;
+        border: none;
+        color: var(--text-light);
+        font-size: 20px;
+        cursor: pointer;
+        padding: 8px;
+    }
+
+    /* Форма загрузки фото */
+    .photo-upload {
+        margin-bottom: 16px;
+    }
+
+    .photo-upload-label {
+        display: block;
+        margin-bottom: 8px;
+        font-size: 14px;
+        color: var(--text);
+        font-weight: 500;
+    }
+
+    .photo-upload-btn {
+        display: block;
+        width: 100%;
+        padding: 12px;
+        background-color: var(--light-bg);
+        border: 2px dashed var(--border);
+        border-radius: var(--rounded);
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.2s;
+        color: var(--text-light);
+        font-weight: 500;
+    }
+
+    .photo-upload-btn:hover {
+        border-color: var(--primary-color);
+        color: var(--primary-color);
+        background-color: var(--primary-light);
+    }
+
+    .photo-preview {
+        max-width: 100%;
+        border-radius: var(--rounded);
+        margin-top: 12px;
+        display: none;
+        border: 1px solid var(--border);
+    }
+
+    /* Уведомления */
+    .notification-container {
+        position: fixed;
+        top: 16px;
+        right: 16px;
+        z-index: 2000;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .notification {
+        background-color: var(--card-bg);
+        border-radius: var(--rounded);
+        padding: 12px;
+        box-shadow: var(--shadow-md);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        transform: translateX(150%);
+        transition: transform 0.3s ease;
+        border-left: 4px solid transparent;
+        width: 300px;
+    }
+
+    .notification.show {
+        transform: translateX(0);
+    }
+
+    .notification i {
+        font-size: 20px;
+    }
+
+    .notification.success {
+        border-left-color: var(--secondary-color);
+    }
+
+    .notification.warning {
+        border-left-color: var(--accent-color);
+    }
+
+    .notification.error {
+        border-left-color: var(--danger-color);
+    }
+
+    /* Навигация */
+    .mobile-nav {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background-color: var(--card-bg);
+        display: flex;
+        justify-content: space-around;
+        padding: 12px 0;
+        border-top: 1px solid var(--border);
+        z-index: 100;
+        box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+    }
+
+    .nav-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        color: var(--text-light);
+        text-decoration: none;
+        font-size: 12px;
+        flex: 1;
+        position: relative;
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 8px 0;
+        transition: color 0.2s;
+    }
+
+    .nav-item.active {
+        color: var(--primary-color);
+    }
+
+    .nav-item i {
+        font-size: 20px;
+        margin-bottom: 4px;
+    }
+
+    /* Страницы */
+    .page {
+        display: none;
+        padding-bottom: 72px;
+    }
+
+    .page.active {
+        display: block;
+    }
+
+    /* Профиль */
+    .profile-header {
+        text-align: center;
+        margin-bottom: 16px;
+    }
+
+    .profile-avatar {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        object-fit: cover;
+        margin-bottom: 12px;
+        border: 3px solid var(--primary-color);
+        padding: 2px;
+    }
+
+    .profile-stats {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+        margin-bottom: 16px;
+    }
+
+    .profile-stat {
+        background-color: var(--card-bg);
+        padding: 12px;
+        border-radius: var(--rounded);
+        text-align: center;
+        box-shadow: var(--shadow-sm);
+        border: 1px solid var(--border);
+    }
+
+    .profile-stat-value {
+        font-size: 20px;
+        font-weight: 700;
+        color: var(--primary-color);
+        margin-bottom: 4px;
+    }
+
+    .profile-stat-label {
+        font-size: 14px;
+        color: var(--text-light);
+    }
+
+    /* Адаптивность */
+    @media (max-width: 768px) {
+        .actions-container {
+            grid-template-columns: repeat(4, 1fr);
+        }
+    }
+
+    @media (max-width: 480px) {
+        .actions-container {
+            grid-template-columns: repeat(2, 1fr);
+        }
+        
+        .notification {
+            width: 90%;
+            left: 5%;
+            right: 5%;
+        }
+    }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+
+        // Моковые данные заданий
+        const mockTasks = [
+            {
+                id: 1,
+                title: "Спонсорское задание",
+                description: "Выполните условие спонсора и получите монеты",
+                reward: 50,
+                icon: "fas fa-ad",
+                type: "sponsor",
+                completed: false,
+                canClaim: true,
+                requiresPhoto: true
+            },
+            {
+                id: 2,
+                title: "Оставьте отзыв",
+                description: "Оставьте отзыв о нашем приложении",
+                reward: 200,
+                icon: "fas fa-star",
+                type: "feedback",
+                completed: false,
+                canClaim: false,
+                requiresPhoto: true
+            }
+        ];
+
+        function App() {
+            const [activeTab, setActiveTab] = useState("home");
+            const [balance, setBalance] = useState(1250);
+            const [tasks, setTasks] = useState(mockTasks);
+            const [activeTask, setActiveTask] = useState(null);
+            const [showTaskDrawer, setShowTaskDrawer] = useState(false);
+            const [photoPreview, setPhotoPreview] = useState(null);
+            const [notifications, setNotifications] = useState([]);
+            const [showVkGroupInfo, setShowVkGroupInfo] = useState(false);
+            const [isSubscribed, setIsSubscribed] = useState(false);
+            const [currentUser] = useState({
+                id: 123456,
+                name: "Иван Петров",
+                avatar: "",
+                status: "Активный участник"
+            });
+            
+            const fileInputRef = useRef(null);
+            const taskDrawerRef = useRef(null);
+
+            // Инициализация VK Bridge
+            useEffect(() => {
+                if (window.vkBridge) {
+                    vkBridge.send('VKWebAppInit');
+                    
+                    // Получаем информацию о пользователе
+                    vkBridge.send('VKWebAppGetUserInfo')
+                        .then(data => {
+                            // Обновляем данные пользователя
+                            currentUser.name = `${data.first_name} ${data.last_name}`;
+                            currentUser.avatar = data.photo_100;
+                        })
+                        .catch(error => console.error(error));
+                    
+                    // Проверяем подписку на группу
+                    checkGroupSubscription();
+                }
+            }, []);
+
+            // Проверка подписки на группу
+            const checkGroupSubscription = () => {
+                // Здесь должен быть вызов API для проверки подписки
+                // В демо-версии просто возвращаем false
+                return false;
+            };
+
+            // Показать уведомление
+            const showNotification = (message, type = "info", duration = 3000) => {
+                const id = Date.now();
+                const notification = { id, message, type };
+                
+                setNotifications(prev => [...prev, notification]);
+                
+                setTimeout(() => {
+                    setNotifications(prev => prev.filter(n => n.id !== id));
+                }, duration);
+            };
+
+            // Открыть шторку с заданием
+            const openTaskDrawer = (task) => {
+                setActiveTask(task);
+                setShowTaskDrawer(true);
+                setPhotoPreview(null);
+            };
+
+            // Закрыть шторку
+            const closeTaskDrawer = () => {
+                setShowTaskDrawer(false);
+            };
+
+            // Обработчик загрузки фото
+            const handlePhotoUpload = (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                
+                if (!file.type.match("image.*")) {
+                    showNotification("Пожалуйста, заг��узите изображение", "warning");
+                    return;
+                }
+                
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    setPhotoPreview(event.target.result);
+                    showNotification("Фото успешно загружено", "success");
+                };
+                reader.readAsDataURL(file);
+            };
+
+            // Выполнить задание
+            const completeTask = () => {
+                if (!activeTask) return;
+                
+                // Обновляем задание как выполненное
+                setTasks(prev => 
+                    prev.map(task => 
+                        task.id === activeTask.id 
+                            ? { ...task, completed: true } 
+                            : task
+                    )
+                );
+                
+                // Начисляем награду
+                setBalance(prev => prev + activeTask.reward);
+                
+                // Показываем уведомление
+                showNotification(
+                    `Задание выполнено! Получено ${activeTask.reward} монет`, 
+                    "success"
+                );
+                
+                // Закрываем шторку
+                closeTaskDrawer();
+            };
+
+            // Подписаться на группу
+            const subscribeToGroup = () => {
+                if (window.vkBridge) {
+                    vkBridge.send('VKWebAppJoinGroup', { group_id: 123456 }) // Замените на ID вашей группы
+                        .then(data => {
+                            if (data.result) {
+                                setIsSubscribed(true);
+                                setBalance(prev => prev + 100);
+                                showNotification("Вы подписались на группу! +100 монет", "success");
+                                setShowVkGroupInfo(false);
+                            }
+                        })
+                        .catch(error => {
+                            console.error(error);
+                            showNotification("Ошибка при подписке на группу", "error");
+                        });
+                } else {
+                    // Для демо-версии
+                    setIsSubscribed(true);
+                    setBalance(prev => prev + 100);
+                    showNotification("Вы подписались на группу! +100 монет", "success");
+                    setShowVkGroupInfo(false);
+                }
+            };
+
+            // Копирование реферальной ссылки
+            const copyReferralLink = () => {
+                const link = `https://vk.com/app123456#ref=${currentUser.id}`; // Замените на ID вашего приложения
+                if (window.vkBridge) {
+                    vkBridge.send('VKWebAppCopyText', { text: link })
+                        .then(data => {
+                            if (data.result) {
+                                showNotification("Реферальная ссылка скопирована!", "success");
+                            }
+                        })
+                        .catch(error => console.error(error));
+                } else {
+                    // Для демо-версии
+                    navigator.clipboard.writeText(link);
+                    showNotification("Реферальная ссылка скопирована!", "success");
+                }
+            };
+
+            // Рендер главной страницы
+            const renderHome = () => (
+                <>
+                    <div className="balance-card">
+                        <div className="balance-label">Ваш баланс</div>
+                        <div className="balance-amount">{balance.toLocaleString("ru-RU")} монет</div>
+                    </div>
+                    
+                    <div className="actions-container">
+                        <div className="action-card" onClick={() => setActiveTab("tasks")}>
+                            <div className="action-icon">
+                                <i className="fas fa-tasks"></i>
+                            </div>
+                            <div className="action-title">Задания</div>
+                        </div>
+                        
+                        <div className="action-card" onClick={() => setActiveTab("referral")}>
+                            <div className="action-icon">
+                                <i className="fas fa-user-plus"></i>
+                            </div>
+                            <div className="action-title">Рефералы</div>
+                        </div>
+                        
+                        <div className="action-card" onClick={() => setActiveTab("profile")}>
+                            <div className="action-icon">
+                                <i className="fas fa-user"></i>
+                            </div>
+                            <div className="action-title">Профиль</div>
+                        </div>
+                    </div>
+                    
+                    {!isSubscribed && (
+                        <div className="task-card" style={{marginTop: '16px', cursor: 'pointer'}} 
+                             onClick={() => setShowVkGroupInfo(true)}>
+                            <div className="task-card-header">
+                                <h3 className="task-card-title">
+                                    <i className="fab fa-vk"></i> Подписка на группу
+                                </h3>
+                                <div className="task-card-reward">
+                                    +100 монет
+                                </div>
+                            </div>
+                            <div className="task-card-description">
+                                Подпишитесь на нашу официальную группу и получите бонус
+                            </div>
+                        </div>
+                    )}
+                </>
+            );
+
+            // Рендер страницы заданий
+            const renderTasks = () => (
+                <>
+                    <h2 className="section-title">
+                        <i className="fas fa-tasks"></i>
+                        Доступные задания
+                    </h2>
+                    
+                    <div>
+                        {tasks.map(task => (
+                            <div key={task.id} className="task-card">
+                                <div className="task-card-header">
+                                    <h3 className="task-card-title">
+                                        <i className={task.icon}></i> {task.title}
+                                    </h3>
+                                    <div className="task-card-reward">
+                                        +{task.reward} монет
+                                    </div>
+                                </div>
+                                
+                                <div className="task-card-description">
+                                    {task.description}
+                                </div>
+                                
+                                <div className="task-card-footer">
+                                    <div className={`task-card-status ${task.completed ? "completed" : ""}`}>
+                                        {task.completed ? "Выполнено" : "Доступно"}
+                                    </div>
+                                    <button
+                                        className="task-card-btn"
+                                        onClick={() => openTaskDrawer(task)}
+                                        disabled={task.completed}
+                                    >
+                                        {task.completed ? "Готово" : "Выполнить"}
+                                    </button>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </>
+            );
+
+            // Рендер страницы реферальной системы
+            const renderReferral = () => (
+                <>
+                    <h2 className="section-title">
+                        <i className="fas fa-user-plus"></i>
+                        Реферальная система
+                    </h2>
+                    
+                    <div className="referral-card">
+                        <p>Приглашайте друзей и получайте бонусы за каждого приглашенного пользователя!</p>
+                        
+                        <div className="referral-code">
+                            https://vk.com/app123456#ref={currentUser.id}
+                        </div>
+                        
+                        <button 
+                            className="task-card-btn" 
+                            style={{width: '100%'}}
+                            onClick={copyReferralLink}
+                        >
+                            <i className="fas fa-copy"></i> Копировать ссылку
+                        </button>
+                        
+                        <div className="referral-stats">
+                            <div className="referral-stat">
+                                <div className="referral-stat-value">5</div>
+                                <div className="referral-stat-label">Приглашено</div>
+                            </div>
+                            <div className="referral-stat">
+                                <div className="referral-stat-value">2500</div>
+                                <div className="referral-stat-label">Заработано</div>
+                            </div>
+                        </div>
+                    </div>
+                </>
+            );
+
+            // Рендер страницы профиля
+            const renderProfile = () => (
+                <>
+                    <div className="profile-header">
+                        <img 
+                            src={currentUser.avatar || "https://randomuser.me/api/portraits/men/10.jpg"} 
+                            alt={currentUser.name} 
+                            className="profile-avatar"
+                        />
+                        <h2>{currentUser.name}</h2>
+                        <p style={{color: "var(--text-light)"}}>
+                            {currentUser.status}
+                        </p>
+                    </div>
+                    
+                    <div className="profile-stats">
+                        <div className="profile-stat">
+                            <div className="profile-stat-value">{balance.toLocaleString("ru-RU")}</div>
+                            <div className="profile-stat-label">Монет</div>
+                        </div>
+                        <div className="profile-stat">
+                            <div className="profile-stat-value">{tasks.filter(t => t.completed).length}</div>
+                            <div className="profile-stat-label">Заданий</div>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <h2 className="section-title">
+                            <i className="fas fa-crown"></i>
+                            PREMIUM статус
+                        </h2>
+                        
+                        <div className="premium-card">
+                            <h3 className="premium-title">
+                                <i className="fas fa-crown"></i> PREMIUM
+                            </h3>
+                            <div className="premium-price">499 ₽</div>
+                            
+                            <div className="premium-features">
+                                <div className="premium-feature">
+                                    <i className="fas fa-check-circle"></i>
+                                    <span>Увеличенный заработок монет</span>
+                                </div>
+                                <div className="premium-feature">
+                                    <i className="fas fa-check-circle"></i>
+                                    <span>Эксклюзивные задания</span>
+                                </div>
+                                <div className="premium-feature">
+                                    <i className="fas fa-check-circle"></i>
+                                    <span>Приоритетная поддержка</span>
+                                </div>
+                            </div>
+                            
+                            <button className="premium-btn">
+                                Купить PREMIUM
+                            </button>
+                        </div>
+                    </div>
+                </>
+            );
+
+            // Закрытие шторки при клике вне ее
+            useEffect(() => {
+                const handleClickOutside = (event) => {
+                    if (taskDrawerRef.current && !taskDrawerRef.current.contains(event.target)) {
+                        closeTaskDrawer();
+                    }
+                };
+
+                if (showTaskDrawer) {
+                    document.addEventListener("mousedown", handleClickOutside);
+                } else {
+                    document.removeEventListener("mousedown", handleClickOutside);
+                }
+
+                return () => {
+                    document.removeEventListener("mousedown", handleClickOutside);
+                };
+            }, [showTaskDrawer]);
+
+            return (
+                <div className="app">
+                    {/* Шапка */}
+                    <header className="header">
+                        <div className="header-content">
+                            <div className="logo">
+                                <i className="fas fa-coins"></i>
+                                <span>TaskApp</span>
+                            </div>
+                            <div className="user-avatar">
+                                {currentUser.name.split(" ").map(n => n[0]).join("")}
+                            </div>
+                        </div>
+                    </header>
+
+                    <div className="container">
+                        {/* Страницы */}
+                        <div className={`page ${activeTab === "home" ? "active" : ""}`}>
+                            {renderHome()}
+                        </div>
+                        
+                        <div className={`page ${activeTab === "tasks" ? "active" : ""}`}>
+                            {renderTasks()}
+                        </div>
+                        
+                        <div className={`page ${activeTab === "referral" ? "active" : ""}`}>
+                            {renderReferral()}
+                        </div>
+                        
+                        <div className={`page ${activeTab === "profile" ? "active" : ""}`}>
+                            {renderProfile()}
+                        </div>
+                    </div>
+
+                    {/* Уведомления */}
+                    <div className="notification-container">
+                        {notifications.map(notification => (
+                            <div key={notification.id} className={`notification ${notification.type} show`}>
+                                <i className={`fas ${
+                                    notification.type === "success" ? "fa-check-circle" :
+                                    notification.type === "warning" ? "fa-exclamation-circle" :
+                                    "fa-info-circle"
+                                }`}></i>
+                                <span>{notification.message}</span>
+                            </div>
+                        ))}
+                    </div>
+
+                    {/* Шторка с заданием */}
+                    <div 
+                        className={`task-drawer-overlay ${showTaskDrawer ? "open" : ""}`}
+                        onClick={closeTaskDrawer}
+                    ></div>
+                    
+                    <div 
+                        ref={taskDrawerRef}
+                        className={`task-drawer ${showTaskDrawer ? "open" : ""}`}
+                    >
+                        {activeTask && (
+                            <>
+                                <div className="task-drawer-header">
+                                    <h3 className="task-drawer-title">
+                                        <i className={activeTask.icon}></i> {activeTask.title}
+                                    </h3>
+                                    <button className="task-drawer-close" onClick={closeTaskDrawer}>
+                                        <i className="fas fa-times"></i>
+                                    </button>
+                                </div>
+                                
+                                <div>
+                                    <p style={{ marginBottom: "16px" }}>
+                                        <strong>Награда:</strong> +{activeTask.reward} монет
+                                    </p>
+                                    
+                                    <p style={{ marginBottom: "16px", color: 'var(--text-light)' }}>
+                                        {activeTask.description}
+                                    </p>
+                                    
+                                    {activeTask.requiresPhoto && (
+                                        <div className="photo-upload">
+                                            <label className="photo-upload-label">
+                                                Прикрепите скриншот подтверждения:
+                                            </label>
+                                            <input 
+                                                type="file" 
+                                                ref={fileInputRef}
+                                                onChange={handlePhotoUpload}
+                                                accept="image/*"
+                                                style={{ display: "none" }}
+                                            />
+                                            <button 
+                                                className="photo-upload-btn"
+                                                onClick={() => fileInputRef.current.click()}
+                                            >
+                                                <i className="fas fa-upload"></i> {photoPreview ? "Фото загружено" : "Выбрать файл"}
+                                            </button>
+                                            {photoPreview && (
+                                                <img 
+                                                    src={photoPreview} 
+                                                    alt="Предпросмотр" 
+                                                    className="photo-preview"
+                                                    style={{ display: "block" }}
+                                                />
+                                            )}
+                                        </div>
+                                    )}
+                                    
+                                    <button
+                                        className="task-card-btn"
+                                        onClick={completeTask}
+                                        disabled={activeTask.requiresPhoto && !photoPreview}
+                                        style={{marginTop: '16px'}}
+                                    >
+                                        {activeTask.completed ? "Готово" : "Завершить задание"}
+                                    </button>
+                                </div>
+                            </>
+                        )}
+                    </div>
+
+                    {/* Шторка с информацией о группе ВК */}
+                    <div 
+                        className={`task-drawer-overlay ${showVkGroupInfo ? "open" : ""}`}
+                        onClick={() => setShowVkGroupInfo(false)}
+                    ></div>
+                    
+                    <div 
+                        className={`task-drawer ${showVkGroupInfo ? "open" : ""}`}
+                    >
+                        <div className="task-drawer-header">
+                            <h3 className="task-drawer-title">
+                                <i className="fab fa-vk"></i> Подписка на группу
+                            </h3>
+                            <button className="task-drawer-close" onClick={() => setShowVkGroupInfo(false)}>
+                                <i className="fas fa-times"></i>
+                            </button>
+                        </div>
+                        
+                        <div>
+                            <p style={{ marginBottom: "16px" }}>
+                                <strong>Бонус:</strong> +100 монет
+                            </p>
+                            
+                            <p style={{ marginBottom: "16px", color: 'var(--text-light)' }}>
+                                Подпишитесь на нашу официальную группу ВКонтакте, чтобы получать новости и бонусы
+                            </p>
+                            
+                            <button
+                                className="task-card-btn"
+                                onClick={subscribeToGroup}
+                                style={{marginBottom: '16px'}}
+                            >
+                                <i className="fab fa-vk"></i> Подписаться на группу
+                            </button>
+                            
+                            <p style={{fontSize: '14px', color: 'var(--text-light)'}}>
+                                Бонусные монеты будут начислены мгновенно после подписки
+                            </p>
+                        </div>
+                    </div>
+
+                    {/* Мобильная навигация */}
+                    <nav className="mobile-nav">
+                        <button 
+                            className={`nav-item ${activeTab === "home" ? "active" : ""}`}
+                            onClick={() => setActiveTab("home")}
+                        >
+                            <i className="fas fa-home"></i>
+                            <span>Главная</span>
+                        </button>
+                        <button 
+                            className={`nav-item ${activeTab === "tasks" ? "active" : ""}`}
+                            onClick={() => setActiveTab("tasks")}
+                        >
+                            <i className="fas fa-tasks"></i>
+                            <span>Задания</span>
+                        </button>
+                        <button 
+                            className={`nav-item ${activeTab === "referral" ? "active" : ""}`}
+                            onClick={() => setActiveTab("referral")}
+                        >
+                            <i className="fas fa-user-plus"></i>
+                            <span>Рефералы</span>
+                        </button>
+                        <button 
+                            className={`nav-item ${activeTab === "profile" ? "active" : ""}`}
+                            onClick={() => setActiveTab("profile")}
+                        >
+                            <i className="fas fa-user"></i>
+                            <span>Профиль</span>
+                        </button>
+                    </nav>
+                </div>
+            );
+        }
+
+        const rootElement = document.getElementById("root");
+        const root = ReactDOM.createRoot(rootElement);
+        root.render(<App />);
+    </script>
+</body>
+</html>
