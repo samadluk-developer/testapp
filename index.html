@@ -657,7 +657,9 @@
 </head>
 <body>
     <div id="root"></div>
-
+<script>
+  vkBridge.send("VKWebAppInit", {});
+</script>
     <script type="text/babel">
         const { useState, useEffect, useRef } = React;
 
