@@ -7,6 +7,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
     <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -127,6 +128,31 @@
         box-shadow: var(--shadow);
     }
 
+    .map-container {
+        position: relative;
+    }
+
+    .fullscreen-btn {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        z-index: 1000;
+        background-color: var(--primary-color);
+        color: white;
+        border: none;
+        border-radius: 4px;
+        padding: 6px 10px;
+        cursor: pointer;
+        font-size: 14px;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .fullscreen-btn i {
+        font-size: 16px;
+    }
+
     /* Карточка клада */
     .treasure-card {
         background-color: var(--card-bg-light);
@@ -174,7 +200,13 @@
         font-weight: 500;
     }
 
-    /* Кнопка сбора */
+    .treasure-actions {
+        display: flex;
+        gap: 10px;
+        margin-top: 15px;
+    }
+
+    /* Кнопки */
     .claim-btn {
         display: block;
         width: 100%;
@@ -202,6 +234,29 @@
 
     .claim-btn.active {
         box-shadow: 0 0 15px rgba(108, 92, 231, 0.7);
+    }
+
+    .route-btn {
+        display: block;
+        width: 100%;
+        padding: 15px;
+        background: var(--card-bg);
+        color: var(--text);
+        border: 1px solid var(--primary-color);
+        border-radius: var(--rounded);
+        font-size: 18px;
+        font-weight: 600;
+        font-family: 'Orbitron', sans-serif;
+        cursor: pointer;
+        transition: all 0.3s;
+        box-shadow: var(--shadow-sm);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .route-btn:hover {
+        background: var(--primary-dark);
+        color: white;
     }
 
     /* Навигация */
@@ -419,6 +474,48 @@
             right: 5%;
         }
     }
+
+    /* Стили для полноэкранного режима */
+    .fullscreen {
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        bottom: 0 !important;
+        width: 100% !important;
+        height: 100% !important;
+        z-index: 9999;
+        border-radius: 0 !important;
+        border: none !important;
+    }
+
+    .fullscreen .fullscreen-btn {
+        top: 20px;
+        right: 20px;
+    }
+
+    /* Адаптивность */
+    @media (max-width: 768px) {
+        .profile-stats {
+            grid-template-columns: 1fr;
+        }
+        
+        #map {
+            height: 300px;
+        }
+
+        .treasure-actions {
+            flex-direction: column;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .notification {
+            width: 90%;
+            left: 5%;
+            right: 5%;
+        }
+    }
     </style>
 </head>
 <body>
@@ -459,7 +556,7 @@
             const [treasures, setTreasures] = useState([]);
             const [selectedTreasure, setSelectedTreasure] = useState(null);
             const [distance, setDistance] = useState(0);
-            const [timeLeft, setTimeLeft] = useState(15 * 60); // 15 минут в секундах
+            const [timeLeft, setTimeLeft] = useState(15 * 60);
             const [claimedTreasures, setClaimedTreasures] = useState([]);
             const [notifications, setNotifications] = useState([]);
             const [userData, setUserData] = useState({
@@ -470,6 +567,7 @@
                 referrals: 5
             });
             const [lastTreasureUpdate, setLastTreasureUpdate] = useState(null);
+            const [isFullscreen, setIsFullscreen] = useState(false);
             
             const notificationTimeoutRef = useRef(null);
             const timerRef = useRef(null);
@@ -478,6 +576,7 @@
             const treasureMarkersRef = useRef([]);
             const mapInitializedRef = useRef(false);
             const mapContainerRef = useRef(null);
+            const routingControlRef = useRef(null);
 
             // Показать уведомление
             const showNotification = (message, type = "info", duration = 3000) => {
@@ -502,7 +601,7 @@
             // Расчет расстояния между двумя точками в метрах
             const calculateDistance = (lat1, lon1, lat2, lon2) => {
                 try {
-                    const R = 6371e3; // радиус Земли в метрах
+                    const R = 6371e3;
                     const φ1 = lat1 * Math.PI/180;
                     const φ2 = lat2 * Math.PI/180;
                     const Δφ = (lat2-lat1) * Math.PI/180;
@@ -520,19 +619,23 @@
                 }
             };
 
-            // Генерация случайных кладов вокруг пользователя
-            const generateTreasures = (lat, lng, count = 10) => {
+            // Генерация кладов (5-10 штук)
+            const generateTreasures = (lat, lng) => {
                 try {
                     const newTreasures = [];
-                    const radius = 0.5; // ~5 км
+                    const radius = 0.02; // ~2 км
+                    const count = Math.floor(Math.random() * 6) + 5; // 5-10 кладов
                     
                     for (let i = 0; i < count; i++) {
-                        const randomLat = lat + (Math.random() * radius * 2 - radius);
-                        const randomLng = lng + (Math.random() * radius * 2 - radius);
-                        const value = Math.floor(Math.random() * 900) + 100; // 100-1000 токенов
+                        const angle = (i / count) * 2 * Math.PI;
+                        const randomDist = Math.random() * radius;
+                        const randomLat = lat + randomDist * Math.cos(angle);
+                        const randomLng = lng + randomDist * Math.sin(angle);
+                        
+                        const value = Math.floor(Math.random() * 900) + 100;
                         
                         newTreasures.push({
-                            id: `treasure-${i}`,
+                            id: `treasure-${i}-${Date.now()}`,
                             lat: randomLat,
                             lng: randomLng,
                             value: value,
@@ -540,9 +643,9 @@
                         });
                     }
                     
-                    // Сохраняем время генерации кладов
                     const now = new Date().toISOString();
                     localStorage.setItem('lastTreasureUpdate', now);
+                    localStorage.setItem('currentTreasures', JSON.stringify(newTreasures));
                     setLastTreasureUpdate(now);
                     
                     return newTreasures;
@@ -552,7 +655,7 @@
                 }
             };
 
-            // Проверка, нужно ли обновить клады
+            // Проверка необходимости обновления кладов
             const shouldUpdateTreasures = () => {
                 try {
                     const lastUpdate = localStorage.getItem('lastTreasureUpdate');
@@ -560,13 +663,26 @@
                     
                     const lastUpdateDate = new Date(lastUpdate);
                     const now = new Date();
-                    const diffDays = (now - lastUpdateDate) / (1000 * 60 * 60 * 24);
+                    const diffHours = (now - lastUpdateDate) / (1000 * 60 * 60);
                     
-                    return diffDays >= 1; // Обновляем раз в сутки
+                    return diffHours >= 24;
                 } catch (error) {
                     console.error('Error in shouldUpdateTreasures:', error);
                     return true;
                 }
+            };
+
+            // Загрузка сохраненных кладов
+            const loadSavedTreasures = () => {
+                try {
+                    const savedTreasures = localStorage.getItem('currentTreasures');
+                    if (savedTreasures) {
+                        return JSON.parse(savedTreasures);
+                    }
+                } catch (error) {
+                    console.error('Error loading saved treasures:', error);
+                }
+                return [];
             };
 
             // Обновление позиции пользователя
@@ -581,12 +697,10 @@
                     
                     setUserPosition(newPosition);
                     
-                    // Центрируем карту на пользователе
                     if (mapRef.current) {
                         mapRef.current.setView([newPosition.lat, newPosition.lng], 15);
                     }
                     
-                    // Обновляем маркер пользователя
                     if (userMarkerRef.current) {
                         userMarkerRef.current.setLatLng([newPosition.lat, newPosition.lng]);
                     } else if (mapRef.current) {
@@ -599,14 +713,23 @@
                         }).addTo(mapRef.current);
                     }
                     
-                    // Генерируем клады при первом получении позиции или если прошли сутки
-                    if (treasures.length === 0 || shouldUpdateTreasures()) {
-                        const newTreasures = generateTreasures(newPosition.lat, newPosition.lng, 10000);
+                    if (treasures.length === 0) {
+                        let newTreasures = [];
+                        
+                        if (shouldUpdateTreasures()) {
+                            newTreasures = generateTreasures(newPosition.lat, newPosition.lng);
+                            showNotification("Новые клады сгенерированы!", "success");
+                        } else {
+                            newTreasures = loadSavedTreasures();
+                            if (newTreasures.length === 0) {
+                                newTreasures = generateTreasures(newPosition.lat, newPosition.lng);
+                            }
+                        }
+                        
                         setTreasures(newTreasures);
                         addTreasureMarkers(newTreasures);
                     }
                     
-                    // Обновляем расстояние до выбранного клада
                     if (selectedTreasure) {
                         const dist = calculateDistance(
                             newPosition.lat,
@@ -622,22 +745,23 @@
                 }
             };
 
-            // Добавление маркеров кладов на карту
+            // Добавление маркеров кладов (оптимизированная версия)
             const addTreasureMarkers = (treasures) => {
                 try {
                     if (!mapRef.current) return;
                     
-                    // Очищаем старые маркеры
-                    treasureMarkersRef.current.forEach(marker => {
-                        try {
-                            if (marker && marker.remove) marker.remove();
-                        } catch (e) {
-                            console.error('Error removing marker:', e);
-                        }
-                    });
-                    treasureMarkersRef.current = [];
+                    // Очистка старых маркеров
+                    clearTreasureMarkers();
                     
-                    // Добавляем новые маркеры
+                    // Создаем кластер для маркеров
+                    const markersCluster = L.markerClusterGroup({
+                        maxClusterRadius: 40,
+                        spiderfyOnMaxZoom: true,
+                        showCoverageOnHover: false,
+                        zoomToBoundsOnClick: true
+                    });
+                    
+                    // Добавляем маркеры в кластер
                     treasures.forEach(treasure => {
                         if (!treasure.claimed) {
                             const marker = L.marker([treasure.lat, treasure.lng], {
@@ -646,14 +770,77 @@
                                     className: 'treasure-marker',
                                     iconSize: [30, 30]
                                 })
-                            }).addTo(mapRef.current);
+                            });
                             
                             marker.on('click', () => selectTreasure(treasure));
+                            markersCluster.addLayer(marker);
                             treasureMarkersRef.current.push(marker);
                         }
                     });
+                    
+                    // Добавляем кластер на карту
+                    mapRef.current.addLayer(markersCluster);
                 } catch (error) {
                     console.error('Error in addTreasureMarkers:', error);
+                }
+            };
+
+            // Очистка маркеров кладов
+            const clearTreasureMarkers = () => {
+                try {
+                    if (mapRef.current) {
+                        mapRef.current.eachLayer(layer => {
+                            if (layer instanceof L.MarkerClusterGroup) {
+                                mapRef.current.removeLayer(layer);
+                            }
+                        });
+                    }
+                    treasureMarkersRef.current = [];
+                } catch (error) {
+                    console.error('Error clearing markers:', error);
+                }
+            };
+
+            // Очистка маршрута
+            const clearRoute = () => {
+                try {
+                    if (routingControlRef.current && mapRef.current) {
+                        mapRef.current.removeControl(routingControlRef.current);
+                        routingControlRef.current = null;
+                    }
+                } catch (error) {
+                    console.error('Error clearing route:', error);
+                }
+            };
+
+            // Построение маршрута к кладу
+            const buildRouteToTreasure = () => {
+                try {
+                    if (!selectedTreasure || !userPosition) return;
+                    
+                    clearRoute();
+                    
+                    routingControlRef.current = L.Routing.control({
+                        waypoints: [
+                            L.latLng(userPosition.lat, userPosition.lng),
+                            L.latLng(selectedTreasure.lat, selectedTreasure.lng)
+                        ],
+                        routeWhileDragging: true,
+                        showAlternatives: false,
+                        addWaypoints: false,
+                        draggableWaypoints: false,
+                        fitSelectedRoutes: true,
+                        show: false,
+                        lineOptions: {
+                            styles: [{ color: '#6C5CE7', opacity: 0.8, weight: 5 }]
+                        },
+                        createMarker: () => null
+                    }).addTo(mapRef.current);
+                    
+                    showNotification("Маршрут построен!", "success");
+                } catch (error) {
+                    console.error('Error building route:', error);
+                    showNotification("Ошибка построения маршрута", "error");
                 }
             };
 
@@ -663,6 +850,7 @@
                     if (!treasure) return;
                     
                     setSelectedTreasure(treasure);
+                    clearRoute();
                     
                     if (userPosition) {
                         const dist = calculateDistance(
@@ -674,10 +862,8 @@
                         setDistance(dist);
                     }
                     
-                    // Сброс таймера
                     setTimeLeft(15 * 60);
                     
-                    // Центрируем карту на кладе
                     if (mapRef.current) {
                         mapRef.current.setView([treasure.lat, treasure.lng], 15);
                     }
@@ -692,45 +878,56 @@
                 try {
                     if (!selectedTreasure || distance > 50) return;
                     
-                    // Обновляем состояние клада
                     const updatedTreasures = treasures.map(t => 
                         t.id === selectedTreasure.id ? { ...t, claimed: true } : t
                     );
                     
                     setTreasures(updatedTreasures);
                     setClaimedTreasures(prev => [...prev, selectedTreasure.id]);
+                    localStorage.setItem('currentTreasures', JSON.stringify(updatedTreasures));
                     
-                    // Обновляем баланс пользователя
                     setUserData(prev => ({
                         ...prev,
                         balance: prev.balance + selectedTreasure.value,
                         treasuresFound: prev.treasuresFound + 1
                     }));
                     
-                    // Показываем уведомление
                     showNotification(`Вы нашли клад! +${selectedTreasure.value} токенов`, "success");
+                    clearRoute();
                     
                     // Удаляем маркер клада
-                    const markerIndex = treasureMarkersRef.current.findIndex(
-                        m => m && m.getLatLng && 
-                             m.getLatLng().lat === selectedTreasure.lat && 
-                             m.getLatLng().lng === selectedTreasure.lng
-                    );
+                    clearTreasureMarkers();
+                    addTreasureMarkers(updatedTreasures);
                     
-                    if (markerIndex !== -1) {
-                        try {
-                            treasureMarkersRef.current[markerIndex].remove();
-                            treasureMarkersRef.current.splice(markerIndex, 1);
-                        } catch (e) {
-                            console.error('Error removing marker:', e);
-                        }
-                    }
-                    
-                    // Сбрасываем выбранный клад
                     setSelectedTreasure(null);
                 } catch (error) {
                     console.error('Error in claimTreasure:', error);
                     showNotification("Ошибка сбора клада", "error");
+                }
+            };
+
+            // Переключение полноэкранного режима
+            const toggleFullscreen = () => {
+                try {
+                    const mapElement = document.getElementById('map');
+                    if (!mapElement) return;
+                    
+                    if (!isFullscreen) {
+                        mapElement.classList.add('fullscreen');
+                        setIsFullscreen(true);
+                    } else {
+                        mapElement.classList.remove('fullscreen');
+                        setIsFullscreen(false);
+                    }
+                    
+                    // Обновляем размер карты после изменения режима
+                    if (mapRef.current) {
+                        setTimeout(() => {
+                            mapRef.current.invalidateSize();
+                        }, 300);
+                    }
+                } catch (error) {
+                    console.error('Error toggling fullscreen:', error);
                 }
             };
 
@@ -755,7 +952,6 @@
                         }).addTo(mapRef.current);
                         mapInitializedRef.current = true;
                         
-                        // Если есть пользовательская позиция, центрируем карту
                         if (userPosition) {
                             mapRef.current.setView([userPosition.lat, userPosition.lng], 15);
                         }
@@ -769,12 +965,14 @@
             // Уничтожение карты
             const destroyMap = () => {
                 try {
+                    clearRoute();
+                    clearTreasureMarkers();
+                    
                     if (mapRef.current) {
                         mapRef.current.remove();
                         mapRef.current = null;
                         mapInitializedRef.current = false;
                         userMarkerRef.current = null;
-                        treasureMarkersRef.current = [];
                     }
                 } catch (e) {
                     console.error('Error cleaning up map:', e);
@@ -783,20 +981,19 @@
 
             // Инициализация при монтировании
             useEffect(() => {
-                // Загружаем время последнего обновления кладов
                 const lastUpdate = localStorage.getItem('lastTreasureUpdate');
                 if (lastUpdate) {
                     setLastTreasureUpdate(lastUpdate);
                 }
                 
                 return () => {
-                    // Очистка при размонтировании
                     if (timerRef.current) {
                         clearInterval(timerRef.current);
                     }
                     if (notificationTimeoutRef.current) {
                         clearTimeout(notificationTimeoutRef.current);
                     }
+                    destroyMap();
                 };
             }, []);
 
@@ -836,20 +1033,16 @@
             // Управление картой при переключении вкладок
             useEffect(() => {
                 if (activeTab === "treasures") {
-                    // При переходе на вкладку с картой инициализируем карту
                     initMap();
                     
-                    // Обновляем маркеры, если они есть
                     if (treasures.length > 0) {
                         addTreasureMarkers(treasures);
                     }
                 } else {
-                    // При переходе на другие вкладки уничтожаем карту
                     destroyMap();
                 }
                 
                 return () => {
-                    // При размонтировании или смене вкладки уничтожаем карту
                     if (activeTab !== "treasures") {
                         destroyMap();
                     }
@@ -881,6 +1074,7 @@
                     if (timeLeft <= 0 && selectedTreasure) {
                         showNotification("Время вышло! Клад исчез.", "error");
                         setSelectedTreasure(null);
+                        clearRoute();
                     }
                 } catch (error) {
                     console.error('Error handling timer expiration:', error);
@@ -908,7 +1102,16 @@
                 <div className="page">
                     <h2><i className="fas fa-coins"></i> Охота за кладами</h2>
                     
-                    <div id="map" ref={mapContainerRef}></div>
+                    <div className="map-container">
+                        <div id="map" ref={mapContainerRef}></div>
+                        <button 
+                            className="fullscreen-btn"
+                            onClick={toggleFullscreen}
+                        >
+                            <i className={`fas ${isFullscreen ? 'fa-compress' : 'fa-expand'}`}></i>
+                            {isFullscreen ? 'Выйти' : 'На весь экран'}
+                        </button>
+                    </div>
                     
                     {selectedTreasure ? (
                         <div className="treasure-card">
@@ -928,15 +1131,23 @@
                                 </span>
                             </div>
                             
-                            <button 
-                                className={`claim-btn ${distance <= 50 ? 'active pulse' : ''}`}
-                                onClick={claimTreasure}
-                                disabled={distance > 50}
-                            >
-                                {distance <= 50 ? 
-                                    `Забрать ${selectedTreasure.value} токенов` : 
-                                    "Подойдите ближе"}
-                            </button>
+                            <div className="treasure-actions">
+                                <button 
+                                    className={`claim-btn ${distance <= 50 ? 'active pulse' : ''}`}
+                                    onClick={claimTreasure}
+                                    disabled={distance > 50}
+                                >
+                                    {distance <= 50 ? 
+                                        `Забрать ${selectedTreasure.value} токенов` : 
+                                        "Подойдите ближе"}
+                                </button>
+                                <button 
+                                    className="route-btn"
+                                    onClick={buildRouteToTreasure}
+                                >
+                                    <i className="fas fa-route"></i> Маршрут
+                                </button>
+                            </div>
                         </div>
                     ) : (
                         <div className="treasure-card">
@@ -947,7 +1158,7 @@
                             </div>
                             {lastTreasureUpdate && (
                                 <p style={{ fontSize: '12px', color: 'var(--text-light)', textAlign: 'center' }}>
-                                    Последнее обновление кладов: {new Date(lastTreasureUpdate).toLocaleString()}
+                                    Кладов доступно: {treasures.filter(t => !t.claimed).length} из {treasures.length}
                                 </p>
                             )}
                         </div>
@@ -1094,5 +1305,7 @@
         root.render(<App />);
     </script>
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
+    <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
 </body>
 </html>
