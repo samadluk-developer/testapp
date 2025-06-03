@@ -132,10 +132,8 @@
         position: relative;
     }
 
-    .fullscreen-btn {
+    .map-control-btn {
         position: absolute;
-        top: 10px;
-        right: 10px;
         z-index: 1000;
         background-color: var(--primary-color);
         color: white;
@@ -147,10 +145,31 @@
         display: flex;
         align-items: center;
         gap: 5px;
+        box-shadow: var(--shadow-sm);
     }
 
-    .fullscreen-btn i {
+    .map-control-btn i {
         font-size: 16px;
+    }
+
+    .fullscreen-btn {
+        top: 10px;
+        right: 10px;
+    }
+
+    .locate-btn {
+        top: 50px;
+        right: 10px;
+    }
+
+    .map-type-btn {
+        top: 90px;
+        right: 10px;
+    }
+
+    .clear-route-btn {
+        top: 130px;
+        right: 10px;
     }
 
     /* Карточка клада */
@@ -489,8 +508,23 @@
         border: none !important;
     }
 
-    .fullscreen .fullscreen-btn {
+    .fullscreen .map-control-btn {
         top: 20px;
+        right: 20px;
+    }
+
+    .fullscreen .locate-btn {
+        top: 70px;
+        right: 20px;
+    }
+
+    .fullscreen .map-type-btn {
+        top: 120px;
+        right: 20px;
+    }
+
+    .fullscreen .clear-route-btn {
+        top: 170px;
         right: 20px;
     }
 
@@ -568,6 +602,7 @@
             });
             const [lastTreasureUpdate, setLastTreasureUpdate] = useState(null);
             const [isFullscreen, setIsFullscreen] = useState(false);
+            const [mapType, setMapType] = useState("satellite"); // "satellite" или "standard"
             
             const notificationTimeoutRef = useRef(null);
             const timerRef = useRef(null);
@@ -577,6 +612,7 @@
             const mapInitializedRef = useRef(false);
             const mapContainerRef = useRef(null);
             const routingControlRef = useRef(null);
+            const tileLayerRef = useRef(null);
 
             // Показать уведомление
             const showNotification = (message, type = "info", duration = 3000) => {
@@ -697,10 +733,6 @@
                     
                     setUserPosition(newPosition);
                     
-                    if (mapRef.current) {
-                        mapRef.current.setView([newPosition.lat, newPosition.lng], 15);
-                    }
-                    
                     if (userMarkerRef.current) {
                         userMarkerRef.current.setLatLng([newPosition.lat, newPosition.lng]);
                     } else if (mapRef.current) {
@@ -807,6 +839,7 @@
                     if (routingControlRef.current && mapRef.current) {
                         mapRef.current.removeControl(routingControlRef.current);
                         routingControlRef.current = null;
+                        showNotification("Маршрут очищен", "info");
                     }
                 } catch (error) {
                     console.error('Error clearing route:', error);
@@ -931,6 +964,51 @@
                 }
             };
 
+            // Переключение типа карты
+            const toggleMapType = () => {
+                try {
+                    if (!mapRef.current) return;
+                    
+                    const newMapType = mapType === "satellite" ? "standard" : "satellite";
+                    setMapType(newMapType);
+                    
+                    // Удаляем старый слой
+                    if (tileLayerRef.current) {
+                        mapRef.current.removeLayer(tileLayerRef.current);
+                    }
+                    
+                    // Добавляем новый слой
+                    if (newMapType === "satellite") {
+                        tileLayerRef.current = L.tileLayer('https://api.mapbox.com/styles/v1/mapbox/satellite-v9/tiles/{z}/{x}/{y}?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw', {
+                            attribution: '© <a href="https://www.mapbox.com/about/maps/">Mapbox</a> © <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+                            maxZoom: 19,
+                        }).addTo(mapRef.current);
+                    } else {
+                        tileLayerRef.current = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                        }).addTo(mapRef.current);
+                    }
+                    
+                    showNotification(`Тип карты: ${newMapType === "satellite" ? "Спутник" : "Стандарт"}`, "info");
+                } catch (error) {
+                    console.error('Error toggling map type:', error);
+                    showNotification("Ошибка переключения карты", "error");
+                }
+            };
+
+            // Центрирование карты на пользователе
+            const centerOnUser = () => {
+                try {
+                    if (mapRef.current && userPosition) {
+                        mapRef.current.setView([userPosition.lat, userPosition.lng], 15);
+                        showNotification("Карта центрирована на вашем местоположении", "info");
+                    }
+                } catch (error) {
+                    console.error('Error centering on user:', error);
+                    showNotification("Ошибка центрирования карты", "error");
+                }
+            };
+
             // Копирование реферального кода
             const copyReferralCode = () => {
                 try {
@@ -947,9 +1025,13 @@
                 try {
                     if (!mapInitializedRef.current && document.getElementById('map')) {
                         mapRef.current = L.map('map').setView([0, 0], 15);
-                        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                        
+                        // Инициализация стандартного слоя
+                        tileLayerRef.current = L.tileLayer('https://api.mapbox.com/styles/v1/mapbox/satellite-v9/tiles/{z}/{x}/{y}?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw', {
+                            attribution: '© <a href="https://www.mapbox.com/about/maps/">Mapbox</a> © <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+                            maxZoom: 19,
                         }).addTo(mapRef.current);
+                        
                         mapInitializedRef.current = true;
                         
                         if (userPosition) {
@@ -973,6 +1055,7 @@
                         mapRef.current = null;
                         mapInitializedRef.current = false;
                         userMarkerRef.current = null;
+                        tileLayerRef.current = null;
                     }
                 } catch (e) {
                     console.error('Error cleaning up map:', e);
@@ -1105,12 +1188,35 @@
                     <div className="map-container">
                         <div id="map" ref={mapContainerRef}></div>
                         <button 
-                            className="fullscreen-btn"
+                            className="map-control-btn fullscreen-btn"
                             onClick={toggleFullscreen}
                         >
                             <i className={`fas ${isFullscreen ? 'fa-compress' : 'fa-expand'}`}></i>
                             {isFullscreen ? 'Выйти' : 'На весь экран'}
                         </button>
+                        <button 
+                            className="map-control-btn locate-btn"
+                            onClick={centerOnUser}
+                        >
+                            <i className="fas fa-location-arrow"></i>
+                            Где я?
+                        </button>
+                        <button 
+                            className="map-control-btn map-type-btn"
+                            onClick={toggleMapType}
+                        >
+                            <i className={`fas ${mapType === "satellite" ? "fa-map" : "fa-satellite"}`}></i>
+                            {mapType === "satellite" ? "Карта" : "Спутник"}
+                        </button>
+                        {selectedTreasure && (
+                            <button 
+                                className="map-control-btn clear-route-btn"
+                                onClick={clearRoute}
+                            >
+                                <i className="fas fa-times"></i>
+                                Сбросить маршрут
+                            </button>
+                        )}
                     </div>
                     
                     {selectedTreasure ? (
