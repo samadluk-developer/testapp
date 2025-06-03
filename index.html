@@ -3,31 +3,36 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TaskApp - мини-приложение ВКонтакте</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <title>Local Crypto Hunt</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://unpkg.com/@vkontakte/vk-bridge/dist/bridge.min.js"></script>
-        <style>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
     :root {
-        --primary-color: #07F;
-        --primary-dark: #06E;
-        --primary-light: #E5EDFD;
-        --secondary-color: #4BB34B;
-        --accent-color: #FFA000;
-        --danger-color: #E64646;
-        --light-bg: #F5F5F5;
-        --card-bg: #FFFFFF;
-        --text: #000000;
-        --text-light: #818C99;
-        --border: #E7E8EC;
-        --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-        --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-        --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        --primary-color: #6C5CE7;
+        --primary-dark: #5649C0;
+        --primary-light: #E6E4FF;
+        --secondary-color: #00B894;
+        --accent-color: #FDCB6E;
+        --danger-color: #D63031;
+        --dark-bg: #1A1A2E;
+        --card-bg: #16213E;
+        --card-bg-light: #2D4263;
+        --text: #FFFFFF;
+        --text-light: #B8B8B8;
+        --border: #2D4263;
+        --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
+        --shadow: 0 4px 6px rgba(0, 0, 0, 0.25);
+        --shadow-md: 0 10px 20px rgba(0, 0, 0, 0.3);
         --rounded-sm: 8px;
         --rounded: 12px;
         --rounded-lg: 16px;
         --rounded-xl: 20px;
         --section-padding: 16px;
+        --neon-glow: 0 0 10px rgba(108, 92, 231, 0.7);
     }
 
     * {
@@ -37,23 +42,26 @@
     }
 
     body {
-        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-        background-color: var(--light-bg);
+        font-family: 'Roboto', -apple-system, BlinkMacSystemFont, sans-serif;
+        background-color: var(--dark-bg);
         color: var(--text);
         line-height: 1.5;
         -webkit-font-smoothing: antialiased;
     }
 
-    h1, h2, h3 {
+    h1, h2, h3, h4 {
+        font-family: 'Orbitron', sans-serif;
+        font-weight: 600;
         color: var(--text);
         margin-bottom: 16px;
-        font-weight: 600;
+        letter-spacing: 0.5px;
     }
 
     .container {
         max-width: 100%;
         margin: 0 auto;
         padding: var(--section-padding);
+        padding-bottom: 80px;
     }
 
     /* Шапка */
@@ -65,6 +73,7 @@
         top: 0;
         z-index: 100;
         border-bottom: 1px solid var(--border);
+        box-shadow: var(--shadow-sm);
     }
 
     .header-content {
@@ -80,417 +89,271 @@
         align-items: center;
         gap: 8px;
         font-size: 18px;
-        font-weight: 600;
+        font-weight: 700;
+        font-family: 'Orbitron', sans-serif;
         color: var(--primary-color);
+        text-shadow: var(--neon-glow);
     }
 
     .logo i {
         font-size: 20px;
     }
 
-    .user-avatar {
-        width: 36px;
-        height: 36px;
-        border-radius: 50%;
-        background-color: var(--primary-light);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: var(--primary-color);
-        font-weight: 600;
-        border: 2px solid var(--primary-color);
-    }
-
-    /* Баланс */
-    .balance-card {
-        background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
-        color: white;
-        padding: 16px;
-        border-radius: var(--rounded-lg);
-        margin-bottom: 16px;
-        box-shadow: var(--shadow);
-        position: relative;
-        overflow: hidden;
-    }
-
-    .balance-card::after {
-        content: '';
-        position: absolute;
-        top: -50px;
-        right: -50px;
-        width: 150px;
-        height: 150px;
-        background-color: rgba(255, 255, 255, 0.1);
-        border-radius: 50%;
-    }
-
-    .balance-label {
-        font-size: 14px;
-        margin-bottom: 4px;
-        opacity: 0.9;
-    }
-
-    .balance-amount {
-        font-size: 28px;
-        font-weight: 700;
-        letter-spacing: -0.025em;
-    }
-
-    /* Действия */
-    .actions-container {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-        gap: 12px;
-        margin-bottom: 16px;
-    }
-
-    .action-card {
-        background-color: var(--card-bg);
-        border-radius: var(--rounded);
-        padding: 16px 8px;
-        text-align: center;
-        cursor: pointer;
-        transition: all 0.2s;
-        box-shadow: var(--shadow-sm);
-        border: 1px solid var(--border);
-    }
-
-    .action-card:hover {
-        transform: translateY(-3px);
-        box-shadow: var(--shadow);
-        border-color: var(--primary-color);
-    }
-
-    .action-icon {
-        font-size: 24px;
-        margin-bottom: 8px;
-        color: var(--primary-color);
-        background-color: var(--primary-light);
-        width: 48px;
-        height: 48px;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        border-radius: 50%;
-    }
-
-    .action-title {
-        font-size: 14px;
-        font-weight: 500;
-    }
-
-    /* Карточки заданий */
-    .task-card {
-        background-color: var(--card-bg);
-        border-radius: var(--rounded);
-        padding: 16px;
-        margin-bottom: 12px;
-        box-shadow: var(--shadow-sm);
-        border: 1px solid var(--border);
-        transition: all 0.2s;
-    }
-
-    .task-card:hover {
-        box-shadow: var(--shadow);
-    }
-
-    .task-card-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 8px;
-    }
-
-    .task-card-title {
-        font-weight: 600;
-        font-size: 16px;
+    .user-profile {
         display: flex;
         align-items: center;
         gap: 8px;
     }
 
-    .task-card-reward {
+    .user-avatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
         background-color: var(--primary-color);
-        color: white;
-        padding: 4px 12px;
-        border-radius: 16px;
-        font-size: 14px;
-        font-weight: 600;
-    }
-
-    .task-card-description {
-        font-size: 14px;
-        color: var(--text-light);
-        margin-bottom: 12px;
-        line-height: 1.5;
-    }
-
-    .task-card-footer {
         display: flex;
-        justify-content: space-between;
         align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: bold;
     }
 
-    .task-card-status {
-        font-size: 12px;
-        padding: 4px 12px;
-        border-radius: 16px;
-        background-color: rgba(75, 179, 75, 0.1);
-        color: var(--secondary-color);
+    /* Карта */
+    #map {
+        height: 400px;
+        width: 100%;
+        border-radius: var(--rounded-lg);
+        margin-bottom: 16px;
+        border: 2px solid var(--primary-color);
+        box-shadow: var(--shadow);
+    }
+
+    /* Карточка клада */
+    .treasure-card {
+        background-color: var(--card-bg-light);
+        color: var(--text);
+        padding: 16px;
+        border-radius: var(--rounded-lg);
+        margin-bottom: 16px;
+        box-shadow: var(--shadow);
+        border-left: 4px solid var(--primary-color);
+    }
+
+    .treasure-value {
+        font-size: 24px;
+        font-weight: 700;
+        color: var(--accent-color);
+        text-align: center;
+        margin: 10px 0;
+        font-family: 'Orbitron', sans-serif;
+    }
+
+    .treasure-distance {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 12px;
+    }
+
+    .distance-label {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        color: var(--text-light);
+    }
+
+    .distance-value {
+        font-weight: 500;
+        color: var(--text);
+    }
+
+    .treasure-timer {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        color: var(--danger-color);
         font-weight: 500;
     }
 
-    .task-card-status.completed {
-        background-color: rgba(239, 68, 68, 0.1);
-        color: var(--danger-color);
-    }
-
-    .task-card-btn {
-        padding: 12px 16px;
-        background-color: var(--primary-color);
+    /* Кнопка сбора */
+    .claim-btn {
+        display: block;
+        width: 100%;
+        padding: 15px;
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
         color: white;
         border: none;
         border-radius: var(--rounded);
+        font-size: 18px;
         font-weight: 600;
+        font-family: 'Orbitron', sans-serif;
         cursor: pointer;
-        transition: background-color 0.2s;
-        font-size: 14px;
-        min-width: 140px;
+        transition: all 0.3s;
+        box-shadow: var(--shadow-sm);
+        text-transform: uppercase;
+        letter-spacing: 1px;
     }
 
-    .task-card-btn:hover {
-        background-color: var(--primary-dark);
-    }
-
-    .task-card-btn:disabled {
-        background-color: var(--border);
+    .claim-btn:disabled {
+        background: var(--card-bg-light);
         color: var(--text-light);
         cursor: not-allowed;
+        box-shadow: none;
+    }
+
+    .claim-btn.active {
+        box-shadow: 0 0 15px rgba(108, 92, 231, 0.7);
+    }
+
+    /* Навигация */
+    .mobile-nav {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background-color: var(--card-bg);
+        display: flex;
+        justify-content: space-around;
+        padding: 12px 0;
+        border-top: 1px solid var(--border);
+        z-index: 100;
+        box-shadow: 0 -2px 10px rgba(0,0,0,0.3);
+    }
+
+    .nav-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        color: var(--text-light);
+        text-decoration: none;
+        font-size: 12px;
+        flex: 1;
+        position: relative;
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 8px 0;
+        transition: all 0.2s;
+    }
+
+    .nav-item.active {
+        color: var(--primary-color);
+        transform: translateY(-5px);
+    }
+
+    .nav-item i {
+        font-size: 20px;
+        margin-bottom: 4px;
+    }
+
+    .nav-item.active i {
+        text-shadow: 0 0 10px rgba(108, 92, 231, 0.7);
+    }
+
+    /* Страница профиля */
+    .profile-section {
+        background-color: var(--card-bg-light);
+        border-radius: var(--rounded-lg);
+        padding: 16px;
+        margin-bottom: 16px;
+        box-shadow: var(--shadow-sm);
+    }
+
+    .profile-header {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        margin-bottom: 16px;
+    }
+
+    .profile-avatar {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        background-color: var(--primary-color);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 32px;
+        font-weight: bold;
+    }
+
+    .profile-info h3 {
+        margin-bottom: 4px;
+    }
+
+    .profile-stats {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+        margin-bottom: 16px;
+    }
+
+    .stat-card {
+        background-color: var(--card-bg);
+        border-radius: var(--rounded);
+        padding: 12px;
+        text-align: center;
+    }
+
+    .stat-value {
+        font-size: 24px;
+        font-weight: 700;
+        color: var(--accent-color);
+        font-family: 'Orbitron', sans-serif;
+    }
+
+    .stat-label {
+        font-size: 12px;
+        color: var(--text-light);
+        text-transform: uppercase;
+        letter-spacing: 1px;
     }
 
     /* Реферальная система */
     .referral-card {
-        background-color: var(--card-bg);
+        background-color: var(--card-bg-light);
         border-radius: var(--rounded-lg);
         padding: 16px;
         margin-bottom: 16px;
         box-shadow: var(--shadow-sm);
-        border: 1px solid var(--border);
-        text-align: center;
     }
 
     .referral-code {
-        background-color: var(--light-bg);
-        padding: 12px;
+        background-color: var(--card-bg);
         border-radius: var(--rounded);
+        padding: 12px;
         font-family: monospace;
-        font-size: 16px;
+        text-align: center;
         margin: 12px 0;
         word-break: break-all;
-        border: 1px dashed var(--border);
-        color: var(--primary-color);
-        font-weight: 600;
     }
 
-    .referral-stats {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 12px;
-        margin-top: 16px;
-    }
-
-    .referral-stat {
-        background-color: var(--light-bg);
+    .copy-btn {
+        width: 100%;
         padding: 12px;
-        border-radius: var(--rounded);
-        text-align: center;
-        border: 1px solid var(--border);
-    }
-
-    .referral-stat-value {
-        font-size: 20px;
-        font-weight: 700;
-        color: var(--primary-color);
-        margin-bottom: 4px;
-    }
-
-    .referral-stat-label {
-        font-size: 14px;
-        color: var(--text-light);
-    }
-
-    /* Премиум карточка */
-    .premium-card {
-        background: linear-gradient(135deg, #FFA000, #FF8F00);
+        background-color: var(--primary-color);
         color: white;
-        border-radius: var(--rounded-lg);
-        padding: 16px;
-        margin-bottom: 16px;
-        box-shadow: var(--shadow);
-        position: relative;
-        overflow: hidden;
-    }
-
-    .premium-card::after {
-        content: '';
-        position: absolute;
-        top: -50px;
-        right: -50px;
-        width: 150px;
-        height: 150px;
-        background-color: rgba(255, 255, 255, 0.1);
-        border-radius: 50%;
-    }
-
-    .premium-title {
-        font-size: 20px;
-        font-weight: 700;
-        margin-bottom: 8px;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
-
-    .premium-price {
-        font-size: 24px;
-        font-weight: 700;
-        margin-bottom: 12px;
-    }
-
-    .premium-features {
-        margin-bottom: 16px;
-    }
-
-    .premium-feature {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        margin-bottom: 8px;
-        font-size: 14px;
-    }
-
-    .premium-btn {
-        width: 100%;
-        padding: 12px;
-        background-color: white;
-        color: #FF8F00;
         border: none;
         border-radius: var(--rounded);
-        font-weight: 700;
-        cursor: pointer;
-        transition: all 0.2s;
-    }
-
-    .premium-btn:hover {
-        transform: translateY(-2px);
-        box-shadow: var(--shadow);
-    }
-
-    /* Шторка с заданиями */
-    .task-drawer {
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        background-color: var(--card-bg);
-        border-radius: var(--rounded-lg) var(--rounded-lg) 0 0;
-        padding: 16px;
-        z-index: 2000;
-        box-shadow: 0 -10px 25px rgba(0,0,0,0.15);
-        transform: translateY(100%);
-        transition: transform 0.3s ease;
-        max-height: 80vh;
-        overflow-y: auto;
-    }
-
-    .task-drawer.open {
-        transform: translateY(0);
-    }
-
-    .task-drawer-overlay {
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background-color: rgba(0,0,0,0.5);
-        z-index: 1500;
-        opacity: 0;
-        pointer-events: none;
-        transition: opacity 0.3s ease;
-    }
-
-    .task-drawer-overlay.open {
-        opacity: 1;
-        pointer-events: all;
-    }
-
-    .task-drawer-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 16px;
-        padding-bottom: 16px;
-        border-bottom: 1px solid var(--border);
-    }
-
-    .task-drawer-title {
-        font-size: 18px;
         font-weight: 600;
-        color: var(--text);
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
-
-    .task-drawer-close {
-        background: none;
-        border: none;
-        color: var(--text-light);
-        font-size: 20px;
-        cursor: pointer;
-        padding: 8px;
-    }
-
-    /* Форма загрузки фото */
-    .photo-upload {
-        margin-bottom: 16px;
-    }
-
-    .photo-upload-label {
-        display: block;
-        margin-bottom: 8px;
-        font-size: 14px;
-        color: var(--text);
-        font-weight: 500;
-    }
-
-    .photo-upload-btn {
-        display: block;
-        width: 100%;
-        padding: 12px;
-        background-color: var(--light-bg);
-        border: 2px dashed var(--border);
-        border-radius: var(--rounded);
-        text-align: center;
         cursor: pointer;
         transition: all 0.2s;
-        color: var(--text-light);
-        font-weight: 500;
     }
 
-    .photo-upload-btn:hover {
-        border-color: var(--primary-color);
-        color: var(--primary-color);
-        background-color: var(--primary-light);
+    .copy-btn:hover {
+        background-color: var(--primary-dark);
     }
 
-    .photo-preview {
-        max-width: 100%;
-        border-radius: var(--rounded);
-        margin-top: 12px;
-        display: none;
-        border: 1px solid var(--border);
+    /* Анимации */
+    @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+        100% { transform: scale(1); }
+    }
+
+    .pulse {
+        animation: pulse 2s infinite;
     }
 
     /* Уведомления */
@@ -505,7 +368,7 @@
     }
 
     .notification {
-        background-color: var(--card-bg);
+        background-color: var(--card-bg-light);
         border-radius: var(--rounded);
         padding: 12px;
         box-shadow: var(--shadow-md);
@@ -538,112 +401,18 @@
         border-left-color: var(--danger-color);
     }
 
-    /* Навигация */
-    .mobile-nav {
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        background-color: var(--card-bg);
-        display: flex;
-        justify-content: space-around;
-        padding: 12px 0;
-        border-top: 1px solid var(--border);
-        z-index: 100;
-        box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
-    }
-
-    .nav-item {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        color: var(--text-light);
-        text-decoration: none;
-        font-size: 12px;
-        flex: 1;
-        position: relative;
-        background: none;
-        border: none;
-        cursor: pointer;
-        padding: 8px 0;
-        transition: color 0.2s;
-    }
-
-    .nav-item.active {
-        color: var(--primary-color);
-    }
-
-    .nav-item i {
-        font-size: 20px;
-        margin-bottom: 4px;
-    }
-
-    /* Страницы */
-    .page {
-        display: none;
-        padding-bottom: 72px;
-    }
-
-    .page.active {
-        display: block;
-    }
-
-    /* Профиль */
-    .profile-header {
-        text-align: center;
-        margin-bottom: 16px;
-    }
-
-    .profile-avatar {
-        width: 80px;
-        height: 80px;
-        border-radius: 50%;
-        object-fit: cover;
-        margin-bottom: 12px;
-        border: 3px solid var(--primary-color);
-        padding: 2px;
-    }
-
-    .profile-stats {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 12px;
-        margin-bottom: 16px;
-    }
-
-    .profile-stat {
-        background-color: var(--card-bg);
-        padding: 12px;
-        border-radius: var(--rounded);
-        text-align: center;
-        box-shadow: var(--shadow-sm);
-        border: 1px solid var(--border);
-    }
-
-    .profile-stat-value {
-        font-size: 20px;
-        font-weight: 700;
-        color: var(--primary-color);
-        margin-bottom: 4px;
-    }
-
-    .profile-stat-label {
-        font-size: 14px;
-        color: var(--text-light);
-    }
-
     /* Адаптивность */
     @media (max-width: 768px) {
-        .actions-container {
-            grid-template-columns: repeat(4, 1fr);
+        .profile-stats {
+            grid-template-columns: 1fr;
+        }
+        
+        #map {
+            height: 300px;
         }
     }
 
     @media (max-width: 480px) {
-        .actions-container {
-            grid-template-columns: repeat(2, 1fr);
-        }
-        
         .notification {
             width: 90%;
             left: 5%;
@@ -653,697 +422,677 @@
     </style>
 </head>
 <body>
-    <div id="app">
-        <!-- Шапка -->
-        <header class="header">
-            <div class="header-content">
-                <div class="logo">
-                    <i class="fas fa-coins"></i>
-                    <span>TaskApp</span>
-                </div>
-                <div class="user-avatar" id="user-avatar">
-                    IP
-                </div>
-            </div>
-        </header>
+    <div id="root"></div>
 
-        <div class="container">
-            <!-- Страницы будут вставляться сюда через JavaScript -->
-            <div id="page-content"></div>
-        </div>
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
 
-        <!-- Уведомления -->
-        <div class="notification-container" id="notification-container"></div>
+        function ErrorBoundary({ children }) {
+            const [hasError, setHasError] = useState(false);
 
-        <!-- Шторка с заданием -->
-        <div class="task-drawer-overlay" id="task-overlay"></div>
-        <div class="task-drawer" id="task-drawer"></div>
-
-        <!-- Шторка с информацией о группе ВК -->
-        <div class="task-drawer-overlay" id="vk-group-overlay"></div>
-        <div class="task-drawer" id="vk-group-drawer"></div>
-
-        <!-- Мобильная навигация -->
-        <nav class="mobile-nav">
-            <button class="nav-item active" data-page="home">
-                <i class="fas fa-home"></i>
-                <span>Главная</span>
-            </button>
-            <button class="nav-item" data-page="tasks">
-                <i class="fas fa-tasks"></i>
-                <span>Задания</span>
-            </button>
-            <button class="nav-item" data-page="referral">
-                <i class="fas fa-user-plus"></i>
-                <span>Рефералы</span>
-            </button>
-            <button class="nav-item" data-page="profile">
-                <i class="fas fa-user"></i>
-                <span>Профиль</span>
-            </button>
-        </nav>
-    </div>
-
-    <script>
-        // Состояние приложения
-        const state = {
-            activeTab: 'home',
-            balance: 1250,
-            tasks: [
-                {
-                    id: 1,
-                    title: "Спонсорское задание",
-                    description: "Выполните условие спонсора и получите монеты",
-                    reward: 50,
-                    icon: "fas fa-ad",
-                    type: "sponsor",
-                    completed: false,
-                    canClaim: true,
-                    requiresPhoto: true
-                },
-                {
-                    id: 2,
-                    title: "Оставьте отзыв",
-                    description: "Оставьте отзыв о нашем приложении",
-                    reward: 200,
-                    icon: "fas fa-star",
-                    type: "feedback",
-                    completed: false,
-                    canClaim: false,
-                    requiresPhoto: true
-                }
-            ],
-            activeTask: null,
-            showTaskDrawer: false,
-            photoPreview: null,
-            notifications: [],
-            showVkGroupInfo: false,
-            isSubscribed: false,
-            currentUser: {
-                id: 123456,
-                name: "Иван Петров",
-                avatar: "",
-                status: "Активный участник"
-            }
-        };
-
-        // DOM элементы
-        const elements = {
-            pageContent: document.getElementById('page-content'),
-            notificationContainer: document.getElementById('notification-container'),
-            taskOverlay: document.getElementById('task-overlay'),
-            taskDrawer: document.getElementById('task-drawer'),
-            vkGroupOverlay: document.getElementById('vk-group-overlay'),
-            vkGroupDrawer: document.getElementById('vk-group-drawer'),
-            userAvatar: document.getElementById('user-avatar'),
-            navItems: document.querySelectorAll('.nav-item')
-        };
-
-        // Инициализация приложения
-        function initApp() {
-            // Инициализация VK Bridge
-            if (window.vkBridge) {
-                vkBridge.send('VKWebAppInit');
+            useEffect(() => {
+                const errorHandler = (error) => {
+                    console.error('Error caught by ErrorBoundary:', error);
+                    setHasError(true);
+                };
                 
-                // Получаем информацию о пользователе
-                vkBridge.send('VKWebAppGetUserInfo')
-                    .then(data => {
-                        // Обновляем данные пользователя
-                        state.currentUser.name = `${data.first_name} ${data.last_name}`;
-                        state.currentUser.avatar = data.photo_100;
-                        updateUserAvatar();
-                    })
-                    .catch(error => console.error(error));
-                
-                // Проверяем подписку на группу
-                checkGroupSubscription();
+                window.addEventListener('error', errorHandler);
+                return () => window.removeEventListener('error', errorHandler);
+            }, []);
+
+            if (hasError) {
+                return (
+                    <div className="treasure-card" style={{ color: 'var(--danger-color)' }}>
+                        <h4>Произошла ошибка</h4>
+                        <p>Пожалуйста, перезагрузите страницу</p>
+                    </div>
+                );
             }
 
-            // Навигация
-            setupNavigation();
-            
-            // Рендер начальной страницы
-            renderPage(state.activeTab);
+            return children;
         }
 
-        // Настройка навигации
-        function setupNavigation() {
-            elements.navItems.forEach(item => {
-                item.addEventListener('click', () => {
-                    const page = item.getAttribute('data-page');
-                    setActiveTab(page);
-                });
+        function App() {
+            // Состояния приложения
+            const [activeTab, setActiveTab] = useState("treasures");
+            const [userPosition, setUserPosition] = useState(null);
+            const [treasures, setTreasures] = useState([]);
+            const [selectedTreasure, setSelectedTreasure] = useState(null);
+            const [distance, setDistance] = useState(0);
+            const [timeLeft, setTimeLeft] = useState(15 * 60); // 15 минут в секундах
+            const [claimedTreasures, setClaimedTreasures] = useState([]);
+            const [notifications, setNotifications] = useState([]);
+            const [userData, setUserData] = useState({
+                name: "CryptoHunter",
+                balance: 0,
+                treasuresFound: 0,
+                referralCode: "CRYPTO123",
+                referrals: 5
             });
-        }
+            const [lastTreasureUpdate, setLastTreasureUpdate] = useState(null);
+            
+            const notificationTimeoutRef = useRef(null);
+            const timerRef = useRef(null);
+            const mapRef = useRef(null);
+            const userMarkerRef = useRef(null);
+            const treasureMarkersRef = useRef([]);
+            const mapInitializedRef = useRef(false);
+            const mapContainerRef = useRef(null);
 
-        // Установка активной вкладки
-        function setActiveTab(page) {
-            state.activeTab = page;
-            
-            // Обновляем активные кнопки навигации
-            elements.navItems.forEach(item => {
-                if (item.getAttribute('data-page') === page) {
-                    item.classList.add('active');
-                } else {
-                    item.classList.remove('active');
-                }
-            });
-            
-            // Рендерим страницу
-            renderPage(page);
-        }
-
-        // Обновление аватара пользователя
-        function updateUserAvatar() {
-            if (state.currentUser.avatar) {
-                elements.userAvatar.innerHTML = `<img src="${state.currentUser.avatar}" alt="${state.currentUser.name}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">`;
-            } else {
-                elements.userAvatar.textContent = state.currentUser.name.split(' ').map(n => n[0]).join('');
-            }
-        }
-
-        // Проверка подписки на группу
-        function checkGroupSubscription() {
-            // Здесь должен быть вызов API для проверки подписки
-            // В демо-версии просто возвращаем false
-            return false;
-        }
-
-        // Показать уведомление
-        function showNotification(message, type = "info", duration = 3000) {
-            const id = Date.now();
-            const notification = document.createElement('div');
-            notification.className = `notification ${type} show`;
-            notification.innerHTML = `
-                <i class="fas ${
-                    type === "success" ? "fa-check-circle" :
-                    type === "warning" ? "fa-exclamation-circle" :
-                    "fa-info-circle"
-                }"></i>
-                <span>${message}</span>
-            `;
-            
-            elements.notificationContainer.appendChild(notification);
-            
-            setTimeout(() => {
-                notification.remove();
-            }, duration);
-        }
-
-        // Рендер страницы
-        function renderPage(page) {
-            let html = '';
-            
-            switch(page) {
-                case 'home':
-                    html = renderHomePage();
-                    break;
-                case 'tasks':
-                    html = renderTasksPage();
-                    break;
-                case 'referral':
-                    html = renderReferralPage();
-                    break;
-                case 'profile':
-                    html = renderProfilePage();
-                    break;
-                default:
-                    html = renderHomePage();
-            }
-            
-            elements.pageContent.innerHTML = html;
-            
-            // Навешиваем обработчики событий после рендера
-            if (page === 'home') {
-                const vkGroupCard = document.getElementById('vk-group-card');
-                if (vkGroupCard) {
-                    vkGroupCard.addEventListener('click', () => {
-                        showVkGroupInfo();
-                    });
-                }
-            }
-            
-            if (page === 'tasks') {
-                document.querySelectorAll('.task-card-btn').forEach(btn => {
-                    btn.addEventListener('click', function() {
-                        const taskId = parseInt(this.getAttribute('data-task-id'));
-                        openTaskDrawer(taskId);
-                    });
-                });
-            }
-        }
-
-        // Рендер главной страницы
-        function renderHomePage() {
-            return `
-                <div class="balance-card">
-                    <div class="balance-label">Ваш баланс</div>
-                    <div class="balance-amount">${state.balance.toLocaleString("ru-RU")} монет</div>
-                </div>
-                
-                <div class="actions-container">
-                    <div class="action-card" id="tasks-action">
-                        <div class="action-icon">
-                            <i class="fas fa-tasks"></i>
-                        </div>
-                        <div class="action-title">Задания</div>
-                    </div>
+            // Показать уведомление
+            const showNotification = (message, type = "info", duration = 3000) => {
+                try {
+                    const id = Date.now();
+                    const notification = { id, message, type };
                     
-                    <div class="action-card" id="referral-action">
-                        <div class="action-icon">
-                            <i class="fas fa-user-plus"></i>
-                        </div>
-                        <div class="action-title">Рефералы</div>
-                    </div>
+                    setNotifications(prev => [...prev, notification]);
                     
-                    <div class="action-card" id="profile-action">
-                        <div class="action-icon">
-                            <i class="fas fa-user"></i>
-                        </div>
-                        <div class="action-title">Профиль</div>
-                    </div>
-                </div>
-                
-                ${!state.isSubscribed ? `
-                <div class="task-card" id="vk-group-card" style="margin-top:16px;cursor:pointer;">
-                    <div class="task-card-header">
-                        <h3 class="task-card-title">
-                            <i class="fab fa-vk"></i> Подписка на группу
-                        </h3>
-                        <div class="task-card-reward">
-                            +100 монет
-                        </div>
-                    </div>
-                    <div class="task-card-description">
-                        Подпишитесь на нашу официальную группу и получите бонус
-                    </div>
-                </div>
-                ` : ''}
-            `;
-        }
-
-        // Рендер страницы заданий
-        function renderTasksPage() {
-            const tasksHtml = state.tasks.map(task => `
-                <div class="task-card">
-                    <div class="task-card-header">
-                        <h3 class="task-card-title">
-                            <i class="${task.icon}"></i> ${task.title}
-                        </h3>
-                        <div class="task-card-reward">
-                            +${task.reward} монет
-                        </div>
-                    </div>
+                    if (notificationTimeoutRef.current) {
+                        clearTimeout(notificationTimeoutRef.current);
+                    }
                     
-                    <div class="task-card-description">
-                        ${task.description}
-                    </div>
-                    
-                    <div class="task-card-footer">
-                        <div class="task-card-status ${task.completed ? "completed" : ""}">
-                            ${task.completed ? "Выполнено" : "Доступно"}
-                        </div>
-                        <button
-                            class="task-card-btn"
-                            data-task-id="${task.id}"
-                            ${task.completed ? 'disabled' : ''}
-                        >
-                            ${task.completed ? "Готово" : "Выполнить"}
-                        </button>
-                    </div>
-                </div>
-            `).join('');
-            
-            return `
-                <h2 class="section-title">
-                    <i class="fas fa-tasks"></i>
-                    Доступные задания
-                </h2>
-                
-                <div>
-                    ${tasksHtml}
-                </div>
-            `;
-        }
-
-        // Рендер страницы рефералов
-        function renderReferralPage() {
-            return `
-                <h2 class="section-title">
-                    <i class="fas fa-user-plus"></i>
-                    Реферальная система
-                </h2>
-                
-                <div class="referral-card">
-                    <p>Приглашайте друзей и получайте бонусы за каждого приглашенного пользователя!</p>
-                    
-                    <div class="referral-code">
-                        https://vk.com/app123456#ref=${state.currentUser.id}
-                    </div>
-                    
-                    <button 
-                        class="task-card-btn" 
-                        style="width:100%"
-                        id="copy-referral-btn"
-                    >
-                        <i class="fas fa-copy"></i> Копировать ссылку
-                    </button>
-                    
-                    <div class="referral-stats">
-                        <div class="referral-stat">
-                            <div class="referral-stat-value">5</div>
-                            <div class="referral-stat-label">Приглашено</div>
-                        </div>
-                        <div class="referral-stat">
-                            <div class="referral-stat-value">2500</div>
-                            <div class="referral-stat-label">Заработано</div>
-                        </div>
-                    </div>
-                </div>
-            `;
-        }
-
-        // Рендер страницы профиля
-        function renderProfilePage() {
-            return `
-                <div class="profile-header">
-                    <img 
-                        src="${state.currentUser.avatar || "https://randomuser.me/api/portraits/men/10.jpg"}" 
-                        alt="${state.currentUser.name}" 
-                        class="profile-avatar"
-                    />
-                    <h2>${state.currentUser.name}</h2>
-                    <p style="color:var(--text-light)">
-                        ${state.currentUser.status}
-                    </p>
-                </div>
-                
-                <div class="profile-stats">
-                    <div class="profile-stat">
-                        <div class="profile-stat-value">${state.balance.toLocaleString("ru-RU")}</div>
-                        <div class="profile-stat-label">Монет</div>
-                    </div>
-                    <div class="profile-stat">
-                        <div class="profile-stat-value">${state.tasks.filter(t => t.completed).length}</div>
-                        <div class="profile-stat-label">Заданий</div>
-                    </div>
-                </div>
-                
-                <div>
-                    <h2 class="section-title">
-                        <i class="fas fa-crown"></i>
-                        PREMIUM статус
-                    </h2>
-                    
-                    <div class="premium-card">
-                        <h3 class="premium-title">
-                            <i class="fas fa-crown"></i> PREMIUM
-                        </h3>
-                        <div class="premium-price">499 ₽</div>
-                        
-                        <div class="premium-features">
-                            <div class="premium-feature">
-                                <i class="fas fa-check-circle"></i>
-                                <span>Увеличенный заработок монет</span>
-                            </div>
-                            <div class="premium-feature">
-                                <i class="fas fa-check-circle"></i>
-                                <span>Эксклюзивные задания</span>
-                            </div>
-                            <div class="premium-feature">
-                                <i class="fas fa-check-circle"></i>
-                                <span>Приоритетная поддержка</span>
-                            </div>
-                        </div>
-                        
-                        <button class="premium-btn" id="buy-premium-btn">
-                            Купить PREMIUM
-                        </button>
-                    </div>
-                </div>
-            `;
-        }
-
-        // Открыть шторку с заданием
-        function openTaskDrawer(taskId) {
-            const task = state.tasks.find(t => t.id === taskId);
-            if (!task) return;
-            
-            state.activeTask = task;
-            state.showTaskDrawer = true;
-            state.photoPreview = null;
-            
-            renderTaskDrawer();
-        }
-
-        // Рендер шторки с заданием
-        function renderTaskDrawer() {
-            if (!state.activeTask) return;
-            
-            const task = state.activeTask;
-            
-            elements.taskDrawer.innerHTML = `
-                <div class="task-drawer-header">
-                    <h3 class="task-drawer-title">
-                        <i class="${task.icon}"></i> ${task.title}
-                    </h3>
-                    <button class="task-drawer-close" id="close-task-drawer">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-                
-                <div>
-                    <p style="margin-bottom:16px">
-                        <strong>Награда:</strong> +${task.reward} монет
-                    </p>
-                    
-                    <p style="margin-bottom:16px;color:var(--text-light)">
-                        ${task.description}
-                    </p>
-                    
-                    ${task.requiresPhoto ? `
-                    <div class="photo-upload">
-                        <label class="photo-upload-label">
-                            Прикрепите скриншот подтверждения:
-                        </label>
-                        <input 
-                            type="file" 
-                            id="photo-upload-input"
-                            accept="image/*"
-                            style="display:none"
-                        />
-                        <button 
-                            class="photo-upload-btn"
-                            id="photo-upload-btn"
-                        >
-                            <i class="fas fa-upload"></i> ${state.photoPreview ? "Фото загружено" : "Выбрать файл"}
-                        </button>
-                        ${state.photoPreview ? `
-                        <img 
-                            src="${state.photoPreview}" 
-                            alt="Предпросмотр" 
-                            class="photo-preview"
-                            style="display:block"
-                        />
-                        ` : ''}
-                    </div>
-                    ` : ''}
-                    
-                    <button
-                        class="task-card-btn"
-                        id="complete-task-btn"
-                        ${task.requiresPhoto && !state.photoPreview ? 'disabled' : ''}
-                        style="margin-top:16px"
-                    >
-                        ${task.completed ? "Готово" : "Завершить задание"}
-                    </button>
-                </div>
-            `;
-            
-            // Показываем шторку
-            elements.taskDrawer.classList.add('open');
-            elements.taskOverlay.classList.add('open');
-            
-            // Навешиваем обработчики
-            document.getElementById('close-task-drawer').addEventListener('click', closeTaskDrawer);
-            elements.taskOverlay.addEventListener('click', closeTaskDrawer);
-            
-            if (task.requiresPhoto) {
-                document.getElementById('photo-upload-btn').addEventListener('click', () => {
-                    document.getElementById('photo-upload-input').click();
-                });
-                
-                document.getElementById('photo-upload-input').addEventListener('change', handlePhotoUpload);
-            }
-            
-            document.getElementById('complete-task-btn').addEventListener('click', completeTask);
-        }
-
-        // Закрыть шторку с заданием
-        function closeTaskDrawer() {
-            elements.taskDrawer.classList.remove('open');
-            elements.taskOverlay.classList.remove('open');
-            state.showTaskDrawer = false;
-        }
-
-        // Обработчик загрузки фото
-        function handlePhotoUpload(e) {
-            const file = e.target.files[0];
-            if (!file) return;
-            
-            if (!file.type.match("image.*")) {
-                showNotification("Пожалуйста, загрузите изображение", "warning");
-                return;
-            }
-            
-            const reader = new FileReader();
-            reader.onload = (event) => {
-                state.photoPreview = event.target.result;
-                showNotification("Фото успешно загружено", "success");
-                
-                // Обновляем шторку, если она открыта
-                if (state.showTaskDrawer) {
-                    renderTaskDrawer();
+                    notificationTimeoutRef.current = setTimeout(() => {
+                        setNotifications(prev => prev.filter(n => n.id !== id));
+                    }, duration);
+                } catch (error) {
+                    console.error('Error in showNotification:', error);
                 }
             };
-            reader.readAsDataURL(file);
-        }
 
-        // Выполнить задание
-        function completeTask() {
-            if (!state.activeTask) return;
-            
-            // Обновляем задание как выполненное
-            state.tasks = state.tasks.map(task => 
-                task.id === state.activeTask.id 
-                    ? { ...task, completed: true } 
-                    : task
-            );
-            
-            // Начисляем награду
-            state.balance += state.activeTask.reward;
-            
-            // Показываем уведомление
-            showNotification(
-                `Задание выполнено! Получено ${state.activeTask.reward} монет`, 
-                "success"
-            );
-            
-            // Закрываем шторку
-            closeTaskDrawer();
-            
-            // Обновляем страницу, если это страница заданий
-            if (state.activeTab === 'tasks') {
-                renderPage('tasks');
-            }
-        }
-
-        // Показать информацию о группе ВК
-        function showVkGroupInfo() {
-            elements.vkGroupDrawer.innerHTML = `
-                <div class="task-drawer-header">
-                    <h3 class="task-drawer-title">
-                        <i class="fab fa-vk"></i> Подписка на группу
-                    </h3>
-                    <button class="task-drawer-close" id="close-vk-group-drawer">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-                
-                <div>
-                    <p style="margin-bottom:16px">
-                        <strong>Бонус:</strong> +100 монет
-                    </p>
+            // Расчет расстояния между двумя точками в метрах
+            const calculateDistance = (lat1, lon1, lat2, lon2) => {
+                try {
+                    const R = 6371e3; // радиус Земли в метрах
+                    const φ1 = lat1 * Math.PI/180;
+                    const φ2 = lat2 * Math.PI/180;
+                    const Δφ = (lat2-lat1) * Math.PI/180;
+                    const Δλ = (lon2-lon1) * Math.PI/180;
                     
-                    <p style="margin-bottom:16px;color:var(--text-light)">
-                        Подпишитесь на нашу официальную группу ВКонтакте, чтобы получать новости и бонусы
-                    </p>
+                    const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
+                              Math.cos(φ1) * Math.cos(φ2) *
+                              Math.sin(Δλ/2) * Math.sin(Δλ/2);
+                    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
                     
-                    <button
-                        class="task-card-btn"
-                        id="subscribe-vk-group-btn"
-                        style="margin-bottom:16px"
-                    >
-                        <i class="fab fa-vk"></i> Подписаться на группу
-                    </button>
-                    
-                    <p style="font-size:14px;color:var(--text-light)">
-                        Бонусные монеты будут начислены мгновенно после подписки
-                    </p>
-                </div>
-            `;
-            
-            // Показываем шторку
-            elements.vkGroupDrawer.classList.add('open');
-            elements.vkGroupOverlay.classList.add('open');
-            
-            // Навешиваем обработчики
-            document.getElementById('close-vk-group-drawer').addEventListener('click', closeVkGroupDrawer);
-            elements.vkGroupOverlay.addEventListener('click', closeVkGroupDrawer);
-            document.getElementById('subscribe-vk-group-btn').addEventListener('click', subscribeToGroup);
-        }
-
-        // Закрыть шторку с информацией о группе ВК
-        function closeVkGroupDrawer() {
-            elements.vkGroupDrawer.classList.remove('open');
-            elements.vkGroupOverlay.classList.remove('open');
-        }
-
-        // Подписаться на группу
-        function subscribeToGroup() {
-            if (window.vkBridge) {
-                vkBridge.send('VKWebAppJoinGroup', { group_id: 123456 }) // Замените на ID вашей группы
-                    .then(data => {
-                        if (data.result) {
-                            state.isSubscribed = true;
-                            state.balance += 100;
-                            showNotification("Вы подписались на группу! +100 монет", "success");
-                            closeVkGroupDrawer();
-                            
-                            // Обновляем главную страницу
-                            if (state.activeTab === 'home') {
-                                renderPage('home');
-                            }
-                        }
-                    })
-                    .catch(error => {
-                        console.error(error);
-                        showNotification("Ошибка при подписке на группу", "error");
-                    });
-            } else {
-                // Для демо-версии
-                state.isSubscribed = true;
-                state.balance += 100;
-                showNotification("Вы подписались на группу! +100 монет", "success");
-                closeVkGroupDrawer();
-                
-                // Обновляем главную страницу
-                if (state.activeTab === 'home') {
-                    renderPage('home');
+                    return R * c;
+                } catch (error) {
+                    console.error('Error in calculateDistance:', error);
+                    return Infinity;
                 }
-            }
-        }
+            };
 
-        // Копирование реферальной ссылки
-        function copyReferralLink() {
-            const link = `https://vk.com/app123456#ref=${state.currentUser.id}`;
-            if (window.vkBridge) {
-                vkBridge.send('VKWebAppCopyText', { text: link })
-                    .then(data => {
-                        if (data.result) {
-                            showNotification("Реферальная ссылка скопирована!", "success");
+            // Генерация случайных кладов вокруг пользователя
+            const generateTreasures = (lat, lng, count = 10) => {
+                try {
+                    const newTreasures = [];
+                    const radius = 0.05; // ~5 км
+                    
+                    for (let i = 0; i < count; i++) {
+                        const randomLat = lat + (Math.random() * radius * 2 - radius);
+                        const randomLng = lng + (Math.random() * radius * 2 - radius);
+                        const value = Math.floor(Math.random() * 900) + 100; // 100-1000 токенов
+                        
+                        newTreasures.push({
+                            id: `treasure-${i}`,
+                            lat: randomLat,
+                            lng: randomLng,
+                            value: value,
+                            claimed: false
+                        });
+                    }
+                    
+                    // Сохраняем время генерации кладов
+                    const now = new Date().toISOString();
+                    localStorage.setItem('lastTreasureUpdate', now);
+                    setLastTreasureUpdate(now);
+                    
+                    return newTreasures;
+                } catch (error) {
+                    console.error('Error in generateTreasures:', error);
+                    return [];
+                }
+            };
+
+            // Проверка, нужно ли обновить клады
+            const shouldUpdateTreasures = () => {
+                try {
+                    const lastUpdate = localStorage.getItem('lastTreasureUpdate');
+                    if (!lastUpdate) return true;
+                    
+                    const lastUpdateDate = new Date(lastUpdate);
+                    const now = new Date();
+                    const diffDays = (now - lastUpdateDate) / (1000 * 60 * 60 * 24);
+                    
+                    return diffDays >= 1; // Обновляем раз в сутки
+                } catch (error) {
+                    console.error('Error in shouldUpdateTreasures:', error);
+                    return true;
+                }
+            };
+
+            // Обновление позиции пользователя
+            const updatePosition = (position) => {
+                try {
+                    if (!position || !position.coords) return;
+                    
+                    const newPosition = {
+                        lat: position.coords.latitude,
+                        lng: position.coords.longitude
+                    };
+                    
+                    setUserPosition(newPosition);
+                    
+                    // Центрируем карту на пользователе
+                    if (mapRef.current) {
+                        mapRef.current.setView([newPosition.lat, newPosition.lng], 15);
+                    }
+                    
+                    // Обновляем маркер пользователя
+                    if (userMarkerRef.current) {
+                        userMarkerRef.current.setLatLng([newPosition.lat, newPosition.lng]);
+                    } else if (mapRef.current) {
+                        userMarkerRef.current = L.marker([newPosition.lat, newPosition.lng], {
+                            icon: L.divIcon({
+                                html: '<i class="fas fa-user" style="color: #6C5CE7; font-size: 24px;"></i>',
+                                className: 'user-marker',
+                                iconSize: [30, 30]
+                            })
+                        }).addTo(mapRef.current);
+                    }
+                    
+                    // Генерируем клады при первом получении позиции или если прошли сутки
+                    if (treasures.length === 0 || shouldUpdateTreasures()) {
+                        const newTreasures = generateTreasures(newPosition.lat, newPosition.lng, 10000);
+                        setTreasures(newTreasures);
+                        addTreasureMarkers(newTreasures);
+                    }
+                    
+                    // Обновляем расстояние до выбранного клада
+                    if (selectedTreasure) {
+                        const dist = calculateDistance(
+                            newPosition.lat,
+                            newPosition.lng,
+                            selectedTreasure.lat,
+                            selectedTreasure.lng
+                        );
+                        setDistance(dist);
+                    }
+                } catch (error) {
+                    console.error('Error in updatePosition:', error);
+                    showNotification("Ошибка обновления позиции", "error");
+                }
+            };
+
+            // Добавление маркеров кладов на карту
+            const addTreasureMarkers = (treasures) => {
+                try {
+                    if (!mapRef.current) return;
+                    
+                    // Очищаем старые маркеры
+                    treasureMarkersRef.current.forEach(marker => {
+                        try {
+                            if (marker && marker.remove) marker.remove();
+                        } catch (e) {
+                            console.error('Error removing marker:', e);
                         }
-                    })
-                    .catch(error => console.error(error));
-            } else {
-                // Для демо-версии
-                navigator.clipboard.writeText(link);
-                showNotification("Реферальная ссылка скопирована!", "success");
-            }
+                    });
+                    treasureMarkersRef.current = [];
+                    
+                    // Добавляем новые маркеры
+                    treasures.forEach(treasure => {
+                        if (!treasure.claimed) {
+                            const marker = L.marker([treasure.lat, treasure.lng], {
+                                icon: L.divIcon({
+                                    html: '<i class="fas fa-coins" style="color: #FDCB6E; font-size: 24px;"></i>',
+                                    className: 'treasure-marker',
+                                    iconSize: [30, 30]
+                                })
+                            }).addTo(mapRef.current);
+                            
+                            marker.on('click', () => selectTreasure(treasure));
+                            treasureMarkersRef.current.push(marker);
+                        }
+                    });
+                } catch (error) {
+                    console.error('Error in addTreasureMarkers:', error);
+                }
+            };
+
+            // Выбор клада
+            const selectTreasure = (treasure) => {
+                try {
+                    if (!treasure) return;
+                    
+                    setSelectedTreasure(treasure);
+                    
+                    if (userPosition) {
+                        const dist = calculateDistance(
+                            userPosition.lat,
+                            userPosition.lng,
+                            treasure.lat,
+                            treasure.lng
+                        );
+                        setDistance(dist);
+                    }
+                    
+                    // Сброс таймера
+                    setTimeLeft(15 * 60);
+                    
+                    // Центрируем карту на кладе
+                    if (mapRef.current) {
+                        mapRef.current.setView([treasure.lat, treasure.lng], 15);
+                    }
+                } catch (error) {
+                    console.error('Error in selectTreasure:', error);
+                    showNotification("Ошибка выбора клада", "error");
+                }
+            };
+
+            // Сбор клада
+            const claimTreasure = () => {
+                try {
+                    if (!selectedTreasure || distance > 50) return;
+                    
+                    // Обновляем состояние клада
+                    const updatedTreasures = treasures.map(t => 
+                        t.id === selectedTreasure.id ? { ...t, claimed: true } : t
+                    );
+                    
+                    setTreasures(updatedTreasures);
+                    setClaimedTreasures(prev => [...prev, selectedTreasure.id]);
+                    
+                    // Обновляем баланс пользователя
+                    setUserData(prev => ({
+                        ...prev,
+                        balance: prev.balance + selectedTreasure.value,
+                        treasuresFound: prev.treasuresFound + 1
+                    }));
+                    
+                    // Показываем уведомление
+                    showNotification(`Вы нашли клад! +${selectedTreasure.value} токенов`, "success");
+                    
+                    // Удаляем маркер клада
+                    const markerIndex = treasureMarkersRef.current.findIndex(
+                        m => m && m.getLatLng && 
+                             m.getLatLng().lat === selectedTreasure.lat && 
+                             m.getLatLng().lng === selectedTreasure.lng
+                    );
+                    
+                    if (markerIndex !== -1) {
+                        try {
+                            treasureMarkersRef.current[markerIndex].remove();
+                            treasureMarkersRef.current.splice(markerIndex, 1);
+                        } catch (e) {
+                            console.error('Error removing marker:', e);
+                        }
+                    }
+                    
+                    // Сбрасываем выбранный клад
+                    setSelectedTreasure(null);
+                } catch (error) {
+                    console.error('Error in claimTreasure:', error);
+                    showNotification("Ошибка сбора клада", "error");
+                }
+            };
+
+            // Копирование реферального кода
+            const copyReferralCode = () => {
+                try {
+                    navigator.clipboard.writeText(userData.referralCode);
+                    showNotification("Реферальный код скопирован", "success");
+                } catch (error) {
+                    console.error('Error copying referral code:', error);
+                    showNotification("Не удалось скопировать код", "error");
+                }
+            };
+
+            // Инициализация карты
+            const initMap = () => {
+                try {
+                    if (!mapInitializedRef.current && document.getElementById('map')) {
+                        mapRef.current = L.map('map').setView([0, 0], 15);
+                        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                        }).addTo(mapRef.current);
+                        mapInitializedRef.current = true;
+                        
+                        // Если есть пользовательская позиция, центрируем карту
+                        if (userPosition) {
+                            mapRef.current.setView([userPosition.lat, userPosition.lng], 15);
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error initializing map:', error);
+                    showNotification("Ошибка загрузки карты", "error");
+                }
+            };
+
+            // Уничтожение карты
+            const destroyMap = () => {
+                try {
+                    if (mapRef.current) {
+                        mapRef.current.remove();
+                        mapRef.current = null;
+                        mapInitializedRef.current = false;
+                        userMarkerRef.current = null;
+                        treasureMarkersRef.current = [];
+                    }
+                } catch (e) {
+                    console.error('Error cleaning up map:', e);
+                }
+            };
+
+            // Инициализация при монтировании
+            useEffect(() => {
+                // Загружаем время последнего обновления кладов
+                const lastUpdate = localStorage.getItem('lastTreasureUpdate');
+                if (lastUpdate) {
+                    setLastTreasureUpdate(lastUpdate);
+                }
+                
+                return () => {
+                    // Очистка при размонтировании
+                    if (timerRef.current) {
+                        clearInterval(timerRef.current);
+                    }
+                    if (notificationTimeoutRef.current) {
+                        clearTimeout(notificationTimeoutRef.current);
+                    }
+                };
+            }, []);
+
+            // Запрос геолокации
+            useEffect(() => {
+                let watchId = null;
+                
+                try {
+                    if (navigator.geolocation) {
+                        watchId = navigator.geolocation.watchPosition(
+                            updatePosition,
+                            (error) => {
+                                console.error('Ошибка геолокации:', error);
+                                showNotification("Разрешите доступ к геолокации для игры", "error");
+                            },
+                            {
+                                enableHighAccuracy: true,
+                                maximumAge: 10000,
+                                timeout: 5000
+                            }
+                        );
+                    } else {
+                        showNotification("Ваш браузер не поддерживает геолокацию", "error");
+                    }
+                } catch (error) {
+                    console.error('Error setting up geolocation:', error);
+                    showNotification("Ошибка доступа к геолокации", "error");
+                }
+                
+                return () => {
+                    if (watchId && navigator.geolocation) {
+                        navigator.geolocation.clearWatch(watchId);
+                    }
+                };
+            }, []);
+
+            // Управление картой при переключении вкладок
+            useEffect(() => {
+                if (activeTab === "treasures") {
+                    // При переходе на вкладку с картой инициализируем карту
+                    initMap();
+                    
+                    // Обновляем маркеры, если они есть
+                    if (treasures.length > 0) {
+                        addTreasureMarkers(treasures);
+                    }
+                } else {
+                    // При переходе на другие вкладки уничтожаем карту
+                    destroyMap();
+                }
+                
+                return () => {
+                    // При размонтировании или смене вкладки уничтожаем карту
+                    if (activeTab !== "treasures") {
+                        destroyMap();
+                    }
+                };
+            }, [activeTab, treasures]);
+
+            // Таймер обратного отсчета
+            useEffect(() => {
+                try {
+                    if (selectedTreasure && timeLeft > 0) {
+                        timerRef.current = setInterval(() => {
+                            setTimeLeft(prev => prev - 1);
+                        }, 1000);
+                    }
+                } catch (error) {
+                    console.error('Error setting up timer:', error);
+                }
+                
+                return () => {
+                    if (timerRef.current) {
+                        clearInterval(timerRef.current);
+                    }
+                };
+            }, [selectedTreasure]);
+
+            // Сброс клада при истечении времени
+            useEffect(() => {
+                try {
+                    if (timeLeft <= 0 && selectedTreasure) {
+                        showNotification("Время вышло! Клад исчез.", "error");
+                        setSelectedTreasure(null);
+                    }
+                } catch (error) {
+                    console.error('Error handling timer expiration:', error);
+                }
+            }, [timeLeft]);
+
+            // Рендер уведомлений
+            const renderNotifications = () => (
+                <div className="notification-container">
+                    {notifications.map(notification => (
+                        <div key={notification.id} className={`notification ${notification.type} show`}>
+                            <i className={`fas ${
+                                notification.type === "success" ? "fa-check-circle" :
+                                notification.type === "warning" ? "fa-exclamation-circle" :
+                                "fa-info-circle"
+                            }`}></i>
+                            <span>{notification.message}</span>
+                        </div>
+                    ))}
+                </div>
+            );
+
+            // Рендер страницы с кладами
+            const renderTreasuresPage = () => (
+                <div className="page">
+                    <h2><i className="fas fa-coins"></i> Охота за кладами</h2>
+                    
+                    <div id="map" ref={mapContainerRef}></div>
+                    
+                    {selectedTreasure ? (
+                        <div className="treasure-card">
+                            <h4>Выбранный клад</h4>
+                            <div className="treasure-distance">
+                                <div className="distance-label">
+                                    <i className="fas fa-location-arrow"></i>
+                                    <span>Дистанция:</span>
+                                </div>
+                                <div className="distance-value">{Math.round(distance)} м</div>
+                            </div>
+                            
+                            <div className="treasure-timer">
+                                <i className="fas fa-clock"></i>
+                                <span>
+                                    {Math.floor(timeLeft / 60)}:{timeLeft % 60 < 10 ? '0' : ''}{timeLeft % 60}
+                                </span>
+                            </div>
+                            
+                            <button 
+                                className={`claim-btn ${distance <= 50 ? 'active pulse' : ''}`}
+                                onClick={claimTreasure}
+                                disabled={distance > 50}
+                            >
+                                {distance <= 50 ? 
+                                    `Забрать ${selectedTreasure.value} токенов` : 
+                                    "Подойдите ближе"}
+                            </button>
+                        </div>
+                    ) : (
+                        <div className="treasure-card">
+                            <h4>Выберите клад на карте</h4>
+                            <p>Нажмите на любой клад на карте, чтобы начать охоту</p>
+                            <div className="treasure-value">
+                                Найдено: {userData.treasuresFound} кладов
+                            </div>
+                            {lastTreasureUpdate && (
+                                <p style={{ fontSize: '12px', color: 'var(--text-light)', textAlign: 'center' }}>
+                                    Последнее обновление кладов: {new Date(lastTreasureUpdate).toLocaleString()}
+                                </p>
+                            )}
+                        </div>
+                    )}
+                </div>
+            );
+
+            // Рендер страницы профиля
+            const renderProfilePage = () => (
+                <div className="page">
+                    <h2><i className="fas fa-user"></i> Профиль</h2>
+                    
+                    <div className="profile-section">
+                        <div className="profile-header">
+                            <div className="profile-avatar">
+                                {userData.name.charAt(0)}
+                            </div>
+                            <div className="profile-info">
+                                <h3>{userData.name}</h3>
+                                <p>Охотник за кладами</p>
+                            </div>
+                        </div>
+                        
+                        <div className="profile-stats">
+                            <div className="stat-card">
+                                <div className="stat-value">{userData.balance}</div>
+                                <div className="stat-label">Токенов</div>
+                            </div>
+                            <div className="stat-card">
+                                <div className="stat-value">{userData.treasuresFound}</div>
+                                <div className="stat-label">Кладов</div>
+                            </div>
+                            <div className="stat-card">
+                                <div className="stat-value">{userData.referrals}</div>
+                                <div className="stat-label">Рефералов</div>
+                            </div>
+                            <div className="stat-card">
+                                <div className="stat-value">{claimedTreasures.length}</div>
+                                <div className="stat-label">Найдено</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+
+            // Рендер реферальной страницы
+            const renderReferralPage = () => (
+                <div className="page">
+                    <h2><i className="fas fa-users"></i> Реферальная программа</h2>
+                    
+                    <div className="referral-card">
+                        <h4>Приглашайте друзей и получайте бонусы</h4>
+                        <p>За каждого приглашенного друга вы получите 10% от его первых 5 кладов</p>
+                        
+                        <div className="referral-code">
+                            {userData.referralCode}
+                        </div>
+                        
+                        <button 
+                            className="copy-btn"
+                            onClick={copyReferralCode}
+                        >
+                            <i className="fas fa-copy"></i> Копировать код
+                        </button>
+                    </div>
+                    
+                    <div className="profile-stats">
+                        <div className="stat-card">
+                            <div className="stat-value">{userData.referrals}</div>
+                            <div className="stat-label">Приглашено</div>
+                        </div>
+                        <div className="stat-card">
+                            <div className="stat-value">{userData.referrals * 50}</div>
+                            <div className="stat-label">Заработано</div>
+                        </div>
+                    </div>
+                </div>
+            );
+
+            return (
+                <ErrorBoundary>
+                    <div className="app">
+                        {/* Шапка */}
+                        <header className="header">
+                            <div className="header-content">
+                                <div className="logo">
+                                    <i className="fas fa-coins"></i>
+                                    <span>Crypto Hunt</span>
+                                </div>
+                                <div className="user-profile">
+                                    <span>{userData.balance} $TOKEN</span>
+                                    <div className="user-avatar">
+                                        {userData.name.charAt(0)}
+                                    </div>
+                                </div>
+                            </div>
+                        </header>
+
+                        <div className="container">
+                            {/* Основной экран с кладами */}
+                            {activeTab === "treasures" && renderTreasuresPage()}
+                            
+                            {/* Экран профиля */}
+                            {activeTab === "profile" && renderProfilePage()}
+                            
+                            {/* Реферальная программа */}
+                            {activeTab === "referral" && renderReferralPage()}
+                        </div>
+
+                        {/* Уведомления */}
+                        {renderNotifications()}
+
+                        {/* Мобильная навигация */}
+                        <nav className="mobile-nav">
+                            <button 
+                                className={`nav-item ${activeTab === "treasures" ? "active" : ""}`}
+                                onClick={() => setActiveTab("treasures")}
+                            >
+                                <i className="fas fa-coins"></i>
+                                <span>Клады</span>
+                            </button>
+                            <button 
+                                className={`nav-item ${activeTab === "profile" ? "active" : ""}`}
+                                onClick={() => setActiveTab("profile")}
+                            >
+                                <i className="fas fa-user"></i>
+                                <span>Профиль</span>
+                            </button>
+                            <button 
+                                className={`nav-item ${activeTab === "referral" ? "active" : ""}`}
+                                onClick={() => setActiveTab("referral")}
+                            >
+                                <i className="fas fa-users"></i>
+                                <span>Рефералы</span>
+                            </button>
+                        </nav>
+                    </div>
+                </ErrorBoundary>
+            );
         }
 
-        // Инициализация приложения после загрузки DOM
-        document.addEventListener('DOMContentLoaded', initApp);
+        const rootElement = document.getElementById("root");
+        const root = ReactDOM.createRoot(rootElement);
+        root.render(<App />);
     </script>
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
 </body>
 </html>
