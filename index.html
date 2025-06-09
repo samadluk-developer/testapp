@@ -3,37 +3,35 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Local Crypto Hunt</title>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <title>НавиКарта - Удобная навигация</title>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
-    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
     <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
     :root {
-        --primary-color: #6C5CE7;
-        --primary-dark: #5649C0;
-        --primary-light: #E6E4FF;
-        --secondary-color: #00B894;
-        --accent-color: #FDCB6E;
-        --danger-color: #D63031;
-        --dark-bg: #1A1A2E;
-        --card-bg: #16213E;
-        --card-bg-light: #2D4263;
-        --text: #FFFFFF;
-        --text-light: #B8B8B8;
-        --border: #2D4263;
-        --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
-        --shadow: 0 4px 6px rgba(0, 0, 0, 0.25);
-        --shadow-md: 0 10px 20px rgba(0, 0, 0, 0.3);
+        --primary-color: #4F46E5;
+        --primary-dark: #4338CA;
+        --primary-light: #EEF2FF;
+        --secondary-color: #10B981;
+        --accent-color: #F59E0B;
+        --danger-color: #EF4444;
+        --light-bg: #F9FAFB;
+        --card-bg: #FFFFFF;
+        --text: #111827;
+        --text-light: #6B7280;
+        --border: #E5E7EB;
+        --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+        --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
         --rounded-sm: 8px;
         --rounded: 12px;
         --rounded-lg: 16px;
         --rounded-xl: 20px;
-        --section-padding: 16px;
-        --neon-glow: 0 0 10px rgba(108, 92, 231, 0.7);
+        --section-padding: 20px;
     }
 
     * {
@@ -43,37 +41,33 @@
     }
 
     body {
-        font-family: 'Roboto', -apple-system, BlinkMacSystemFont, sans-serif;
-        background-color: var(--dark-bg);
+        font-family: 'Manrope', -apple-system, BlinkMacSystemFont, sans-serif;
+        background-color: var(--light-bg);
         color: var(--text);
         line-height: 1.5;
         -webkit-font-smoothing: antialiased;
     }
 
-    h1, h2, h3, h4 {
-        font-family: 'Orbitron', sans-serif;
-        font-weight: 600;
+    h1, h2, h3 {
         color: var(--text);
         margin-bottom: 16px;
-        letter-spacing: 0.5px;
+        font-weight: 600;
     }
 
     .container {
         max-width: 100%;
         margin: 0 auto;
         padding: var(--section-padding);
-        padding-bottom: 80px;
     }
 
     /* Шапка */
     .header {
         background-color: var(--card-bg);
         color: var(--text);
-        padding: 12px var(--section-padding);
+        padding: 16px var(--section-padding);
         position: sticky;
         top: 0;
-        z-index: 100;
-        border-bottom: 1px solid var(--border);
+        z-index: 1000;
         box-shadow: var(--shadow-sm);
     }
 
@@ -88,194 +82,337 @@
     .logo {
         display: flex;
         align-items: center;
-        gap: 8px;
+        gap: 10px;
         font-size: 18px;
         font-weight: 700;
-        font-family: 'Orbitron', sans-serif;
         color: var(--primary-color);
-        text-shadow: var(--neon-glow);
     }
 
     .logo i {
-        font-size: 20px;
-    }
-
-    .user-profile {
-        display: flex;
-        align-items: center;
-        gap: 8px;
+        font-size: 22px;
     }
 
     .user-avatar {
-        width: 32px;
-        height: 32px;
+        width: 40px;
+        height: 40px;
         border-radius: 50%;
-        background-color: var(--primary-color);
+        background-color: var(--primary-light);
         display: flex;
         align-items: center;
         justify-content: center;
-        color: white;
-        font-weight: bold;
+        color: var(--primary-color);
+        font-weight: 600;
+        border: 2px solid var(--primary-color);
+        cursor: pointer;
+        overflow: hidden;
+    }
+
+    .user-avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
     }
 
     /* Карта */
-    #map {
-        height: 400px;
-        width: 100%;
-        border-radius: var(--rounded-lg);
-        margin-bottom: 16px;
-        border: 2px solid var(--primary-color);
-        box-shadow: var(--shadow);
-    }
-
     .map-container {
+        height: calc(100vh - 120px);
+        width: 100%;
         position: relative;
+        border-radius: var(--rounded-lg);
+        overflow: hidden;
+        box-shadow: var(--shadow);
+        margin-bottom: 16px;
     }
 
-    .map-control-btn {
+    #map {
+        height: 100%;
+        width: 100%;
+    }
+
+    /* Поиск */
+    .search-container {
         position: absolute;
+        top: 20px;
+        left: 20px;
         z-index: 1000;
+        width: calc(100% - 40px);
+        max-width: 500px;
+    }
+
+    .search-box {
+        display: flex;
+        background-color: var(--card-bg);
+        border-radius: var(--rounded);
+        box-shadow: var(--shadow-md);
+        overflow: hidden;
+    }
+
+    .search-input {
+        flex: 1;
+        padding: 14px 16px;
+        border: none;
+        font-size: 16px;
+        outline: none;
+        background-color: var(--card-bg);
+    }
+
+    .search-button {
         background-color: var(--primary-color);
         color: white;
         border: none;
-        border-radius: 4px;
-        padding: 6px 10px;
+        padding: 0 20px;
         cursor: pointer;
-        font-size: 14px;
+        transition: background-color 0.2s;
+    }
+
+    .search-button:hover {
+        background-color: var(--primary-dark);
+    }
+
+    /* Результаты поиска */
+    .search-results {
+        max-height: 300px;
+        overflow-y: auto;
+        margin-top: 8px;
+        background-color: var(--card-bg);
+        border-radius: var(--rounded);
+        box-shadow: var(--shadow-md);
+        display: none;
+    }
+
+    .search-result-item {
+        padding: 12px 16px;
+        cursor: pointer;
+        transition: background-color 0.2s;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .search-result-item:last-child {
+        border-bottom: none;
+    }
+
+    .search-result-item:hover {
+        background-color: var(--primary-light);
+    }
+
+    /* Контролы карты */
+    .map-controls {
+        position: absolute;
+        bottom: 20px;
+        right: 20px;
+        z-index: 1000;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .map-control-button {
+        width: 44px;
+        height: 44px;
+        background-color: var(--card-bg);
+        border-radius: 50%;
         display: flex;
         align-items: center;
-        gap: 5px;
-        box-shadow: var(--shadow-sm);
-    }
-
-    .map-control-btn i {
-        font-size: 16px;
-    }
-
-    .fullscreen-btn {
-        top: 10px;
-        right: 10px;
-    }
-
-    .locate-btn {
-        top: 50px;
-        right: 10px;
-    }
-
-    .map-type-btn {
-        top: 90px;
-        right: 10px;
-    }
-
-    .clear-route-btn {
-        top: 130px;
-        right: 10px;
-    }
-
-    /* Карточка клада */
-    .treasure-card {
-        background-color: var(--card-bg-light);
+        justify-content: center;
+        box-shadow: var(--shadow-md);
+        cursor: pointer;
+        transition: all 0.2s;
+        border: none;
         color: var(--text);
-        padding: 16px;
+    }
+
+    .map-control-button:hover {
+        background-color: var(--primary-color);
+        color: white;
+        transform: translateY(-2px);
+    }
+
+    .map-control-button.active {
+        background-color: var(--primary-color);
+        color: white;
+    }
+
+    /* Карточка места */
+    .place-card {
+        position: absolute;
+        bottom: 80px;
+        left: 20px;
+        right: 20px;
+        background-color: var(--card-bg);
         border-radius: var(--rounded-lg);
-        margin-bottom: 16px;
-        box-shadow: var(--shadow);
-        border-left: 4px solid var(--primary-color);
+        padding: 16px;
+        box-shadow: var(--shadow-md);
+        z-index: 1000;
+        transform: translateY(150%);
+        transition: transform 0.3s ease;
     }
 
-    .treasure-value {
-        font-size: 24px;
-        font-weight: 700;
-        color: var(--accent-color);
-        text-align: center;
-        margin: 10px 0;
-        font-family: 'Orbitron', sans-serif;
+    .place-card.visible {
+        transform: translateY(0);
     }
 
-    .treasure-distance {
+    .place-card-header {
         display: flex;
-        align-items: center;
         justify-content: space-between;
+        align-items: center;
         margin-bottom: 12px;
     }
 
-    .distance-label {
-        display: flex;
-        align-items: center;
-        gap: 6px;
+    .place-card-title {
+        font-weight: 600;
+        font-size: 18px;
+    }
+
+    .place-card-close {
+        background: none;
+        border: none;
         color: var(--text-light);
+        font-size: 20px;
+        cursor: pointer;
     }
 
-    .distance-value {
-        font-weight: 500;
-        color: var(--text);
+    .place-card-address {
+        color: var(--text-light);
+        margin-bottom: 12px;
+        font-size: 14px;
     }
 
-    .treasure-timer {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        color: var(--danger-color);
-        font-weight: 500;
-    }
-
-    .treasure-actions {
+    .place-card-actions {
         display: flex;
         gap: 10px;
-        margin-top: 15px;
     }
 
-    /* Кнопки */
-    .claim-btn {
-        display: block;
-        width: 100%;
-        padding: 15px;
-        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-        color: white;
+    .action-button {
+        flex: 1;
+        padding: 10px;
+        border-radius: var(--rounded);
         border: none;
-        border-radius: var(--rounded);
-        font-size: 18px;
-        font-weight: 600;
-        font-family: 'Orbitron', sans-serif;
+        font-weight: 500;
         cursor: pointer;
-        transition: all 0.3s;
-        box-shadow: var(--shadow-sm);
-        text-transform: uppercase;
-        letter-spacing: 1px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        transition: all 0.2s;
     }
 
-    .claim-btn:disabled {
-        background: var(--card-bg-light);
-        color: var(--text-light);
-        cursor: not-allowed;
-        box-shadow: none;
-    }
-
-    .claim-btn.active {
-        box-shadow: 0 0 15px rgba(108, 92, 231, 0.7);
-    }
-
-    .route-btn {
-        display: block;
-        width: 100%;
-        padding: 15px;
-        background: var(--card-bg);
-        color: var(--text);
-        border: 1px solid var(--primary-color);
-        border-radius: var(--rounded);
-        font-size: 18px;
-        font-weight: 600;
-        font-family: 'Orbitron', sans-serif;
-        cursor: pointer;
-        transition: all 0.3s;
-        box-shadow: var(--shadow-sm);
-        text-transform: uppercase;
-        letter-spacing: 1px;
-    }
-
-    .route-btn:hover {
-        background: var(--primary-dark);
+    .action-button.primary {
+        background-color: var(--primary-color);
         color: white;
+    }
+
+    .action-button.primary:hover {
+        background-color: var(--primary-dark);
+    }
+
+    .action-button.secondary {
+        background-color: var(--light-bg);
+        color: var(--text);
+    }
+
+    .action-button.secondary:hover {
+        background-color: var(--border);
+    }
+
+    /* Маршрут */
+    .route-panel {
+        position: absolute;
+        top: 80px;
+        left: 20px;
+        background-color: var(--card-bg);
+        border-radius: var(--rounded-lg);
+        padding: 16px;
+        box-shadow: var(--shadow-md);
+        z-index: 1000;
+        width: calc(100% - 40px);
+        max-width: 400px;
+    }
+
+    .route-info {
+        margin-bottom: 16px;
+    }
+
+    .route-distance {
+        font-weight: 600;
+        color: var(--primary-color);
+    }
+
+    .route-time {
+        color: var(--text-light);
+        font-size: 14px;
+    }
+
+    .route-steps {
+        max-height: 200px;
+        overflow-y: auto;
+        margin-top: 12px;
+    }
+
+    .route-step {
+        display: flex;
+        gap: 10px;
+        padding: 8px 0;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .route-step:last-child {
+        border-bottom: none;
+    }
+
+    .route-step-icon {
+        color: var(--primary-color);
+        font-size: 18px;
+    }
+
+    .route-step-text {
+        flex: 1;
+        font-size: 14px;
+    }
+
+    /* Уведомления */
+    .notification-container {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 2000;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .notification {
+        background-color: var(--card-bg);
+        border-radius: var(--rounded);
+        padding: 16px;
+        box-shadow: var(--shadow-md);
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        transform: translateX(150%);
+        transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        border-left: 4px solid transparent;
+        width: 320px;
+    }
+
+    .notification.show {
+        transform: translateX(0);
+    }
+
+    .notification i {
+        font-size: 20px;
+        flex-shrink: 0;
+    }
+
+    .notification.success {
+        border-left-color: var(--secondary-color);
+    }
+
+    .notification.warning {
+        border-left-color: var(--accent-color);
+    }
+
+    .notification.error {
+        border-left-color: var(--danger-color);
     }
 
     /* Навигация */
@@ -289,8 +426,8 @@
         justify-content: space-around;
         padding: 12px 0;
         border-top: 1px solid var(--border);
-        z-index: 100;
-        box-shadow: 0 -2px 10px rgba(0,0,0,0.3);
+        z-index: 1000;
+        box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
     }
 
     .nav-item {
@@ -306,249 +443,248 @@
         border: none;
         cursor: pointer;
         padding: 8px 0;
-        transition: all 0.2s;
+        transition: all 0.2s ease;
     }
 
     .nav-item.active {
         color: var(--primary-color);
-        transform: translateY(-5px);
     }
 
     .nav-item i {
-        font-size: 20px;
+        font-size: 22px;
         margin-bottom: 4px;
+        transition: all 0.2s ease;
     }
 
     .nav-item.active i {
-        text-shadow: 0 0 10px rgba(108, 92, 231, 0.7);
+        transform: translateY(-2px);
     }
 
-    /* Страница профиля */
-    .profile-section {
-        background-color: var(--card-bg-light);
-        border-radius: var(--rounded-lg);
+    /* Страницы */
+    .page {
+        display: none;
+        padding-bottom: 80px;
+    }
+
+    .page.active {
+        display: block;
+    }
+
+    /* Сохраненные места */
+    .saved-places {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+
+    .saved-place {
+        background-color: var(--card-bg);
+        border-radius: var(--rounded);
         padding: 16px;
-        margin-bottom: 16px;
-        box-shadow: var(--shadow-sm);
-    }
-
-    .profile-header {
         display: flex;
         align-items: center;
-        gap: 16px;
-        margin-bottom: 16px;
+        gap: 12px;
+        box-shadow: var(--shadow-sm);
+        border: 1px solid var(--border);
     }
 
-    .profile-avatar {
-        width: 80px;
-        height: 80px;
+    .saved-place-icon {
+        width: 40px;
+        height: 40px;
         border-radius: 50%;
+        background-color: var(--primary-light);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--primary-color);
+    }
+
+    .saved-place-info {
+        flex: 1;
+    }
+
+    .saved-place-name {
+        font-weight: 500;
+        margin-bottom: 4px;
+    }
+
+    .saved-place-address {
+        font-size: 12px;
+        color: var(--text-light);
+    }
+
+    .saved-place-actions {
+        display: flex;
+        gap: 8px;
+    }
+
+    .saved-place-btn {
+        background: none;
+        border: none;
+        color: var(--text-light);
+        cursor: pointer;
+        font-size: 16px;
+    }
+
+    .saved-place-btn:hover {
+        color: var(--primary-color);
+    }
+
+    /* История поиска */
+    .history-item {
+        padding: 12px 0;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .history-item:last-child {
+        border-bottom: none;
+    }
+
+    .history-query {
+        font-weight: 500;
+    }
+
+    .history-date {
+        font-size: 12px;
+        color: var(--text-light);
+    }
+
+    .history-clear {
+        text-align: center;
+        margin-top: 16px;
+    }
+
+    /* Настройки */
+    .settings-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 16px 0;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .settings-item:last-child {
+        border-bottom: none;
+    }
+
+    .settings-label {
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .switch {
+        position: relative;
+        display: inline-block;
+        width: 52px;
+        height: 28px;
+    }
+
+    .switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+
+    .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #E5E7EB;
+        transition: .4s;
+        border-radius: 34px;
+    }
+
+    .slider:before {
+        position: absolute;
+        content: "";
+        height: 20px;
+        width: 20px;
+        left: 4px;
+        bottom: 4px;
+        background-color: white;
+        transition: .4s;
+        border-radius: 50%;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    input:checked + .slider {
         background-color: var(--primary-color);
+    }
+
+    input:checked + .slider:before {
+        transform: translateX(24px);
+    }
+
+    /* Пустое состояние */
+    .empty-state {
+        text-align: center;
+        padding: 40px 20px;
+        color: var(--text-light);
+    }
+
+    .empty-state i {
+        font-size: 48px;
+        margin-bottom: 16px;
+        color: var(--border);
+    }
+
+    /* Адаптивность */
+    @media (max-width: 768px) {
+        .map-container {
+            height: calc(100vh - 160px);
+        }
+        
+        .notification {
+            width: 90%;
+            left: 5%;
+            right: 5%;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .place-card-actions {
+            flex-direction: column;
+        }
+        
+        .action-button {
+            width: 100%;
+        }
+    }
+
+    /* Кастомные стили для Leaflet */
+    .leaflet-control-attribution {
+        display: none;
+    }
+
+    .leaflet-routing-container {
+        display: none;
+    }
+
+    .custom-marker {
+        background-color: var(--primary-color);
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        border: 3px solid white;
+        box-shadow: var(--shadow);
         display: flex;
         align-items: center;
         justify-content: center;
         color: white;
-        font-size: 32px;
+        font-size: 12px;
         font-weight: bold;
     }
 
-    .profile-info h3 {
-        margin-bottom: 4px;
-    }
-
-    .profile-stats {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 12px;
-        margin-bottom: 16px;
-    }
-
-    .stat-card {
-        background-color: var(--card-bg);
-        border-radius: var(--rounded);
-        padding: 12px;
-        text-align: center;
-    }
-
-    .stat-value {
-        font-size: 24px;
-        font-weight: 700;
-        color: var(--accent-color);
-        font-family: 'Orbitron', sans-serif;
-    }
-
-    .stat-label {
+    .custom-marker i {
         font-size: 12px;
-        color: var(--text-light);
-        text-transform: uppercase;
-        letter-spacing: 1px;
-    }
-
-    /* Реферальная система */
-    .referral-card {
-        background-color: var(--card-bg-light);
-        border-radius: var(--rounded-lg);
-        padding: 16px;
-        margin-bottom: 16px;
-        box-shadow: var(--shadow-sm);
-    }
-
-    .referral-code {
-        background-color: var(--card-bg);
-        border-radius: var(--rounded);
-        padding: 12px;
-        font-family: monospace;
-        text-align: center;
-        margin: 12px 0;
-        word-break: break-all;
-    }
-
-    .copy-btn {
-        width: 100%;
-        padding: 12px;
-        background-color: var(--primary-color);
-        color: white;
-        border: none;
-        border-radius: var(--rounded);
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.2s;
-    }
-
-    .copy-btn:hover {
-        background-color: var(--primary-dark);
-    }
-
-    /* Анимации */
-    @keyframes pulse {
-        0% { transform: scale(1); }
-        50% { transform: scale(1.05); }
-        100% { transform: scale(1); }
-    }
-
-    .pulse {
-        animation: pulse 2s infinite;
-    }
-
-    /* Уведомления */
-    .notification-container {
-        position: fixed;
-        top: 16px;
-        right: 16px;
-        z-index: 2000;
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-    }
-
-    .notification {
-        background-color: var(--card-bg-light);
-        border-radius: var(--rounded);
-        padding: 12px;
-        box-shadow: var(--shadow-md);
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        transform: translateX(150%);
-        transition: transform 0.3s ease;
-        border-left: 4px solid transparent;
-        width: 300px;
-    }
-
-    .notification.show {
-        transform: translateX(0);
-    }
-
-    .notification i {
-        font-size: 20px;
-    }
-
-    .notification.success {
-        border-left-color: var(--secondary-color);
-    }
-
-    .notification.warning {
-        border-left-color: var(--accent-color);
-    }
-
-    .notification.error {
-        border-left-color: var(--danger-color);
-    }
-
-    /* Адаптивность */
-    @media (max-width: 768px) {
-        .profile-stats {
-            grid-template-columns: 1fr;
-        }
-        
-        #map {
-            height: 300px;
-        }
-    }
-
-    @media (max-width: 480px) {
-        .notification {
-            width: 90%;
-            left: 5%;
-            right: 5%;
-        }
-    }
-
-    /* Стили для полноэкранного режима */
-    .fullscreen {
-        position: fixed !important;
-        top: 0 !important;
-        left: 0 !important;
-        right: 0 !important;
-        bottom: 0 !important;
-        width: 100% !important;
-        height: 100% !important;
-        z-index: 9999;
-        border-radius: 0 !important;
-        border: none !important;
-    }
-
-    .fullscreen .map-control-btn {
-        top: 20px;
-        right: 20px;
-    }
-
-    .fullscreen .locate-btn {
-        top: 70px;
-        right: 20px;
-    }
-
-    .fullscreen .map-type-btn {
-        top: 120px;
-        right: 20px;
-    }
-
-    .fullscreen .clear-route-btn {
-        top: 170px;
-        right: 20px;
-    }
-
-    /* Адаптивность */
-    @media (max-width: 768px) {
-        .profile-stats {
-            grid-template-columns: 1fr;
-        }
-        
-        #map {
-            height: 300px;
-        }
-
-        .treasure-actions {
-            flex-direction: column;
-        }
-    }
-
-    @media (max-width: 480px) {
-        .notification {
-            width: 90%;
-            left: 5%;
-            right: 5%;
-        }
     }
     </style>
 </head>
@@ -556,616 +692,717 @@
     <div id="root"></div>
 
     <script type="text/babel">
-        const { useState, useEffect, useRef } = React;
+    const { useState, useEffect, useRef } = React;
 
-        function ErrorBoundary({ children }) {
-            const [hasError, setHasError] = useState(false);
-
-            useEffect(() => {
-                const errorHandler = (error) => {
-                    console.error('Error caught by ErrorBoundary:', error);
-                    setHasError(true);
-                };
-                
-                window.addEventListener('error', errorHandler);
-                return () => window.removeEventListener('error', errorHandler);
-            }, []);
-
-            if (hasError) {
-                return (
-                    <div className="treasure-card" style={{ color: 'var(--danger-color)' }}>
-                        <h4>Произошла ошибка</h4>
-                        <p>Пожалуйста, перезагрузите страницу</p>
-                    </div>
-                );
-            }
-
-            return children;
+    // Mock данные для поиска
+    const mockPlaces = [
+        {
+            id: 1,
+            name: "Торговый центр 'Галерея'",
+            address: "ул. Пушкина, 10",
+            lat: 59.9356,
+            lng: 30.3259,
+            category: "shopping",
+            rating: 4.5,
+            saved: true
+        },
+        {
+            id: 2,
+            name: "Кафе 'Уют'",
+            address: "пр. Невский, 45",
+            lat: 59.9339,
+            lng: 30.3061,
+            category: "food",
+            rating: 4.2,
+            saved: false
+        },
+        {
+            id: 3,
+            name: "Парк Победы",
+            address: "Московский пр., 165",
+            lat: 59.9235,
+            lng: 30.3175,
+            category: "park",
+            rating: 4.7,
+            saved: true
+        },
+        {
+            id: 4,
+            name: "Музей Современного Искусства",
+            address: "наб. канала Грибоедова, 103",
+            lat: 59.9304,
+            lng: 30.3087,
+            category: "museum",
+            rating: 4.8,
+            saved: false
+        },
+        {
+            id: 5,
+            name: "Аптека 'Здоровье'",
+            address: "ул. Садовая, 25",
+            lat: 59.9311,
+            lng: 30.2988,
+            category: "pharmacy",
+            rating: 4.0,
+            saved: false
+        },
+        {
+            id: 6,
+            name: "Кинотеатр 'Аврора'",
+            address: "Невский пр., 60",
+            lat: 59.9343,
+            lng: 30.3351,
+            category: "cinema",
+            rating: 4.3,
+            saved: true
+        },
+        {
+            id: 7,
+            name: "Спортивный комплекс 'Олимп'",
+            address: "ул. Марата, 86",
+            lat: 59.9268,
+            lng: 30.3467,
+            category: "sport",
+            rating: 4.6,
+            saved: false
         }
+    ];
 
-        function App() {
-            // Состояния приложения
-            const [activeTab, setActiveTab] = useState("treasures");
-            const [userPosition, setUserPosition] = useState(null);
-            const [treasures, setTreasures] = useState([]);
-            const [selectedTreasure, setSelectedTreasure] = useState(null);
-            const [distance, setDistance] = useState(0);
-            const [timeLeft, setTimeLeft] = useState(15 * 60);
-            const [claimedTreasures, setClaimedTreasures] = useState([]);
-            const [notifications, setNotifications] = useState([]);
-            const [userData, setUserData] = useState({
-                name: "CryptoHunter",
-                balance: 0,
-                treasuresFound: 0,
-                referralCode: "CRYPTO123",
-                referrals: 5
-            });
-            const [lastTreasureUpdate, setLastTreasureUpdate] = useState(null);
-            const [isFullscreen, setIsFullscreen] = useState(false);
-            const [mapType, setMapType] = useState("satellite"); // "satellite" или "standard"
+    // Mock история поиска
+    const mockHistory = [
+        { id: 1, query: "Кафе", date: "10.06.2023" },
+        { id: 2, query: "Аптека", date: "09.06.2023" },
+        { id: 3, query: "Кинотеатр", date: "08.06.2023" },
+        { id: 4, query: "Парк", date: "05.06.2023" },
+        { id: 5, query: "Музей", date: "03.06.2023" }
+    ];
+
+    // Категории мест
+    const placeCategories = {
+        shopping: { icon: "fa-shopping-cart", color: "#EC4899" },
+        food: { icon: "fa-utensils", color: "#F59E0B" },
+        park: { icon: "fa-tree", color: "#10B981" },
+        museum: { icon: "fa-landmark", color: "#8B5CF6" },
+        pharmacy: { icon: "fa-pills", color: "#3B82F6" },
+        cinema: { icon: "fa-film", color: "#EF4444" },
+        sport: { icon: "fa-dumbbell", color: "#6366F1" }
+    };
+
+    function App() {
+        const [activeTab, setActiveTab] = useState("map");
+        const [notifications, setNotifications] = useState([]);
+        const [searchQuery, setSearchQuery] = useState("");
+        const [searchResults, setSearchResults] = useState([]);
+        const [showResults, setShowResults] = useState(false);
+        const [currentPlace, setCurrentPlace] = useState(null);
+        const [mapMode, setMapMode] = useState("explore"); // explore, route
+        const [routeInfo, setRouteInfo] = useState(null);
+        const [userLocation, setUserLocation] = useState(null);
+        const [mapCenter, setMapCenter] = useState([59.9343, 30.3061]); // Санкт-Петербург по умолчанию
+        const [savedPlaces, setSavedPlaces] = useState(mockPlaces.filter(place => place.saved));
+        const [searchHistory, setSearchHistory] = useState(mockHistory);
+        const [settings, setSettings] = useState({
+            darkMode: false,
+            saveHistory: true,
+            showTraffic: false,
+            voiceNavigation: false
+        });
+        
+        const mapRef = useRef(null);
+        const markersRef = useRef([]);
+        const routeLayerRef = useRef(null);
+        const searchInputRef = useRef(null);
+
+        // Инициализация карты
+        useEffect(() => {
+            if (!mapRef.current) {
+                const map = L.map('map').setView(mapCenter, 13);
+                
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                }).addTo(map);
+                
+                mapRef.current = map;
+                
+                // Добавляем маркеры для всех мест
+                addMarkersToMap();
+                
+                // Обработчик клика по карте
+                map.on('click', () => {
+                    setShowResults(false);
+                    setCurrentPlace(null);
+                });
+            }
             
-            const notificationTimeoutRef = useRef(null);
-            const timerRef = useRef(null);
-            const mapRef = useRef(null);
-            const userMarkerRef = useRef(null);
-            const treasureMarkersRef = useRef([]);
-            const mapInitializedRef = useRef(false);
-            const mapContainerRef = useRef(null);
-            const routingControlRef = useRef(null);
-            const tileLayerRef = useRef(null);
-
-            // Показать уведомление
-            const showNotification = (message, type = "info", duration = 3000) => {
-                try {
-                    const id = Date.now();
-                    const notification = { id, message, type };
-                    
-                    setNotifications(prev => [...prev, notification]);
-                    
-                    if (notificationTimeoutRef.current) {
-                        clearTimeout(notificationTimeoutRef.current);
+            return () => {
+                if (mapRef.current) {
+                    mapRef.current.remove();
+                    mapRef.current = null;
+                }
+            };
+        }, []);
+        
+        // Обновление центра карты при изменении userLocation
+        useEffect(() => {
+            if (userLocation && mapRef.current) {
+                mapRef.current.setView(userLocation, 15);
+                setMapCenter(userLocation);
+            }
+        }, [userLocation]);
+        
+        // Добавление маркеров на карту
+        const addMarkersToMap = () => {
+            // Удаляем старые маркеры
+            markersRef.current.forEach(marker => {
+                if (mapRef.current && marker) {
+                    mapRef.current.removeLayer(marker);
+                }
+            });
+            markersRef.current = [];
+            
+            // Добавляем новые маркеры
+            mockPlaces.forEach(place => {
+                const category = placeCategories[place.category] || { icon: "fa-map-marker-alt", color: "#4F46E5" };
+                
+                const marker = L.marker([place.lat, place.lng], {
+                    icon: L.divIcon({
+                        className: 'custom-marker',
+                        html: `<i class="fas ${category.icon}"></i>`,
+                        iconSize: [30, 30],
+                        iconAnchor: [15, 15]
+                    })
+                }).addTo(mapRef.current);
+                
+                marker.on('click', () => {
+                    handlePlaceClick(place);
+                });
+                
+                markersRef.current.push(marker);
+            });
+        };
+        
+        // Поиск мест
+        const handleSearch = () => {
+            if (!searchQuery.trim()) {
+                setSearchResults([]);
+                setShowResults(false);
+                return;
+            }
+            
+            const results = mockPlaces.filter(place => 
+                place.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                place.address.toLowerCase().includes(searchQuery.toLowerCase())
+            );
+            
+            setSearchResults(results);
+            setShowResults(true);
+            
+            // Добавляем в историю поиска
+            if (settings.saveHistory && searchQuery.trim() && !searchHistory.some(item => item.query.toLowerCase() === searchQuery.trim().toLowerCase())) {
+                const newHistoryItem = {
+                    id: Date.now(),
+                    query: searchQuery.trim(),
+                    date: new Date().toLocaleDateString()
+                };
+                setSearchHistory(prev => [newHistoryItem, ...prev]);
+            }
+            
+            if (results.length > 0 && mapRef.current) {
+                const firstResult = results[0];
+                mapRef.current.setView([firstResult.lat, firstResult.lng], 15);
+            }
+        };
+        
+        // Обработчик клика по месту
+        const handlePlaceClick = (place) => {
+            setCurrentPlace(place);
+            
+            if (mapRef.current) {
+                mapRef.current.setView([place.lat, place.lng], 15);
+            }
+        };
+        
+        // Построение маршрута
+        const buildRoute = () => {
+            if (!userLocation || !currentPlace) return;
+            
+            setMapMode("route");
+            
+            // Здесь должна быть логика построения маршрута с использованием API маршрутизации
+            // Для демонстрации используем mock данные
+            
+            const mockRouteInfo = {
+                distance: "1.8 км",
+                time: "25 мин пешком",
+                steps: [
+                    "Идите на северо-запад по ул. Садовая в сторону Невского пр.",
+                    "Поверните направо на Невский пр.",
+                    "Продолжайте движение по Невскому пр. около 800 м",
+                    "Поверните налево на ул. Пушкина",
+                    "Торговый центр будет справа"
+                ]
+            };
+            
+            setRouteInfo(mockRouteInfo);
+            
+            // Отрисовка маршрута на карте (mock)
+            if (routeLayerRef.current && mapRef.current) {
+                mapRef.current.removeLayer(routeLayerRef.current);
+            }
+            
+            const routeLayer = L.layerGroup().addTo(mapRef.current);
+            routeLayerRef.current = routeLayer;
+            
+            // Линия маршрута
+            const routeLine = L.polyline([
+                userLocation,
+                [currentPlace.lat, currentPlace.lng]
+            ], { color: '#4F46E5', weight: 5 }).addTo(routeLayer);
+            
+            // Маркер начала
+            L.marker(userLocation, {
+                icon: L.divIcon({
+                    className: 'custom-marker',
+                    html: '<i class="fas fa-user"></i>',
+                    iconSize: [30, 30],
+                    iconAnchor: [15, 15]
+                })
+            }).addTo(routeLayer);
+            
+            // Маркер конца
+            L.marker([currentPlace.lat, currentPlace.lng], {
+                icon: L.divIcon({
+                    className: 'custom-marker',
+                    html: `<i class="fas ${placeCategories[currentPlace.category]?.icon || 'fa-map-marker-alt'}"></i>`,
+                    iconSize: [30, 30],
+                    iconAnchor: [15, 15]
+                })
+            }).addTo(routeLayer);
+            
+            // Увеличиваем карту, чтобы показать весь маршрут
+            mapRef.current.fitBounds([
+                userLocation,
+                [currentPlace.lat, currentPlace.lng]
+            ]);
+        };
+        
+        // Отмена маршрута
+        const cancelRoute = () => {
+            setMapMode("explore");
+            setRouteInfo(null);
+            
+            if (routeLayerRef.current && mapRef.current) {
+                mapRef.current.removeLayer(routeLayerRef.current);
+                routeLayerRef.current = null;
+            }
+            
+            if (currentPlace && mapRef.current) {
+                mapRef.current.setView([currentPlace.lat, currentPlace.lng], 15);
+            }
+        };
+        
+        // Определение местоположения пользователя
+        const locateUser = () => {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        const { latitude, longitude } = position.coords;
+                        setUserLocation([latitude, longitude]);
+                        showNotification("Ваше местоположение определено", "success");
+                    },
+                    (error) => {
+                        console.error("Geolocation error:", error);
+                        showNotification("Не удалось определить местоположение", "error");
                     }
-                    
-                    notificationTimeoutRef.current = setTimeout(() => {
-                        setNotifications(prev => prev.filter(n => n.id !== id));
-                    }, duration);
-                } catch (error) {
-                    console.error('Error in showNotification:', error);
+                );
+            } else {
+                showNotification("Геолокация не поддерживается вашим браузером", "warning");
+            }
+        };
+        
+        // Добавление/удаление места в сохраненные
+        const toggleSavedPlace = (placeId) => {
+            const updatedPlaces = mockPlaces.map(place => {
+                if (place.id === placeId) {
+                    return { ...place, saved: !place.saved };
                 }
-            };
+                return place;
+            });
+            
+            setSavedPlaces(updatedPlaces.filter(place => place.saved));
+            showNotification(
+                mockPlaces.find(p => p.id === placeId)?.saved 
+                    ? "Место удалено из сохраненных" 
+                    : "Место добавлено в сохраненные", 
+                "success"
+            );
+        };
+        
+        // Очистка истории поиска
+        const clearSearchHistory = () => {
+            setSearchHistory([]);
+            showNotification("История поиска очищена", "success");
+        };
+        
+        // Обновление настроек
+        const updateSetting = (key, value) => {
+            setSettings(prev => ({
+                ...prev,
+                [key]: value
+            }));
+            showNotification("Настройки сохранены", "success");
+        };
+        
+        // Показать уведомление
+        const showNotification = (message, type = "info", duration = 3000) => {
+            const id = Date.now();
+            const notification = { id, message, type };
+            
+            setNotifications(prev => [...prev, notification]);
+            
+            setTimeout(() => {
+                setNotifications(prev => prev.filter(n => n.id !== id));
+            }, duration);
+        };
+        
+        // Обработчик нажатия клавиши Enter в поиске
+        const handleKeyPress = (e) => {
+            if (e.key === 'Enter') {
+                handleSearch();
+            }
+        };
 
-            // Расчет расстояния между двумя точками в метрах
-            const calculateDistance = (lat1, lon1, lat2, lon2) => {
-                try {
-                    const R = 6371e3;
-                    const φ1 = lat1 * Math.PI/180;
-                    const φ2 = lat2 * Math.PI/180;
-                    const Δφ = (lat2-lat1) * Math.PI/180;
-                    const Δλ = (lon2-lon1) * Math.PI/180;
+        // Рендер страницы карты
+        const renderMapPage = () => (
+            <div className="map-container">
+                <div id="map"></div>
+                
+                {/* Поиск */}
+                <div className="search-container">
+                    <div className="search-box">
+                        <input
+                            type="text"
+                            className="search-input"
+                            placeholder="Поиск мест..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            onKeyPress={handleKeyPress}
+                            ref={searchInputRef}
+                        />
+                        <button className="search-button" onClick={handleSearch}>
+                            <i className="fas fa-search"></i>
+                        </button>
+                    </div>
                     
-                    const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
-                              Math.cos(φ1) * Math.cos(φ2) *
-                              Math.sin(Δλ/2) * Math.sin(Δλ/2);
-                    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-                    
-                    return R * c;
-                } catch (error) {
-                    console.error('Error in calculateDistance:', error);
-                    return Infinity;
-                }
-            };
+                    {/* Результаты поиска */}
+                    {showResults && searchResults.length > 0 && (
+                        <div className="search-results">
+                            {searchResults.map(place => (
+                                <div 
+                                    key={place.id}
+                                    className="search-result-item"
+                                    onClick={() => {
+                                        handlePlaceClick(place);
+                                        setShowResults(false);
+                                    }}
+                                >
+                                    <div style={{ fontWeight: '500' }}>{place.name}</div>
+                                    <div style={{ fontSize: '12px', color: 'var(--text-light)' }}>
+                                        {place.address}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+                
+                {/* Контролы карты */}
+                <div className="map-controls">
+                    <button 
+                        className={`map-control-button ${userLocation ? 'active' : ''}`}
+                        onClick={locateUser}
+                        title="Мое местоположение"
+                    >
+                        <i className="fas fa-location-arrow"></i>
+                    </button>
+                    <button 
+                        className="map-control-button"
+                        onClick={() => mapRef.current && mapRef.current.zoomIn()}
+                        title="Увеличить"
+                    >
+                        <i className="fas fa-plus"></i>
+                    </button>
+                    <button 
+                        className="map-control-button"
+                        onClick={() => mapRef.current && mapRef.current.zoomOut()}
+                        title="Уменьшить"
+                    >
+                        <i className="fas fa-minus"></i>
+                    </button>
+                </div>
+                
+                {/* Карточка места */}
+                {currentPlace && (
+                    <div className={`place-card ${currentPlace ? 'visible' : ''}`}>
+                        <div className="place-card-header">
+                            <h3 className="place-card-title">{currentPlace.name}</h3>
+                            <button 
+                                className="place-card-close"
+                                onClick={() => setCurrentPlace(null)}
+                            >
+                                <i className="fas fa-times"></i>
+                            </button>
+                        </div>
+                        <div className="place-card-address">
+                            <i className="fas fa-map-marker-alt" style={{ marginRight: '8px' }}></i>
+                            {currentPlace.address}
+                        </div>
+                        <div className="place-card-actions">
+                            {mapMode === "explore" ? (
+                                <button 
+                                    className="action-button primary"
+                                    onClick={buildRoute}
+                                    disabled={!userLocation}
+                                >
+                                    <i className="fas fa-route"></i> Построить маршрут
+                                </button>
+                            ) : (
+                                <button 
+                                    className="action-button secondary"
+                                    onClick={cancelRoute}
+                                >
+                                    <i className="fas fa-times"></i> Отменить маршрут
+                                </button>
+                            )}
+                            <button className="action-button secondary">
+                                <i className="fas fa-info-circle"></i> Подробнее
+                            </button>
+                        </div>
+                    </div>
+                )}
+                
+                {/* Панель маршрута */}
+                {mapMode === "route" && routeInfo && (
+                    <div className="route-panel">
+                        <div className="route-info">
+                            <div>
+                                <span className="route-distance">{routeInfo.distance}</span>
+                                <span className="route-time"> (~{routeInfo.time})</span>
+                            </div>
+                            <div className="route-steps">
+                                {routeInfo.steps.map((step, index) => (
+                                    <div key={index} className="route-step">
+                                        <div className="route-step-icon">
+                                            <i className="fas fa-arrow-right"></i>
+                                        </div>
+                                        <div className="route-step-text">{step}</div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                )}
+            </div>
+        );
 
-            // Генерация кладов (5-10 штук)
-            const generateTreasures = (lat, lng) => {
-                try {
-                    const newTreasures = [];
-                    const radius = 0.02; // ~2 км
-                    const count = Math.floor(Math.random() * 6) + 5; // 5-10 кладов
-                    
-                    for (let i = 0; i < count; i++) {
-                        const angle = (i / count) * 2 * Math.PI;
-                        const randomDist = Math.random() * radius;
-                        const randomLat = lat + randomDist * Math.cos(angle);
-                        const randomLng = lng + randomDist * Math.sin(angle);
+        // Рендер страницы сохраненных мест
+        const renderSavedPlacesPage = () => (
+            <div className="saved-places">
+                {savedPlaces.length > 0 ? (
+                    savedPlaces.map(place => {
+                        const category = placeCategories[place.category] || { icon: "fa-map-marker-alt", color: "#4F46E5" };
                         
-                        const value = Math.floor(Math.random() * 900) + 100;
-                        
-                        newTreasures.push({
-                            id: `treasure-${i}-${Date.now()}`,
-                            lat: randomLat,
-                            lng: randomLng,
-                            value: value,
-                            claimed: false
-                        });
-                    }
-                    
-                    const now = new Date().toISOString();
-                    localStorage.setItem('lastTreasureUpdate', now);
-                    localStorage.setItem('currentTreasures', JSON.stringify(newTreasures));
-                    setLastTreasureUpdate(now);
-                    
-                    return newTreasures;
-                } catch (error) {
-                    console.error('Error in generateTreasures:', error);
-                    return [];
-                }
-            };
-
-            // Проверка необходимости обновления кладов
-            const shouldUpdateTreasures = () => {
-                try {
-                    const lastUpdate = localStorage.getItem('lastTreasureUpdate');
-                    if (!lastUpdate) return true;
-                    
-                    const lastUpdateDate = new Date(lastUpdate);
-                    const now = new Date();
-                    const diffHours = (now - lastUpdateDate) / (1000 * 60 * 60);
-                    
-                    return diffHours >= 24;
-                } catch (error) {
-                    console.error('Error in shouldUpdateTreasures:', error);
-                    return true;
-                }
-            };
-
-            // Загрузка сохраненных кладов
-            const loadSavedTreasures = () => {
-                try {
-                    const savedTreasures = localStorage.getItem('currentTreasures');
-                    if (savedTreasures) {
-                        return JSON.parse(savedTreasures);
-                    }
-                } catch (error) {
-                    console.error('Error loading saved treasures:', error);
-                }
-                return [];
-            };
-
-            // Обновление позиции пользователя
-            const updatePosition = (position) => {
-                try {
-                    if (!position || !position.coords) return;
-                    
-                    const newPosition = {
-                        lat: position.coords.latitude,
-                        lng: position.coords.longitude
-                    };
-                    
-                    setUserPosition(newPosition);
-                    
-                    if (userMarkerRef.current) {
-                        userMarkerRef.current.setLatLng([newPosition.lat, newPosition.lng]);
-                    } else if (mapRef.current) {
-                        userMarkerRef.current = L.marker([newPosition.lat, newPosition.lng], {
-                            icon: L.divIcon({
-                                html: '<i class="fas fa-user" style="color: #6C5CE7; font-size: 24px;"></i>',
-                                className: 'user-marker',
-                                iconSize: [30, 30]
-                            })
-                        }).addTo(mapRef.current);
-                    }
-                    
-                    if (treasures.length === 0) {
-                        let newTreasures = [];
-                        
-                        if (shouldUpdateTreasures()) {
-                            newTreasures = generateTreasures(newPosition.lat, newPosition.lng);
-                            showNotification("Новые клады сгенерированы!", "success");
-                        } else {
-                            newTreasures = loadSavedTreasures();
-                            if (newTreasures.length === 0) {
-                                newTreasures = generateTreasures(newPosition.lat, newPosition.lng);
-                            }
-                        }
-                        
-                        setTreasures(newTreasures);
-                        addTreasureMarkers(newTreasures);
-                    }
-                    
-                    if (selectedTreasure) {
-                        const dist = calculateDistance(
-                            newPosition.lat,
-                            newPosition.lng,
-                            selectedTreasure.lat,
-                            selectedTreasure.lng
+                        return (
+                            <div key={place.id} className="saved-place">
+                                <div className="saved-place-icon" style={{ backgroundColor: `${category.color}20`, color: category.color }}>
+                                    <i className={`fas ${category.icon}`}></i>
+                                </div>
+                                <div className="saved-place-info">
+                                    <div className="saved-place-name">{place.name}</div>
+                                    <div className="saved-place-address">{place.address}</div>
+                                </div>
+                                <div className="saved-place-actions">
+                                    <button 
+                                        className="saved-place-btn" 
+                                        onClick={() => toggleSavedPlace(place.id)}
+                                        title="Удалить из сохраненных"
+                                    >
+                                        <i className="fas fa-bookmark" style={{ color: place.saved ? category.color : 'var(--text-light)' }}></i>
+                                    </button>
+                                    <button 
+                                        className="saved-place-btn" 
+                                        onClick={() => handlePlaceClick(place)}
+                                        title="Показать на карте"
+                                    >
+                                        <i className="fas fa-map-marker-alt"></i>
+                                    </button>
+                                </div>
+                            </div>
                         );
-                        setDistance(dist);
-                    }
-                } catch (error) {
-                    console.error('Error in updatePosition:', error);
-                    showNotification("Ошибка обновления позиции", "error");
-                }
-            };
+                    })
+                ) : (
+                    <div className="empty-state">
+                        <i className="fas fa-bookmark"></i>
+                        <h3>Нет сохраненных мест</h3>
+                        <p>Сохраняйте интересные места, чтобы быстро находить их позже</p>
+                    </div>
+                )}
+            </div>
+        );
 
-            // Добавление маркеров кладов (оптимизированная версия)
-            const addTreasureMarkers = (treasures) => {
-                try {
-                    if (!mapRef.current) return;
-                    
-                    // Очистка старых маркеров
-                    clearTreasureMarkers();
-                    
-                    // Создаем кластер для маркеров
-                    const markersCluster = L.markerClusterGroup({
-                        maxClusterRadius: 40,
-                        spiderfyOnMaxZoom: true,
-                        showCoverageOnHover: false,
-                        zoomToBoundsOnClick: true
-                    });
-                    
-                    // Добавляем маркеры в кластер
-                    treasures.forEach(treasure => {
-                        if (!treasure.claimed) {
-                            const marker = L.marker([treasure.lat, treasure.lng], {
-                                icon: L.divIcon({
-                                    html: '<i class="fas fa-coins" style="color: #FDCB6E; font-size: 24px;"></i>',
-                                    className: 'treasure-marker',
-                                    iconSize: [30, 30]
-                                })
-                            });
-                            
-                            marker.on('click', () => selectTreasure(treasure));
-                            markersCluster.addLayer(marker);
-                            treasureMarkersRef.current.push(marker);
-                        }
-                    });
-                    
-                    // Добавляем кластер на карту
-                    mapRef.current.addLayer(markersCluster);
-                } catch (error) {
-                    console.error('Error in addTreasureMarkers:', error);
-                }
-            };
+        // Рендер страницы истории поиска
+        const renderHistoryPage = () => (
+            <div>
+                {searchHistory.length > 0 ? (
+                    <>
+                        {searchHistory.map(item => (
+                            <div key={item.id} className="history-item">
+                                <div>
+                                    <div className="history-query">{item.query}</div>
+                                    <div className="history-date">{item.date}</div>
+                                </div>
+                                <button 
+                                    className="saved-place-btn"
+                                    onClick={() => {
+                                        setSearchQuery(item.query);
+                                        handleSearch();
+                                        setActiveTab("map");
+                                    }}
+                                >
+                                    <i className="fas fa-search"></i>
+                                </button>
+                            </div>
+                        ))}
+                        <div className="history-clear">
+                            <button 
+                                className="action-button secondary"
+                                onClick={clearSearchHistory}
+                            >
+                                <i className="fas fa-trash-alt"></i> Очистить историю
+                            </button>
+                        </div>
+                    </>
+                ) : (
+                    <div className="empty-state">
+                        <i className="fas fa-history"></i>
+                        <h3>История поиска пуста</h3>
+                        <p>Здесь будут отображаться ваши предыдущие поисковые запросы</p>
+                    </div>
+                )}
+            </div>
+        );
 
-            // Очистка маркеров кладов
-            const clearTreasureMarkers = () => {
-                try {
-                    if (mapRef.current) {
-                        mapRef.current.eachLayer(layer => {
-                            if (layer instanceof L.MarkerClusterGroup) {
-                                mapRef.current.removeLayer(layer);
-                            }
-                        });
-                    }
-                    treasureMarkersRef.current = [];
-                } catch (error) {
-                    console.error('Error clearing markers:', error);
-                }
-            };
-
-            // Очистка маршрута
-            const clearRoute = () => {
-                try {
-                    if (routingControlRef.current && mapRef.current) {
-                        mapRef.current.removeControl(routingControlRef.current);
-                        routingControlRef.current = null;
-                        showNotification("Маршрут очищен", "info");
-                    }
-                } catch (error) {
-                    console.error('Error clearing route:', error);
-                }
-            };
-
-            // Построение маршрута к кладу
-            const buildRouteToTreasure = () => {
-                try {
-                    if (!selectedTreasure || !userPosition) return;
+        // Рендер страницы настроек
+        const renderSettingsPage = () => (
+            <div>
+                <div className="card">
+                    <div className="settings-item">
+                        <div className="settings-label">
+                            <i className="fas fa-moon"></i>
+                            Темный режим
+                        </div>
+                        <label className="switch">
+                            <input 
+                                type="checkbox" 
+                                checked={settings.darkMode}
+                                onChange={(e) => updateSetting("darkMode", e.target.checked)}
+                            />
+                            <span className="slider"></span>
+                        </label>
+                    </div>
                     
-                    clearRoute();
+                    <div className="settings-item">
+                        <div className="settings-label">
+                            <i className="fas fa-history"></i>
+                            Сохранять историю поиска
+                        </div>
+                        <label className="switch">
+                            <input 
+                                type="checkbox" 
+                                checked={settings.saveHistory}
+                                onChange={(e) => updateSetting("saveHistory", e.target.checked)}
+                            />
+                            <span className="slider"></span>
+                        </label>
+                    </div>
                     
-                    routingControlRef.current = L.Routing.control({
-                        waypoints: [
-                            L.latLng(userPosition.lat, userPosition.lng),
-                            L.latLng(selectedTreasure.lat, selectedTreasure.lng)
-                        ],
-                        routeWhileDragging: true,
-                        showAlternatives: false,
-                        addWaypoints: false,
-                        draggableWaypoints: false,
-                        fitSelectedRoutes: true,
-                        show: false,
-                        lineOptions: {
-                            styles: [{ color: '#6C5CE7', opacity: 0.8, weight: 5 }]
-                        },
-                        createMarker: () => null
-                    }).addTo(mapRef.current);
+                    <div className="settings-item">
+                        <div className="settings-label">
+                            <i className="fas fa-traffic-light"></i>
+                            Показывать пробки
+                        </div>
+                        <label className="switch">
+                            <input 
+                                type="checkbox" 
+                                checked={settings.showTraffic}
+                                onChange={(e) => updateSetting("showTraffic", e.target.checked)}
+                            />
+                            <span className="slider"></span>
+                        </label>
+                    </div>
                     
-                    showNotification("Маршрут построен!", "success");
-                } catch (error) {
-                    console.error('Error building route:', error);
-                    showNotification("Ошибка построения маршрута", "error");
-                }
-            };
-
-            // Выбор клада
-            const selectTreasure = (treasure) => {
-                try {
-                    if (!treasure) return;
-                    
-                    setSelectedTreasure(treasure);
-                    clearRoute();
-                    
-                    if (userPosition) {
-                        const dist = calculateDistance(
-                            userPosition.lat,
-                            userPosition.lng,
-                            treasure.lat,
-                            treasure.lng
-                        );
-                        setDistance(dist);
-                    }
-                    
-                    setTimeLeft(15 * 60);
-                    
-                    if (mapRef.current) {
-                        mapRef.current.setView([treasure.lat, treasure.lng], 15);
-                    }
-                } catch (error) {
-                    console.error('Error in selectTreasure:', error);
-                    showNotification("Ошибка выбора клада", "error");
-                }
-            };
-
-            // Сбор клада
-            const claimTreasure = () => {
-                try {
-                    if (!selectedTreasure || distance > 50) return;
-                    
-                    const updatedTreasures = treasures.map(t => 
-                        t.id === selectedTreasure.id ? { ...t, claimed: true } : t
-                    );
-                    
-                    setTreasures(updatedTreasures);
-                    setClaimedTreasures(prev => [...prev, selectedTreasure.id]);
-                    localStorage.setItem('currentTreasures', JSON.stringify(updatedTreasures));
-                    
-                    setUserData(prev => ({
-                        ...prev,
-                        balance: prev.balance + selectedTreasure.value,
-                        treasuresFound: prev.treasuresFound + 1
-                    }));
-                    
-                    showNotification(`Вы нашли клад! +${selectedTreasure.value} токенов`, "success");
-                    clearRoute();
-                    
-                    // Удаляем маркер клада
-                    clearTreasureMarkers();
-                    addTreasureMarkers(updatedTreasures);
-                    
-                    setSelectedTreasure(null);
-                } catch (error) {
-                    console.error('Error in claimTreasure:', error);
-                    showNotification("Ошибка сбора клада", "error");
-                }
-            };
-
-            // Переключение полноэкранного режима
-            const toggleFullscreen = () => {
-                try {
-                    const mapElement = document.getElementById('map');
-                    if (!mapElement) return;
-                    
-                    if (!isFullscreen) {
-                        mapElement.classList.add('fullscreen');
-                        setIsFullscreen(true);
-                    } else {
-                        mapElement.classList.remove('fullscreen');
-                        setIsFullscreen(false);
-                    }
-                    
-                    // Обновляем размер карты после изменения режима
-                    if (mapRef.current) {
-                        setTimeout(() => {
-                            mapRef.current.invalidateSize();
-                        }, 300);
-                    }
-                } catch (error) {
-                    console.error('Error toggling fullscreen:', error);
-                }
-            };
-
-            // Переключение типа карты
-            const toggleMapType = () => {
-                try {
-                    if (!mapRef.current) return;
-                    
-                    const newMapType = mapType === "satellite" ? "standard" : "satellite";
-                    setMapType(newMapType);
-                    
-                    // Удаляем старый слой
-                    if (tileLayerRef.current) {
-                        mapRef.current.removeLayer(tileLayerRef.current);
-                    }
-                    
-                    // Добавляем новый слой
-                    if (newMapType === "satellite") {
-                        tileLayerRef.current = L.tileLayer('https://api.mapbox.com/styles/v1/mapbox/satellite-v9/tiles/{z}/{x}/{y}?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw', {
-                            attribution: '© <a href="https://www.mapbox.com/about/maps/">Mapbox</a> © <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-                            maxZoom: 19,
-                        }).addTo(mapRef.current);
-                    } else {
-                        tileLayerRef.current = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                        }).addTo(mapRef.current);
-                    }
-                    
-                    showNotification(`Тип карты: ${newMapType === "satellite" ? "Спутник" : "Стандарт"}`, "info");
-                } catch (error) {
-                    console.error('Error toggling map type:', error);
-                    showNotification("Ошибка переключения карты", "error");
-                }
-            };
-
-            // Центрирование карты на пользователе
-            const centerOnUser = () => {
-                try {
-                    if (mapRef.current && userPosition) {
-                        mapRef.current.setView([userPosition.lat, userPosition.lng], 15);
-                        showNotification("Карта центрирована на вашем местоположении", "info");
-                    }
-                } catch (error) {
-                    console.error('Error centering on user:', error);
-                    showNotification("Ошибка центрирования карты", "error");
-                }
-            };
-
-            // Копирование реферального кода
-            const copyReferralCode = () => {
-                try {
-                    navigator.clipboard.writeText(userData.referralCode);
-                    showNotification("Реферальный код скопирован", "success");
-                } catch (error) {
-                    console.error('Error copying referral code:', error);
-                    showNotification("Не удалось скопировать код", "error");
-                }
-            };
-
-            // Инициализация карты
-            const initMap = () => {
-                try {
-                    if (!mapInitializedRef.current && document.getElementById('map')) {
-                        mapRef.current = L.map('map').setView([0, 0], 15);
-                        
-                        // Инициализация стандартного слоя
-                        tileLayerRef.current = L.tileLayer('https://api.mapbox.com/styles/v1/mapbox/satellite-v9/tiles/{z}/{x}/{y}?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw', {
-                            attribution: '© <a href="https://www.mapbox.com/about/maps/">Mapbox</a> © <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-                            maxZoom: 19,
-                        }).addTo(mapRef.current);
-                        
-                        mapInitializedRef.current = true;
-                        
-                        if (userPosition) {
-                            mapRef.current.setView([userPosition.lat, userPosition.lng], 15);
-                        }
-                    }
-                } catch (error) {
-                    console.error('Error initializing map:', error);
-                    showNotification("Ошибка загрузки карты", "error");
-                }
-            };
-
-            // Уничтожение карты
-            const destroyMap = () => {
-                try {
-                    clearRoute();
-                    clearTreasureMarkers();
-                    
-                    if (mapRef.current) {
-                        mapRef.current.remove();
-                        mapRef.current = null;
-                        mapInitializedRef.current = false;
-                        userMarkerRef.current = null;
-                        tileLayerRef.current = null;
-                    }
-                } catch (e) {
-                    console.error('Error cleaning up map:', e);
-                }
-            };
-
-            // Инициализация при монтировании
-            useEffect(() => {
-                const lastUpdate = localStorage.getItem('lastTreasureUpdate');
-                if (lastUpdate) {
-                    setLastTreasureUpdate(lastUpdate);
-                }
+                    <div className="settings-item">
+                        <div className="settings-label">
+                            <i className="fas fa-volume-up"></i>
+                            Голосовая навигация
+                        </div>
+                        <label className="switch">
+                            <input 
+                                type="checkbox" 
+                                checked={settings.voiceNavigation}
+                                onChange={(e) => updateSetting("voiceNavigation", e.target.checked)}
+                            />
+                            <span className="slider"></span>
+                        </label>
+                    </div>
+                </div>
                 
-                return () => {
-                    if (timerRef.current) {
-                        clearInterval(timerRef.current);
-                    }
-                    if (notificationTimeoutRef.current) {
-                        clearTimeout(notificationTimeoutRef.current);
-                    }
-                    destroyMap();
-                };
-            }, []);
+                <div style={{ marginTop: '20px', textAlign: 'center' }}>
+                    <button className="action-button secondary">
+                        <i className="fas fa-question-circle"></i> Помощь
+                    </button>
+                    <button className="action-button secondary" style={{ marginTop: '12px' }}>
+                        <i className="fas fa-share-alt"></i> Поделиться приложением
+                    </button>
+                </div>
+            </div>
+        );
 
-            // Запрос геолокации
-            useEffect(() => {
-                let watchId = null;
-                
-                try {
-                    if (navigator.geolocation) {
-                        watchId = navigator.geolocation.watchPosition(
-                            updatePosition,
-                            (error) => {
-                                console.error('Ошибка геолокации:', error);
-                                showNotification("Разрешите доступ к геолокации для игры", "error");
-                            },
-                            {
-                                enableHighAccuracy: true,
-                                maximumAge: 10000,
-                                timeout: 5000
-                            }
-                        );
-                    } else {
-                        showNotification("Ваш браузер не поддерживает геолокацию", "error");
-                    }
-                } catch (error) {
-                    console.error('Error setting up geolocation:', error);
-                    showNotification("Ошибка доступа к геолокации", "error");
-                }
-                
-                return () => {
-                    if (watchId && navigator.geolocation) {
-                        navigator.geolocation.clearWatch(watchId);
-                    }
-                };
-            }, []);
+        return (
+            <div className="app">
+                {/* Шапка */}
+                <header className="header">
+                    <div className="header-content">
+                        <div className="logo">
+                            <i className="fas fa-map-marked-alt"></i>
+                            <span>НавиКарта</span>
+                        </div>
+                        <div className="user-avatar">
+                            <i className="fas fa-user"></i>
+                        </div>
+                    </div>
+                </header>
 
-            // Управление картой при переключении вкладок
-            useEffect(() => {
-                if (activeTab === "treasures") {
-                    initMap();
+                <div className="container">
+                    {/* Страницы */}
+                    <div className={`page ${activeTab === "map" ? "active" : ""}`}>
+                        {renderMapPage()}
+                    </div>
                     
-                    if (treasures.length > 0) {
-                        addTreasureMarkers(treasures);
-                    }
-                } else {
-                    destroyMap();
-                }
-                
-                return () => {
-                    if (activeTab !== "treasures") {
-                        destroyMap();
-                    }
-                };
-            }, [activeTab, treasures]);
+                    <div className={`page ${activeTab === "saved" ? "active" : ""}`}>
+                        {renderSavedPlacesPage()}
+                    </div>
+                    
+                    <div className={`page ${activeTab === "history" ? "active" : ""}`}>
+                        {renderHistoryPage()}
+                    </div>
+                    
+                    <div className={`page ${activeTab === "settings" ? "active" : ""}`}>
+                        {renderSettingsPage()}
+                    </div>
+                </div>
 
-            // Таймер обратного отсчета
-            useEffect(() => {
-                try {
-                    if (selectedTreasure && timeLeft > 0) {
-                        timerRef.current = setInterval(() => {
-                            setTimeLeft(prev => prev - 1);
-                        }, 1000);
-                    }
-                } catch (error) {
-                    console.error('Error setting up timer:', error);
-                }
-                
-                return () => {
-                    if (timerRef.current) {
-                        clearInterval(timerRef.current);
-                    }
-                };
-            }, [selectedTreasure]);
-
-            // Сброс клада при истечении времени
-            useEffect(() => {
-                try {
-                    if (timeLeft <= 0 && selectedTreasure) {
-                        showNotification("Время вышло! Клад исчез.", "error");
-                        setSelectedTreasure(null);
-                        clearRoute();
-                    }
-                } catch (error) {
-                    console.error('Error handling timer expiration:', error);
-                }
-            }, [timeLeft]);
-
-            // Рендер уведомлений
-            const renderNotifications = () => (
+                {/* Уведомления */}
                 <div className="notification-container">
                     {notifications.map(notification => (
                         <div key={notification.id} className={`notification ${notification.type} show`}>
@@ -1178,240 +1415,45 @@
                         </div>
                     ))}
                 </div>
-            );
 
-            // Рендер страницы с кладами
-            const renderTreasuresPage = () => (
-                <div className="page">
-                    <h2><i className="fas fa-coins"></i> Охота за кладами</h2>
-                    
-                    <div className="map-container">
-                        <div id="map" ref={mapContainerRef}></div>
-                        <button 
-                            className="map-control-btn fullscreen-btn"
-                            onClick={toggleFullscreen}
-                        >
-                            <i className={`fas ${isFullscreen ? 'fa-compress' : 'fa-expand'}`}></i>
-                            {isFullscreen ? 'Выйти' : 'На весь экран'}
-                        </button>
-                        <button 
-                            className="map-control-btn locate-btn"
-                            onClick={centerOnUser}
-                        >
-                            <i className="fas fa-location-arrow"></i>
-                            Где я?
-                        </button>
-                        <button 
-                            className="map-control-btn map-type-btn"
-                            onClick={toggleMapType}
-                        >
-                            <i className={`fas ${mapType === "satellite" ? "fa-map" : "fa-satellite"}`}></i>
-                            {mapType === "satellite" ? "Карта" : "Спутник"}
-                        </button>
-                        {selectedTreasure && (
-                            <button 
-                                className="map-control-btn clear-route-btn"
-                                onClick={clearRoute}
-                            >
-                                <i className="fas fa-times"></i>
-                                Сбросить маршрут
-                            </button>
-                        )}
-                    </div>
-                    
-                    {selectedTreasure ? (
-                        <div className="treasure-card">
-                            <h4>Выбранный клад</h4>
-                            <div className="treasure-distance">
-                                <div className="distance-label">
-                                    <i className="fas fa-location-arrow"></i>
-                                    <span>Дистанция:</span>
-                                </div>
-                                <div className="distance-value">{Math.round(distance)} м</div>
-                            </div>
-                            
-                            <div className="treasure-timer">
-                                <i className="fas fa-clock"></i>
-                                <span>
-                                    {Math.floor(timeLeft / 60)}:{timeLeft % 60 < 10 ? '0' : ''}{timeLeft % 60}
-                                </span>
-                            </div>
-                            
-                            <div className="treasure-actions">
-                                <button 
-                                    className={`claim-btn ${distance <= 50 ? 'active pulse' : ''}`}
-                                    onClick={claimTreasure}
-                                    disabled={distance > 50}
-                                >
-                                    {distance <= 50 ? 
-                                        `Забрать ${selectedTreasure.value} токенов` : 
-                                        "Подойдите ближе"}
-                                </button>
-                                <button 
-                                    className="route-btn"
-                                    onClick={buildRouteToTreasure}
-                                >
-                                    <i className="fas fa-route"></i> Маршрут
-                                </button>
-                            </div>
-                        </div>
-                    ) : (
-                        <div className="treasure-card">
-                            <h4>Выберите клад на карте</h4>
-                            <p>Нажмите на любой клад на карте, чтобы начать охоту</p>
-                            <div className="treasure-value">
-                                Найдено: {userData.treasuresFound} кладов
-                            </div>
-                            {lastTreasureUpdate && (
-                                <p style={{ fontSize: '12px', color: 'var(--text-light)', textAlign: 'center' }}>
-                                    Кладов доступно: {treasures.filter(t => !t.claimed).length} из {treasures.length}
-                                </p>
-                            )}
-                        </div>
-                    )}
-                </div>
-            );
+                {/* Мобильная навигация */}
+                <nav className="mobile-nav">
+                    <button 
+                        className={`nav-item ${activeTab === "map" ? "active" : ""}`}
+                        onClick={() => setActiveTab("map")}
+                    >
+                        <i className="fas fa-map-marked-alt"></i>
+                        <span>Карта</span>
+                    </button>
+                    <button 
+                        className={`nav-item ${activeTab === "saved" ? "active" : ""}`}
+                        onClick={() => setActiveTab("saved")}
+                    >
+                        <i className="fas fa-bookmark"></i>
+                        <span>Сохраненные</span>
+                    </button>
+                    <button 
+                        className={`nav-item ${activeTab === "history" ? "active" : ""}`}
+                        onClick={() => setActiveTab("history")}
+                    >
+                        <i className="fas fa-history"></i>
+                        <span>История</span>
+                    </button>
+                    <button 
+                        className={`nav-item ${activeTab === "settings" ? "active" : ""}`}
+                        onClick={() => setActiveTab("settings")}
+                    >
+                        <i className="fas fa-cog"></i>
+                        <span>Настройки</span>
+                    </button>
+                </nav>
+            </div>
+        );
+    }
 
-            // Рендер страницы профиля
-            const renderProfilePage = () => (
-                <div className="page">
-                    <h2><i className="fas fa-user"></i> Профиль</h2>
-                    
-                    <div className="profile-section">
-                        <div className="profile-header">
-                            <div className="profile-avatar">
-                                {userData.name.charAt(0)}
-                            </div>
-                            <div className="profile-info">
-                                <h3>{userData.name}</h3>
-                                <p>Охотник за кладами</p>
-                            </div>
-                        </div>
-                        
-                        <div className="profile-stats">
-                            <div className="stat-card">
-                                <div className="stat-value">{userData.balance}</div>
-                                <div className="stat-label">Токенов</div>
-                            </div>
-                            <div className="stat-card">
-                                <div className="stat-value">{userData.treasuresFound}</div>
-                                <div className="stat-label">Кладов</div>
-                            </div>
-                            <div className="stat-card">
-                                <div className="stat-value">{userData.referrals}</div>
-                                <div className="stat-label">Рефералов</div>
-                            </div>
-                            <div className="stat-card">
-                                <div className="stat-value">{claimedTreasures.length}</div>
-                                <div className="stat-label">Найдено</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            );
-
-            // Рендер реферальной страницы
-            const renderReferralPage = () => (
-                <div className="page">
-                    <h2><i className="fas fa-users"></i> Реферальная программа</h2>
-                    
-                    <div className="referral-card">
-                        <h4>Приглашайте друзей и получайте бонусы</h4>
-                        <p>За каждого приглашенного друга вы получите 10% от его первых 5 кладов</p>
-                        
-                        <div className="referral-code">
-                            {userData.referralCode}
-                        </div>
-                        
-                        <button 
-                            className="copy-btn"
-                            onClick={copyReferralCode}
-                        >
-                            <i className="fas fa-copy"></i> Копировать код
-                        </button>
-                    </div>
-                    
-                    <div className="profile-stats">
-                        <div className="stat-card">
-                            <div className="stat-value">{userData.referrals}</div>
-                            <div className="stat-label">Приглашено</div>
-                        </div>
-                        <div className="stat-card">
-                            <div className="stat-value">{userData.referrals * 50}</div>
-                            <div className="stat-label">Заработано</div>
-                        </div>
-                    </div>
-                </div>
-            );
-
-            return (
-                <ErrorBoundary>
-                    <div className="app">
-                        {/* Шапка */}
-                        <header className="header">
-                            <div className="header-content">
-                                <div className="logo">
-                                    <i className="fas fa-coins"></i>
-                                    <span>Crypto Hunt</span>
-                                </div>
-                                <div className="user-profile">
-                                    <span>{userData.balance} $TOKEN</span>
-                                    <div className="user-avatar">
-                                        {userData.name.charAt(0)}
-                                    </div>
-                                </div>
-                            </div>
-                        </header>
-
-                        <div className="container">
-                            {/* Основной экран с кладами */}
-                            {activeTab === "treasures" && renderTreasuresPage()}
-                            
-                            {/* Экран профиля */}
-                            {activeTab === "profile" && renderProfilePage()}
-                            
-                            {/* Реферальная программа */}
-                            {activeTab === "referral" && renderReferralPage()}
-                        </div>
-
-                        {/* Уведомления */}
-                        {renderNotifications()}
-
-                        {/* Мобильная навигация */}
-                        <nav className="mobile-nav">
-                            <button 
-                                className={`nav-item ${activeTab === "treasures" ? "active" : ""}`}
-                                onClick={() => setActiveTab("treasures")}
-                            >
-                                <i className="fas fa-coins"></i>
-                                <span>Клады</span>
-                            </button>
-                            <button 
-                                className={`nav-item ${activeTab === "profile" ? "active" : ""}`}
-                                onClick={() => setActiveTab("profile")}
-                            >
-                                <i className="fas fa-user"></i>
-                                <span>Профиль</span>
-                            </button>
-                            <button 
-                                className={`nav-item ${activeTab === "referral" ? "active" : ""}`}
-                                onClick={() => setActiveTab("referral")}
-                            >
-                                <i className="fas fa-users"></i>
-                                <span>Рефералы</span>
-                            </button>
-                        </nav>
-                    </div>
-                </ErrorBoundary>
-            );
-        }
-
-        const rootElement = document.getElementById("root");
-        const root = ReactDOM.createRoot(rootElement);
-        root.render(<App />);
+    const rootElement = document.getElementById("root");
+    const root = ReactDOM.createRoot(rootElement);
+    root.render(<App />);
     </script>
-    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
-    <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
-    <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
 </body>
 </html>
