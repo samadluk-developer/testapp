@@ -3,18 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>НавиКарта - Удобная навигация</title>
+    <title>Мой калькулятор</title>
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
     :root {
-        --primary-color: #4F46E5;
-        --primary-dark: #4338CA;
+        --primary-color: #6366F1;
+        --primary-dark: #4F46E5;
         --primary-light: #EEF2FF;
         --secondary-color: #10B981;
         --accent-color: #F59E0B;
@@ -48,7 +43,7 @@
         -webkit-font-smoothing: antialiased;
     }
 
-    h1, h2, h3 {
+    h1, h2, h3, h4 {
         color: var(--text);
         margin-bottom: 16px;
         font-weight: 600;
@@ -58,6 +53,7 @@
         max-width: 100%;
         margin: 0 auto;
         padding: var(--section-padding);
+        padding-bottom: 100px;
     }
 
     /* Шапка */
@@ -67,352 +63,223 @@
         padding: 16px var(--section-padding);
         position: sticky;
         top: 0;
-        z-index: 1000;
+        z-index: 100;
         box-shadow: var(--shadow-sm);
+        text-align: center;
     }
 
-    .header-content {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        max-width: 100%;
-        margin: 0 auto;
-    }
-
-    .logo {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        font-size: 18px;
+    .header-title {
+        font-size: 20px;
         font-weight: 700;
         color: var(--primary-color);
     }
 
-    .logo i {
-        font-size: 22px;
-    }
-
-    .user-avatar {
-        width: 40px;
-        height: 40px;
-        border-radius: 50%;
-        background-color: var(--primary-light);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: var(--primary-color);
-        font-weight: 600;
-        border: 2px solid var(--primary-color);
-        cursor: pointer;
-        overflow: hidden;
-    }
-
-    .user-avatar img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-    }
-
-    /* Карта */
-    .map-container {
-        height: calc(100vh - 120px);
-        width: 100%;
-        position: relative;
+    /* Карточки */
+    .card {
+        background-color: var(--card-bg);
         border-radius: var(--rounded-lg);
-        overflow: hidden;
-        box-shadow: var(--shadow);
+        padding: 20px;
         margin-bottom: 16px;
+        box-shadow: var(--shadow-sm);
+        border: 1px solid var(--border);
+        transition: all 0.2s ease;
     }
 
-    #map {
-        height: 100%;
-        width: 100%;
-    }
-
-    /* Поиск */
-    .search-container {
-        position: absolute;
-        top: 20px;
-        left: 20px;
-        z-index: 1000;
-        width: calc(100% - 40px);
-        max-width: 500px;
-    }
-
-    .search-box {
-        display: flex;
-        background-color: var(--card-bg);
-        border-radius: var(--rounded);
-        box-shadow: var(--shadow-md);
-        overflow: hidden;
-    }
-
-    .search-input {
-        flex: 1;
-        padding: 14px 16px;
-        border: none;
-        font-size: 16px;
-        outline: none;
-        background-color: var(--card-bg);
-    }
-
-    .search-button {
-        background-color: var(--primary-color);
-        color: white;
-        border: none;
-        padding: 0 20px;
-        cursor: pointer;
-        transition: background-color 0.2s;
-    }
-
-    .search-button:hover {
-        background-color: var(--primary-dark);
-    }
-
-    /* Результаты поиска */
-    .search-results {
-        max-height: 300px;
-        overflow-y: auto;
-        margin-top: 8px;
-        background-color: var(--card-bg);
-        border-radius: var(--rounded);
-        box-shadow: var(--shadow-md);
-        display: none;
-    }
-
-    .search-result-item {
-        padding: 12px 16px;
-        cursor: pointer;
-        transition: background-color 0.2s;
-        border-bottom: 1px solid var(--border);
-    }
-
-    .search-result-item:last-child {
-        border-bottom: none;
-    }
-
-    .search-result-item:hover {
-        background-color: var(--primary-light);
-    }
-
-    /* Контролы карты */
-    .map-controls {
-        position: absolute;
-        bottom: 20px;
-        right: 20px;
-        z-index: 1000;
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-    }
-
-    .map-control-button {
-        width: 44px;
-        height: 44px;
-        background-color: var(--card-bg);
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        box-shadow: var(--shadow-md);
-        cursor: pointer;
-        transition: all 0.2s;
-        border: none;
-        color: var(--text);
-    }
-
-    .map-control-button:hover {
-        background-color: var(--primary-color);
-        color: white;
+    .card:hover {
+        box-shadow: var(--shadow);
         transform: translateY(-2px);
     }
 
-    .map-control-button.active {
-        background-color: var(--primary-color);
-        color: white;
+    .card-title {
+        font-weight: 600;
+        font-size: 16px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 12px;
     }
 
-    /* Карточка места */
-    .place-card {
-        position: absolute;
-        bottom: 80px;
-        left: 20px;
-        right: 20px;
-        background-color: var(--card-bg);
-        border-radius: var(--rounded-lg);
-        padding: 16px;
-        box-shadow: var(--shadow-md);
-        z-index: 1000;
-        transform: translateY(150%);
-        transition: transform 0.3s ease;
+    .card-description {
+        font-size: 14px;
+        color: var(--text-light);
+        margin-bottom: 12px;
+        line-height: 1.6;
     }
 
-    .place-card.visible {
-        transform: translateY(0);
-    }
-
-    .place-card-header {
+    .card-footer {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 12px;
+        margin-top: 16px;
     }
 
-    .place-card-title {
-        font-weight: 600;
-        font-size: 18px;
+    /* Статистика */
+    .stats-container {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+        margin-bottom: 24px;
     }
 
-    .place-card-close {
-        background: none;
-        border: none;
-        color: var(--text-light);
-        font-size: 20px;
-        cursor: pointer;
+    .stat-card {
+        background-color: var(--card-bg);
+        padding: 16px;
+        border-radius: var(--rounded-lg);
+        text-align: center;
+        box-shadow: var(--shadow-sm);
+        border: 1px solid var(--border);
+        transition: all 0.2s ease;
     }
 
-    .place-card-address {
-        color: var(--text-light);
-        margin-bottom: 12px;
+    .stat-card:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow);
+    }
+
+    .stat-value {
+        font-size: 24px;
+        font-weight: 700;
+        color: var(--primary-color);
+        margin-bottom: 4px;
+    }
+
+    .stat-label {
         font-size: 14px;
+        color: var(--text-light);
     }
 
-    .place-card-actions {
-        display: flex;
-        gap: 10px;
+    /* Формы */
+    .form-group {
+        margin-bottom: 20px;
     }
 
-    .action-button {
-        flex: 1;
-        padding: 10px;
-        border-radius: var(--rounded);
-        border: none;
+    .form-label {
+        display: block;
+        margin-bottom: 8px;
+        font-size: 14px;
         font-weight: 500;
+        color: var(--text);
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 14px;
+        border: 1px solid var(--border);
+        border-radius: var(--rounded);
+        font-family: inherit;
+        font-size: 14px;
+        transition: all 0.2s ease;
+        background-color: var(--light-bg);
+    }
+
+    .form-control:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    }
+
+    /* Кнопки */
+    .btn {
+        padding: 12px 20px;
+        background-color: var(--primary-color);
+        color: white;
+        border: none;
+        border-radius: var(--rounded);
+        font-weight: 600;
         cursor: pointer;
-        display: flex;
+        transition: all 0.2s ease;
+        font-size: 14px;
+        min-width: 140px;
+        display: inline-flex;
         align-items: center;
         justify-content: center;
         gap: 8px;
-        transition: all 0.2s;
     }
 
-    .action-button.primary {
-        background-color: var(--primary-color);
-        color: white;
-    }
-
-    .action-button.primary:hover {
+    .btn:hover {
         background-color: var(--primary-dark);
+        transform: translateY(-1px);
+        box-shadow: var(--shadow);
     }
 
-    .action-button.secondary {
+    .btn:active {
+        transform: translateY(0);
+    }
+
+    .btn-secondary {
         background-color: var(--light-bg);
         color: var(--text);
     }
 
-    .action-button.secondary:hover {
+    .btn-secondary:hover {
         background-color: var(--border);
     }
 
-    /* Маршрут */
-    .route-panel {
-        position: absolute;
-        top: 80px;
-        left: 20px;
-        background-color: var(--card-bg);
-        border-radius: var(--rounded-lg);
+    .btn-success {
+        background-color: var(--secondary-color);
+    }
+
+    .btn-success:hover {
+        background-color: #059669;
+    }
+
+    .btn-danger {
+        background-color: var(--danger-color);
+    }
+
+    .btn-danger:hover {
+        background-color: #DC2626;
+    }
+
+    /* Список смен */
+    .shift-list {
+        margin-top: 24px;
+    }
+
+    .shift-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
         padding: 16px;
-        box-shadow: var(--shadow-md);
-        z-index: 1000;
-        width: calc(100% - 40px);
-        max-width: 400px;
-    }
-
-    .route-info {
-        margin-bottom: 16px;
-    }
-
-    .route-distance {
-        font-weight: 600;
-        color: var(--primary-color);
-    }
-
-    .route-time {
-        color: var(--text-light);
-        font-size: 14px;
-    }
-
-    .route-steps {
-        max-height: 200px;
-        overflow-y: auto;
-        margin-top: 12px;
-    }
-
-    .route-step {
-        display: flex;
-        gap: 10px;
-        padding: 8px 0;
-        border-bottom: 1px solid var(--border);
-    }
-
-    .route-step:last-child {
-        border-bottom: none;
-    }
-
-    .route-step-icon {
-        color: var(--primary-color);
-        font-size: 18px;
-    }
-
-    .route-step-text {
-        flex: 1;
-        font-size: 14px;
-    }
-
-    /* Уведомления */
-    .notification-container {
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        z-index: 2000;
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
-    }
-
-    .notification {
         background-color: var(--card-bg);
         border-radius: var(--rounded);
-        padding: 16px;
-        box-shadow: var(--shadow-md);
-        display: flex;
-        align-items: flex-start;
-        gap: 12px;
-        transform: translateX(150%);
-        transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-        border-left: 4px solid transparent;
-        width: 320px;
+        margin-bottom: 12px;
+        box-shadow: var(--shadow-sm);
+        border: 1px solid var(--border);
     }
 
-    .notification.show {
-        transform: translateX(0);
+    .shift-date {
+        font-weight: 500;
+        color: var(--text);
     }
 
-    .notification i {
-        font-size: 20px;
-        flex-shrink: 0;
+    .shift-amount {
+        font-weight: 700;
+        color: var(--secondary-color);
     }
 
-    .notification.success {
-        border-left-color: var(--secondary-color);
+    .shift-delete {
+        background: none;
+        border: none;
+        color: var(--danger-color);
+        cursor: pointer;
+        padding: 4px;
     }
 
-    .notification.warning {
-        border-left-color: var(--accent-color);
+    /* График */
+    .chart-container {
+        height: 200px;
+        margin-top: 20px;
+        position: relative;
     }
 
-    .notification.error {
-        border-left-color: var(--danger-color);
+    .chart-bar {
+        position: absolute;
+        bottom: 0;
+        width: 20px;
+        background-color: var(--primary-color);
+        border-radius: var(--rounded-sm) var(--rounded-sm) 0 0;
+        transition: height 0.5s ease;
     }
 
     /* Навигация */
@@ -426,7 +293,7 @@
         justify-content: space-around;
         padding: 12px 0;
         border-top: 1px solid var(--border);
-        z-index: 1000;
+        z-index: 100;
         box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
     }
 
@@ -460,998 +327,418 @@
         transform: translateY(-2px);
     }
 
-    /* Страницы */
-    .page {
-        display: none;
-        padding-bottom: 80px;
-    }
-
-    .page.active {
-        display: block;
-    }
-
-    /* Сохраненные места */
-    .saved-places {
-        display: grid;
-        grid-template-columns: 1fr;
-        gap: 12px;
-    }
-
-    .saved-place {
+    /* Уведомления */
+    .notification {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 1000;
         background-color: var(--card-bg);
-        border-radius: var(--rounded);
+        color: var(--text);
         padding: 16px;
+        border-radius: var(--rounded);
+        box-shadow: var(--shadow-md);
         display: flex;
         align-items: center;
         gap: 12px;
-        box-shadow: var(--shadow-sm);
-        border: 1px solid var(--border);
+        transform: translateX(150%);
+        transition: transform 0.3s ease;
     }
 
-    .saved-place-icon {
-        width: 40px;
-        height: 40px;
-        border-radius: 50%;
-        background-color: var(--primary-light);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: var(--primary-color);
+    .notification.show {
+        transform: translateX(0);
     }
 
-    .saved-place-info {
-        flex: 1;
+    .notification.success {
+        border-left: 4px solid var(--secondary-color);
     }
 
-    .saved-place-name {
-        font-weight: 500;
-        margin-bottom: 4px;
+    .notification.error {
+        border-left: 4px solid var(--danger-color);
     }
 
-    .saved-place-address {
-        font-size: 12px;
-        color: var(--text-light);
+    .notification i {
+        font-size: 20px;
     }
 
-    .saved-place-actions {
-        display: flex;
-        gap: 8px;
+    .notification.success i {
+        color: var(--secondary-color);
     }
 
-    .saved-place-btn {
-        background: none;
-        border: none;
-        color: var(--text-light);
-        cursor: pointer;
-        font-size: 16px;
+    .notification.error i {
+        color: var(--danger-color);
     }
 
-    .saved-place-btn:hover {
-        color: var(--primary-color);
-    }
-
-    /* История поиска */
-    .history-item {
-        padding: 12px 0;
-        border-bottom: 1px solid var(--border);
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-
-    .history-item:last-child {
-        border-bottom: none;
-    }
-
-    .history-query {
-        font-weight: 500;
-    }
-
-    .history-date {
-        font-size: 12px;
-        color: var(--text-light);
-    }
-
-    .history-clear {
-        text-align: center;
-        margin-top: 16px;
-    }
-
-    /* Настройки */
-    .settings-item {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 16px 0;
-        border-bottom: 1px solid var(--border);
-    }
-
-    .settings-item:last-child {
-        border-bottom: none;
-    }
-
-    .settings-label {
-        font-weight: 500;
-        display: flex;
-        align-items: center;
-        gap: 12px;
-    }
-
-    .switch {
-        position: relative;
-        display: inline-block;
-        width: 52px;
-        height: 28px;
-    }
-
-    .switch input {
-        opacity: 0;
-        width: 0;
-        height: 0;
-    }
-
-    .slider {
-        position: absolute;
-        cursor: pointer;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background-color: #E5E7EB;
-        transition: .4s;
-        border-radius: 34px;
-    }
-
-    .slider:before {
-        position: absolute;
-        content: "";
-        height: 20px;
-        width: 20px;
-        left: 4px;
-        bottom: 4px;
-        background-color: white;
-        transition: .4s;
-        border-radius: 50%;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-    }
-
-    input:checked + .slider {
-        background-color: var(--primary-color);
-    }
-
-    input:checked + .slider:before {
-        transform: translateX(24px);
-    }
-
-    /* Пустое состояние */
-    .empty-state {
-        text-align: center;
-        padding: 40px 20px;
-        color: var(--text-light);
-    }
-
-    .empty-state i {
-        font-size: 48px;
-        margin-bottom: 16px;
-        color: var(--border);
+    /* Анимации */
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
     }
 
     /* Адаптивность */
-    @media (max-width: 768px) {
-        .map-container {
-            height: calc(100vh - 160px);
-        }
-        
-        .notification {
-            width: 90%;
-            left: 5%;
-            right: 5%;
-        }
-    }
-
     @media (max-width: 480px) {
-        .place-card-actions {
-            flex-direction: column;
+        .stats-container {
+            grid-template-columns: 1fr;
         }
         
-        .action-button {
-            width: 100%;
+        .shift-item {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 8px;
         }
-    }
-
-    /* Кастомные стили для Leaflet */
-    .leaflet-control-attribution {
-        display: none;
-    }
-
-    .leaflet-routing-container {
-        display: none;
-    }
-
-    .custom-marker {
-        background-color: var(--primary-color);
-        width: 24px;
-        height: 24px;
-        border-radius: 50%;
-        border: 3px solid white;
-        box-shadow: var(--shadow);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: white;
-        font-size: 12px;
-        font-weight: bold;
-    }
-
-    .custom-marker i {
-        font-size: 12px;
     }
     </style>
 </head>
 <body>
     <div id="root"></div>
 
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
     <script type="text/babel">
-    const { useState, useEffect, useRef } = React;
+    const { useState, useEffect } = React;
 
-    // Mock данные для поиска
-    const mockPlaces = [
-        {
-            id: 1,
-            name: "Торговый центр 'Галерея'",
-            address: "ул. Пушкина, 10",
-            lat: 59.9356,
-            lng: 30.3259,
-            category: "shopping",
-            rating: 4.5,
-            saved: true
-        },
-        {
-            id: 2,
-            name: "Кафе 'Уют'",
-            address: "пр. Невский, 45",
-            lat: 59.9339,
-            lng: 30.3061,
-            category: "food",
-            rating: 4.2,
-            saved: false
-        },
-        {
-            id: 3,
-            name: "Парк Победы",
-            address: "Московский пр., 165",
-            lat: 59.9235,
-            lng: 30.3175,
-            category: "park",
-            rating: 4.7,
-            saved: true
-        },
-        {
-            id: 4,
-            name: "Музей Современного Искусства",
-            address: "наб. канала Грибоедова, 103",
-            lat: 59.9304,
-            lng: 30.3087,
-            category: "museum",
-            rating: 4.8,
-            saved: false
-        },
-        {
-            id: 5,
-            name: "Аптека 'Здоровье'",
-            address: "ул. Садовая, 25",
-            lat: 59.9311,
-            lng: 30.2988,
-            category: "pharmacy",
-            rating: 4.0,
-            saved: false
-        },
-        {
-            id: 6,
-            name: "Кинотеатр 'Аврора'",
-            address: "Невский пр., 60",
-            lat: 59.9343,
-            lng: 30.3351,
-            category: "cinema",
-            rating: 4.3,
-            saved: true
-        },
-        {
-            id: 7,
-            name: "Спортивный комплекс 'Олимп'",
-            address: "ул. Марата, 86",
-            lat: 59.9268,
-            lng: 30.3467,
-            category: "sport",
-            rating: 4.6,
-            saved: false
-        }
-    ];
-
-    // Mock история поиска
-    const mockHistory = [
-        { id: 1, query: "Кафе", date: "10.06.2023" },
-        { id: 2, query: "Аптека", date: "09.06.2023" },
-        { id: 3, query: "Кинотеатр", date: "08.06.2023" },
-        { id: 4, query: "Парк", date: "05.06.2023" },
-        { id: 5, query: "Музей", date: "03.06.2023" }
-    ];
-
-    // Категории мест
-    const placeCategories = {
-        shopping: { icon: "fa-shopping-cart", color: "#EC4899" },
-        food: { icon: "fa-utensils", color: "#F59E0B" },
-        park: { icon: "fa-tree", color: "#10B981" },
-        museum: { icon: "fa-landmark", color: "#8B5CF6" },
-        pharmacy: { icon: "fa-pills", color: "#3B82F6" },
-        cinema: { icon: "fa-film", color: "#EF4444" },
-        sport: { icon: "fa-dumbbell", color: "#6366F1" }
+    // Начальные данные
+    const initialData = {
+        shifts: [],
+        currentMonth: new Date().getMonth(),
+        currentYear: new Date().getFullYear()
     };
 
     function App() {
-        const [activeTab, setActiveTab] = useState("map");
-        const [notifications, setNotifications] = useState([]);
-        const [searchQuery, setSearchQuery] = useState("");
-        const [searchResults, setSearchResults] = useState([]);
-        const [showResults, setShowResults] = useState(false);
-        const [currentPlace, setCurrentPlace] = useState(null);
-        const [mapMode, setMapMode] = useState("explore"); // explore, route
-        const [routeInfo, setRouteInfo] = useState(null);
-        const [userLocation, setUserLocation] = useState(null);
-        const [mapCenter, setMapCenter] = useState([59.9343, 30.3061]); // Санкт-Петербург по умолчанию
-        const [savedPlaces, setSavedPlaces] = useState(mockPlaces.filter(place => place.saved));
-        const [searchHistory, setSearchHistory] = useState(mockHistory);
-        const [settings, setSettings] = useState({
-            darkMode: false,
-            saveHistory: true,
-            showTraffic: false,
-            voiceNavigation: false
+        const [data, setData] = useState(() => {
+            const savedData = localStorage.getItem('salaryData');
+            return savedData ? JSON.parse(savedData) : initialData;
         });
         
-        const mapRef = useRef(null);
-        const markersRef = useRef([]);
-        const routeLayerRef = useRef(null);
-        const searchInputRef = useRef(null);
+        const [shiftDate, setShiftDate] = useState('');
+        const [shiftAmount, setShiftAmount] = useState(2400);
+        const [activeTab, setActiveTab] = useState('add');
+        const [notification, setNotification] = useState(null);
 
-        // Инициализация карты
+        // Загрузка данных из Local Storage при монтировании
         useEffect(() => {
-            if (!mapRef.current) {
-                const map = L.map('map').setView(mapCenter, 13);
-                
-                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                }).addTo(map);
-                
-                mapRef.current = map;
-                
-                // Добавляем маркеры для всех мест
-                addMarkersToMap();
-                
-                // Обработчик клика по карте
-                map.on('click', () => {
-                    setShowResults(false);
-                    setCurrentPlace(null);
-                });
-            }
-            
-            return () => {
-                if (mapRef.current) {
-                    mapRef.current.remove();
-                    mapRef.current = null;
+            const savedData = localStorage.getItem('salaryData');
+            if (savedData) {
+                try {
+                    const parsedData = JSON.parse(savedData);
+                    // Проверяем, есть ли необходимые поля в данных
+                    if (parsedData.shifts && parsedData.currentMonth !== undefined && parsedData.currentYear !== undefined) {
+                        setData(parsedData);
+                    }
+                } catch (e) {
+                    console.error('Ошибка при загрузке данных:', e);
                 }
-            };
+            }
         }, []);
-        
-        // Обновление центра карты при изменении userLocation
+
+        // Сохранение данных в Local Storage при изменении
         useEffect(() => {
-            if (userLocation && mapRef.current) {
-                mapRef.current.setView(userLocation, 15);
-                setMapCenter(userLocation);
-            }
-        }, [userLocation]);
-        
-        // Добавление маркеров на карту
-        const addMarkersToMap = () => {
-            // Удаляем старые маркеры
-            markersRef.current.forEach(marker => {
-                if (mapRef.current && marker) {
-                    mapRef.current.removeLayer(marker);
-                }
-            });
-            markersRef.current = [];
-            
-            // Добавляем новые маркеры
-            mockPlaces.forEach(place => {
-                const category = placeCategories[place.category] || { icon: "fa-map-marker-alt", color: "#4F46E5" };
-                
-                const marker = L.marker([place.lat, place.lng], {
-                    icon: L.divIcon({
-                        className: 'custom-marker',
-                        html: `<i class="fas ${category.icon}"></i>`,
-                        iconSize: [30, 30],
-                        iconAnchor: [15, 15]
-                    })
-                }).addTo(mapRef.current);
-                
-                marker.on('click', () => {
-                    handlePlaceClick(place);
-                });
-                
-                markersRef.current.push(marker);
-            });
+            localStorage.setItem('salaryData', JSON.stringify(data));
+        }, [data]);
+
+        // Показать уведомление
+        const showNotification = (message, type = 'success') => {
+            setNotification({ message, type });
+            setTimeout(() => setNotification(null), 3000);
         };
-        
-        // Поиск мест
-        const handleSearch = () => {
-            if (!searchQuery.trim()) {
-                setSearchResults([]);
-                setShowResults(false);
+
+        // Добавить смену
+        const addShift = () => {
+            if (!shiftDate) {
+                showNotification('Выберите дату смены', 'error');
                 return;
             }
-            
-            const results = mockPlaces.filter(place => 
-                place.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                place.address.toLowerCase().includes(searchQuery.toLowerCase())
-            );
-            
-            setSearchResults(results);
-            setShowResults(true);
-            
-            // Добавляем в историю поиска
-            if (settings.saveHistory && searchQuery.trim() && !searchHistory.some(item => item.query.toLowerCase() === searchQuery.trim().toLowerCase())) {
-                const newHistoryItem = {
-                    id: Date.now(),
-                    query: searchQuery.trim(),
-                    date: new Date().toLocaleDateString()
-                };
-                setSearchHistory(prev => [newHistoryItem, ...prev]);
-            }
-            
-            if (results.length > 0 && mapRef.current) {
-                const firstResult = results[0];
-                mapRef.current.setView([firstResult.lat, firstResult.lng], 15);
-            }
-        };
-        
-        // Обработчик клика по месту
-        const handlePlaceClick = (place) => {
-            setCurrentPlace(place);
-            
-            if (mapRef.current) {
-                mapRef.current.setView([place.lat, place.lng], 15);
-            }
-        };
-        
-        // Построение маршрута
-        const buildRoute = () => {
-            if (!userLocation || !currentPlace) return;
-            
-            setMapMode("route");
-            
-            // Здесь должна быть логика построения маршрута с использованием API маршрутизации
-            // Для демонстрации используем mock данные
-            
-            const mockRouteInfo = {
-                distance: "1.8 км",
-                time: "25 мин пешком",
-                steps: [
-                    "Идите на северо-запад по ул. Садовая в сторону Невского пр.",
-                    "Поверните направо на Невский пр.",
-                    "Продолжайте движение по Невскому пр. около 800 м",
-                    "Поверните налево на ул. Пушкина",
-                    "Торговый центр будет справа"
-                ]
+
+            const newShift = {
+                date: shiftDate,
+                amount: parseFloat(shiftAmount) || 2400 // Используем стандартную ставку, если не введена сумма
             };
-            
-            setRouteInfo(mockRouteInfo);
-            
-            // Отрисовка маршрута на карте (mock)
-            if (routeLayerRef.current && mapRef.current) {
-                mapRef.current.removeLayer(routeLayerRef.current);
-            }
-            
-            const routeLayer = L.layerGroup().addTo(mapRef.current);
-            routeLayerRef.current = routeLayer;
-            
-            // Линия маршрута
-            const routeLine = L.polyline([
-                userLocation,
-                [currentPlace.lat, currentPlace.lng]
-            ], { color: '#4F46E5', weight: 5 }).addTo(routeLayer);
-            
-            // Маркер начала
-            L.marker(userLocation, {
-                icon: L.divIcon({
-                    className: 'custom-marker',
-                    html: '<i class="fas fa-user"></i>',
-                    iconSize: [30, 30],
-                    iconAnchor: [15, 15]
-                })
-            }).addTo(routeLayer);
-            
-            // Маркер конца
-            L.marker([currentPlace.lat, currentPlace.lng], {
-                icon: L.divIcon({
-                    className: 'custom-marker',
-                    html: `<i class="fas ${placeCategories[currentPlace.category]?.icon || 'fa-map-marker-alt'}"></i>`,
-                    iconSize: [30, 30],
-                    iconAnchor: [15, 15]
-                })
-            }).addTo(routeLayer);
-            
-            // Увеличиваем карту, чтобы показать весь маршрут
-            mapRef.current.fitBounds([
-                userLocation,
-                [currentPlace.lat, currentPlace.lng]
-            ]);
+
+            setData(prev => ({
+                ...prev,
+                shifts: [...prev.shifts, newShift].sort((a, b) => new Date(a.date) - new Date(b.date))
+            }));
+
+            setShiftDate('');
+            setShiftAmount(2400);
+            showNotification('Смена добавлена');
         };
-        
-        // Отмена маршрута
-        const cancelRoute = () => {
-            setMapMode("explore");
-            setRouteInfo(null);
-            
-            if (routeLayerRef.current && mapRef.current) {
-                mapRef.current.removeLayer(routeLayerRef.current);
-                routeLayerRef.current = null;
-            }
-            
-            if (currentPlace && mapRef.current) {
-                mapRef.current.setView([currentPlace.lat, currentPlace.lng], 15);
-            }
+
+        // Удалить смену
+        const deleteShift = (index) => {
+            setData(prev => {
+                const newShifts = [...prev.shifts];
+                newShifts.splice(index, 1);
+                return { ...prev, shifts: newShifts };
+            });
+            showNotification('Смена удалена');
         };
-        
-        // Определение местоположения пользователя
-        const locateUser = () => {
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(
-                    (position) => {
-                        const { latitude, longitude } = position.coords;
-                        setUserLocation([latitude, longitude]);
-                        showNotification("Ваше местоположение определено", "success");
-                    },
-                    (error) => {
-                        console.error("Geolocation error:", error);
-                        showNotification("Не удалось определить местоположение", "error");
-                    }
-                );
-            } else {
-                showNotification("Геолокация не поддерживается вашим браузером", "warning");
-            }
-        };
-        
-        // Добавление/удаление места в сохраненные
-        const toggleSavedPlace = (placeId) => {
-            const updatedPlaces = mockPlaces.map(place => {
-                if (place.id === placeId) {
-                    return { ...place, saved: !place.saved };
-                }
-                return place;
+
+        // Рассчитать общую сумму за текущий месяц
+        const calculateMonthlyTotal = () => {
+            const currentMonthShifts = data.shifts.filter(shift => {
+                const shiftDate = new Date(shift.date);
+                return shiftDate.getMonth() === data.currentMonth && 
+                       shiftDate.getFullYear() === data.currentYear;
             });
             
-            setSavedPlaces(updatedPlaces.filter(place => place.saved));
-            showNotification(
-                mockPlaces.find(p => p.id === placeId)?.saved 
-                    ? "Место удалено из сохраненных" 
-                    : "Место добавлено в сохраненные", 
-                "success"
+            return currentMonthShifts.reduce((total, shift) => total + shift.amount, 0);
+        };
+
+        // Рассчитать общее количество смен
+        const calculateTotalShifts = () => {
+            return data.shifts.filter(shift => {
+                const shiftDate = new Date(shift.date);
+                return shiftDate.getMonth() === data.currentMonth && 
+                       shiftDate.getFullYear() === data.currentYear;
+            }).length;
+        };
+
+        // Изменить месяц
+        const changeMonth = (increment) => {
+            setData(prev => {
+                let newMonth = prev.currentMonth + increment;
+                let newYear = prev.currentYear;
+                
+                if (newMonth < 0) {
+                    newMonth = 11;
+                    newYear--;
+                } else if (newMonth > 11) {
+                    newMonth = 0;
+                    newYear++;
+                }
+                
+                return { ...prev, currentMonth: newMonth, currentYear: newYear };
+            });
+        };
+
+        // Получить название месяца
+        const getMonthName = (month) => {
+            const months = [
+                'Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь',
+                'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'
+            ];
+            return months[month];
+        };
+
+        // Форматировать дату
+        const formatDate = (dateString) => {
+            const date = new Date(dateString);
+            const options = { 
+                day: 'numeric', 
+                month: 'long', 
+                year: 'numeric',
+                timeZone: 'UTC'
+            };
+            return date.toLocaleDateString('ru-RU', options);
+        };
+
+        // Рендер страницы добавления смены
+        const renderAddShiftPage = () => (
+            <>
+                <div className="card">
+                    <h3 className="card-title">
+                        <i className="fas fa-plus-circle"></i>
+                        Добавить смену
+                    </h3>
+                    
+                    <div className="form-group">
+                        <label className="form-label">Дата смены</label>
+                        <input
+                            type="date"
+                            className="form-control"
+                            value={shiftDate}
+                            onChange={(e) => setShiftDate(e.target.value)}
+                            required
+                        />
+                    </div>
+                    
+                    <div className="form-group">
+                        <label className="form-label">Сумма за смену (руб)</label>
+                        <input
+                            type="number"
+                            className="form-control"
+                            value={shiftAmount}
+                            onChange={(e) => setShiftAmount(e.target.value)}
+                            min="0"
+                            step="100"
+                            placeholder="2400"
+                        />
+                    </div>
+                    
+                    <button
+                        className="btn btn-success"
+                        onClick={addShift}
+                        style={{width: '100%'}}
+                    >
+                        <i className="fas fa-save"></i> Сохранить смену
+                    </button>
+                </div>
+                
+                <div className="card" style={{marginTop: '16px'}}>
+                    <h3 className="card-title">
+                        <i className="fas fa-info-circle"></i>
+                        Информация
+                    </h3>
+                    <p className="card-description">
+                        Смена длится с 8:00 утра до 8:00 утра следующего дня. 
+                        Стандартная оплата за смену составляет 2400 рублей.
+                    </p>
+                </div>
+            </>
+        );
+
+        // Рендер страницы статистики
+        const renderStatsPage = () => {
+            const monthlyTotal = calculateMonthlyTotal();
+            const totalShifts = calculateTotalShifts();
+            const averagePerShift = totalShifts > 0 ? (monthlyTotal / totalShifts).toFixed(2) : 0;
+            
+            return (
+                <>
+                    <div className="card">
+                        <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
+                            <h3 className="card-title">
+                                <i className="fas fa-calendar-alt"></i>
+                                {getMonthName(data.currentMonth)} {data.currentYear}
+                            </h3>
+                            <div style={{display: 'flex', gap: '8px'}}>
+                                <button 
+                                    className="btn btn-secondary"
+                                    style={{padding: '8px 12px', minWidth: 'auto'}}
+                                    onClick={() => changeMonth(-1)}
+                                >
+                                    <i className="fas fa-chevron-left"></i>
+                                </button>
+                                <button 
+                                    className="btn btn-secondary"
+                                    style={{padding: '8px 12px', minWidth: 'auto'}}
+                                    onClick={() => changeMonth(1)}
+                                >
+                                    <i className="fas fa-chevron-right"></i>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div className="stats-container">
+                            <div className="stat-card">
+                                <div className="stat-value">{monthlyTotal} ₽</div>
+                                <div className="stat-label">Общий доход</div>
+                            </div>
+                            <div className="stat-card">
+                                <div className="stat-value">{totalShifts}</div>
+                                <div className="stat-label">Количество смен</div>
+                            </div>
+                            <div className="stat-card">
+                                <div className="stat-value">{averagePerShift} ₽</div>
+                                <div className="stat-label">Средний доход за смену</div>
+                            </div>
+                            <div className="stat-card">
+                                <div className="stat-value">
+                                    {Math.round(monthlyTotal / (2400 * Math.max(1, totalShifts)) * 100)}%
+                                </div>
+                                <div className="stat-label">От стандартной ставки</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div className="shift-list">
+                        <h3 className="card-title">
+                            <i className="fas fa-list"></i>
+                            Список смен
+                        </h3>
+                        
+                        {data.shifts.filter(shift => {
+                            const shiftDate = new Date(shift.date);
+                            return shiftDate.getMonth() === data.currentMonth && 
+                                   shiftDate.getFullYear() === data.currentYear;
+                        }).length > 0 ? (
+                            data.shifts
+                                .filter(shift => {
+                                    const shiftDate = new Date(shift.date);
+                                    return shiftDate.getMonth() === data.currentMonth && 
+                                           shiftDate.getFullYear() === data.currentYear;
+                                })
+                                .map((shift, index) => (
+                                    <div key={index} className="shift-item">
+                                        <div className="shift-date">{formatDate(shift.date)}</div>
+                                        <div className="shift-amount">{shift.amount} ₽</div>
+                                        <button 
+                                            className="shift-delete"
+                                            onClick={() => deleteShift(index)}
+                                            aria-label="Удалить смену"
+                                        >
+                                            <i className="fas fa-trash-alt"></i>
+                                        </button>
+                                    </div>
+                                ))
+                        ) : (
+                            <div className="card">
+                                <p style={{textAlign: 'center', color: 'var(--text-light)'}}>
+                                    <i className="fas fa-calendar-times" style={{marginRight: '8px'}}></i>
+                                    Нет данных о сменах за этот месяц
+                                </p>
+                            </div>
+                        )}
+                    </div>
+                </>
             );
         };
-        
-        // Очистка истории поиска
-        const clearSearchHistory = () => {
-            setSearchHistory([]);
-            showNotification("История поиска очищена", "success");
-        };
-        
-        // Обновление настроек
-        const updateSetting = (key, value) => {
-            setSettings(prev => ({
-                ...prev,
-                [key]: value
-            }));
-            showNotification("Настройки сохранены", "success");
-        };
-        
-        // Показать уведомление
-        const showNotification = (message, type = "info", duration = 3000) => {
-            const id = Date.now();
-            const notification = { id, message, type };
-            
-            setNotifications(prev => [...prev, notification]);
-            
-            setTimeout(() => {
-                setNotifications(prev => prev.filter(n => n.id !== id));
-            }, duration);
-        };
-        
-        // Обработчик нажатия клавиши Enter в поиске
-        const handleKeyPress = (e) => {
-            if (e.key === 'Enter') {
-                handleSearch();
-            }
-        };
-
-        // Рендер страницы карты
-        const renderMapPage = () => (
-            <div className="map-container">
-                <div id="map"></div>
-                
-                {/* Поиск */}
-                <div className="search-container">
-                    <div className="search-box">
-                        <input
-                            type="text"
-                            className="search-input"
-                            placeholder="Поиск мест..."
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            onKeyPress={handleKeyPress}
-                            ref={searchInputRef}
-                        />
-                        <button className="search-button" onClick={handleSearch}>
-                            <i className="fas fa-search"></i>
-                        </button>
-                    </div>
-                    
-                    {/* Результаты поиска */}
-                    {showResults && searchResults.length > 0 && (
-                        <div className="search-results">
-                            {searchResults.map(place => (
-                                <div 
-                                    key={place.id}
-                                    className="search-result-item"
-                                    onClick={() => {
-                                        handlePlaceClick(place);
-                                        setShowResults(false);
-                                    }}
-                                >
-                                    <div style={{ fontWeight: '500' }}>{place.name}</div>
-                                    <div style={{ fontSize: '12px', color: 'var(--text-light)' }}>
-                                        {place.address}
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    )}
-                </div>
-                
-                {/* Контролы карты */}
-                <div className="map-controls">
-                    <button 
-                        className={`map-control-button ${userLocation ? 'active' : ''}`}
-                        onClick={locateUser}
-                        title="Мое местоположение"
-                    >
-                        <i className="fas fa-location-arrow"></i>
-                    </button>
-                    <button 
-                        className="map-control-button"
-                        onClick={() => mapRef.current && mapRef.current.zoomIn()}
-                        title="Увеличить"
-                    >
-                        <i className="fas fa-plus"></i>
-                    </button>
-                    <button 
-                        className="map-control-button"
-                        onClick={() => mapRef.current && mapRef.current.zoomOut()}
-                        title="Уменьшить"
-                    >
-                        <i className="fas fa-minus"></i>
-                    </button>
-                </div>
-                
-                {/* Карточка места */}
-                {currentPlace && (
-                    <div className={`place-card ${currentPlace ? 'visible' : ''}`}>
-                        <div className="place-card-header">
-                            <h3 className="place-card-title">{currentPlace.name}</h3>
-                            <button 
-                                className="place-card-close"
-                                onClick={() => setCurrentPlace(null)}
-                            >
-                                <i className="fas fa-times"></i>
-                            </button>
-                        </div>
-                        <div className="place-card-address">
-                            <i className="fas fa-map-marker-alt" style={{ marginRight: '8px' }}></i>
-                            {currentPlace.address}
-                        </div>
-                        <div className="place-card-actions">
-                            {mapMode === "explore" ? (
-                                <button 
-                                    className="action-button primary"
-                                    onClick={buildRoute}
-                                    disabled={!userLocation}
-                                >
-                                    <i className="fas fa-route"></i> Построить маршрут
-                                </button>
-                            ) : (
-                                <button 
-                                    className="action-button secondary"
-                                    onClick={cancelRoute}
-                                >
-                                    <i className="fas fa-times"></i> Отменить маршрут
-                                </button>
-                            )}
-                            <button className="action-button secondary">
-                                <i className="fas fa-info-circle"></i> Подробнее
-                            </button>
-                        </div>
-                    </div>
-                )}
-                
-                {/* Панель маршрута */}
-                {mapMode === "route" && routeInfo && (
-                    <div className="route-panel">
-                        <div className="route-info">
-                            <div>
-                                <span className="route-distance">{routeInfo.distance}</span>
-                                <span className="route-time"> (~{routeInfo.time})</span>
-                            </div>
-                            <div className="route-steps">
-                                {routeInfo.steps.map((step, index) => (
-                                    <div key={index} className="route-step">
-                                        <div className="route-step-icon">
-                                            <i className="fas fa-arrow-right"></i>
-                                        </div>
-                                        <div className="route-step-text">{step}</div>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    </div>
-                )}
-            </div>
-        );
-
-        // Рендер страницы сохраненных мест
-        const renderSavedPlacesPage = () => (
-            <div className="saved-places">
-                {savedPlaces.length > 0 ? (
-                    savedPlaces.map(place => {
-                        const category = placeCategories[place.category] || { icon: "fa-map-marker-alt", color: "#4F46E5" };
-                        
-                        return (
-                            <div key={place.id} className="saved-place">
-                                <div className="saved-place-icon" style={{ backgroundColor: `${category.color}20`, color: category.color }}>
-                                    <i className={`fas ${category.icon}`}></i>
-                                </div>
-                                <div className="saved-place-info">
-                                    <div className="saved-place-name">{place.name}</div>
-                                    <div className="saved-place-address">{place.address}</div>
-                                </div>
-                                <div className="saved-place-actions">
-                                    <button 
-                                        className="saved-place-btn" 
-                                        onClick={() => toggleSavedPlace(place.id)}
-                                        title="Удалить из сохраненных"
-                                    >
-                                        <i className="fas fa-bookmark" style={{ color: place.saved ? category.color : 'var(--text-light)' }}></i>
-                                    </button>
-                                    <button 
-                                        className="saved-place-btn" 
-                                        onClick={() => handlePlaceClick(place)}
-                                        title="Показать на карте"
-                                    >
-                                        <i className="fas fa-map-marker-alt"></i>
-                                    </button>
-                                </div>
-                            </div>
-                        );
-                    })
-                ) : (
-                    <div className="empty-state">
-                        <i className="fas fa-bookmark"></i>
-                        <h3>Нет сохраненных мест</h3>
-                        <p>Сохраняйте интересные места, чтобы быстро находить их позже</p>
-                    </div>
-                )}
-            </div>
-        );
-
-        // Рендер страницы истории поиска
-        const renderHistoryPage = () => (
-            <div>
-                {searchHistory.length > 0 ? (
-                    <>
-                        {searchHistory.map(item => (
-                            <div key={item.id} className="history-item">
-                                <div>
-                                    <div className="history-query">{item.query}</div>
-                                    <div className="history-date">{item.date}</div>
-                                </div>
-                                <button 
-                                    className="saved-place-btn"
-                                    onClick={() => {
-                                        setSearchQuery(item.query);
-                                        handleSearch();
-                                        setActiveTab("map");
-                                    }}
-                                >
-                                    <i className="fas fa-search"></i>
-                                </button>
-                            </div>
-                        ))}
-                        <div className="history-clear">
-                            <button 
-                                className="action-button secondary"
-                                onClick={clearSearchHistory}
-                            >
-                                <i className="fas fa-trash-alt"></i> Очистить историю
-                            </button>
-                        </div>
-                    </>
-                ) : (
-                    <div className="empty-state">
-                        <i className="fas fa-history"></i>
-                        <h3>История поиска пуста</h3>
-                        <p>Здесь будут отображаться ваши предыдущие поисковые запросы</p>
-                    </div>
-                )}
-            </div>
-        );
-
-        // Рендер страницы настроек
-        const renderSettingsPage = () => (
-            <div>
-                <div className="card">
-                    <div className="settings-item">
-                        <div className="settings-label">
-                            <i className="fas fa-moon"></i>
-                            Темный режим
-                        </div>
-                        <label className="switch">
-                            <input 
-                                type="checkbox" 
-                                checked={settings.darkMode}
-                                onChange={(e) => updateSetting("darkMode", e.target.checked)}
-                            />
-                            <span className="slider"></span>
-                        </label>
-                    </div>
-                    
-                    <div className="settings-item">
-                        <div className="settings-label">
-                            <i className="fas fa-history"></i>
-                            Сохранять историю поиска
-                        </div>
-                        <label className="switch">
-                            <input 
-                                type="checkbox" 
-                                checked={settings.saveHistory}
-                                onChange={(e) => updateSetting("saveHistory", e.target.checked)}
-                            />
-                            <span className="slider"></span>
-                        </label>
-                    </div>
-                    
-                    <div className="settings-item">
-                        <div className="settings-label">
-                            <i className="fas fa-traffic-light"></i>
-                            Показывать пробки
-                        </div>
-                        <label className="switch">
-                            <input 
-                                type="checkbox" 
-                                checked={settings.showTraffic}
-                                onChange={(e) => updateSetting("showTraffic", e.target.checked)}
-                            />
-                            <span className="slider"></span>
-                        </label>
-                    </div>
-                    
-                    <div className="settings-item">
-                        <div className="settings-label">
-                            <i className="fas fa-volume-up"></i>
-                            Голосовая навигация
-                        </div>
-                        <label className="switch">
-                            <input 
-                                type="checkbox" 
-                                checked={settings.voiceNavigation}
-                                onChange={(e) => updateSetting("voiceNavigation", e.target.checked)}
-                            />
-                            <span className="slider"></span>
-                        </label>
-                    </div>
-                </div>
-                
-                <div style={{ marginTop: '20px', textAlign: 'center' }}>
-                    <button className="action-button secondary">
-                        <i className="fas fa-question-circle"></i> Помощь
-                    </button>
-                    <button className="action-button secondary" style={{ marginTop: '12px' }}>
-                        <i className="fas fa-share-alt"></i> Поделиться приложением
-                    </button>
-                </div>
-            </div>
-        );
 
         return (
             <div className="app">
                 {/* Шапка */}
                 <header className="header">
-                    <div className="header-content">
-                        <div className="logo">
-                            <i className="fas fa-map-marked-alt"></i>
-                            <span>НавиКарта</span>
-                        </div>
-                        <div className="user-avatar">
-                            <i className="fas fa-user"></i>
-                        </div>
-                    </div>
+                    <h1 className="header-title">
+                        <i className="fas fa-wallet"></i> Мой калькулятор
+                    </h1>
                 </header>
 
                 <div className="container">
-                    {/* Страницы */}
-                    <div className={`page ${activeTab === "map" ? "active" : ""}`}>
-                        {renderMapPage()}
-                    </div>
-                    
-                    <div className={`page ${activeTab === "saved" ? "active" : ""}`}>
-                        {renderSavedPlacesPage()}
-                    </div>
-                    
-                    <div className={`page ${activeTab === "history" ? "active" : ""}`}>
-                        {renderHistoryPage()}
-                    </div>
-                    
-                    <div className={`page ${activeTab === "settings" ? "active" : ""}`}>
-                        {renderSettingsPage()}
-                    </div>
-                </div>
-
-                {/* Уведомления */}
-                <div className="notification-container">
-                    {notifications.map(notification => (
-                        <div key={notification.id} className={`notification ${notification.type} show`}>
+                    {/* Уведомление */}
+                    {notification && (
+                        <div className={`notification ${notification.type} show`}>
                             <i className={`fas ${
-                                notification.type === "success" ? "fa-check-circle" :
-                                notification.type === "warning" ? "fa-exclamation-circle" :
-                                "fa-info-circle"
+                                notification.type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'
                             }`}></i>
                             <span>{notification.message}</span>
                         </div>
-                    ))}
+                    )}
+
+                    {/* Страницы */}
+                    <div style={{display: activeTab === 'add' ? 'block' : 'none'}}>
+                        {renderAddShiftPage()}
+                    </div>
+                    
+                    <div style={{display: activeTab === 'stats' ? 'block' : 'none'}}>
+                        {renderStatsPage()}
+                    </div>
                 </div>
 
                 {/* Мобильная навигация */}
                 <nav className="mobile-nav">
                     <button 
-                        className={`nav-item ${activeTab === "map" ? "active" : ""}`}
-                        onClick={() => setActiveTab("map")}
+                        className={`nav-item ${activeTab === 'add' ? 'active' : ''}`}
+                        onClick={() => setActiveTab('add')}
                     >
-                        <i className="fas fa-map-marked-alt"></i>
-                        <span>Карта</span>
+                        <i className="fas fa-plus"></i>
+                        <span>Добавить</span>
                     </button>
                     <button 
-                        className={`nav-item ${activeTab === "saved" ? "active" : ""}`}
-                        onClick={() => setActiveTab("saved")}
+                        className={`nav-item ${activeTab === 'stats' ? 'active' : ''}`}
+                        onClick={() => setActiveTab('stats')}
                     >
-                        <i className="fas fa-bookmark"></i>
-                        <span>Сохраненные</span>
-                    </button>
-                    <button 
-                        className={`nav-item ${activeTab === "history" ? "active" : ""}`}
-                        onClick={() => setActiveTab("history")}
-                    >
-                        <i className="fas fa-history"></i>
-                        <span>История</span>
-                    </button>
-                    <button 
-                        className={`nav-item ${activeTab === "settings" ? "active" : ""}`}
-                        onClick={() => setActiveTab("settings")}
-                    >
-                        <i className="fas fa-cog"></i>
-                        <span>Настройки</span>
+                        <i className="fas fa-chart-bar"></i>
+                        <span>Статистика</span>
                     </button>
                 </nav>
             </div>
         );
     }
 
-    const rootElement = document.getElementById("root");
+    const rootElement = document.getElementById('root');
     const root = ReactDOM.createRoot(rootElement);
     root.render(<App />);
     </script>
