@@ -2,596 +2,1669 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <title>Заработок на рекламе | Мобильное приложение</title>
-    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bot Manager Pro | Управление ботом</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Geologica:wght@100..900&family=Pixelify+Sans:wght@400..700&display=swap" rel="stylesheet">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root {
-            --primary: #4a86e8;
-            --primary-dark: #0077ff;
-            --secondary: #f59e0b;
-            --success: #10b981;
-            --danger: #ef4444;
-            --dark: #0f172a;
-            --dark-light: #1e293b;
-            --text: #ffffff;
-            --text-secondary: rgba(255, 255, 255, 0.7);
+            --primary: #6e45e2;
+            --secondary: #88d3ce;
+            --accent: #ff7e5f;
+            --dark: #1a1a2e;
+            --light: #f9f9ff;
+            --glow: 0 0 15px rgba(110, 69, 226, 0.5);
+            --success: #4caf50;
+            --warning: #ff9800;
+            --danger: #f44336;
+            --telegram-bg: #18222d;
+            --telegram-text: #ffffff;
+            --telegram-button: #2ea6ff;
+            --button-bg: rgba(46, 166, 255, 0.2);
+            --button-hover: rgba(46, 166, 255, 0.3);
         }
         
         * {
+            box-sizing: border-box;
             margin: 0;
             padding: 0;
-            box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent;
-            font-family: 'Manrope', sans-serif;
         }
         
         body {
-            background: linear-gradient(135deg, var(--dark), var(--dark-light));
-            color: var(--text);
-            line-height: 1.6;
-            overflow-x: hidden;
-            min-height: 100vh;
+            margin: 0;
             padding: 0;
+            font-family: 'Geologica', sans-serif;
+            background-color: var(--telegram-bg);
+            color: var(--telegram-text);
+            min-height: 100vh;
+            overflow-x: hidden;
+            user-select: none;
         }
         
-        .container {
+        #app {
             max-width: 100%;
             margin: 0 auto;
-            padding: 20px 15px;
+            position: relative;
+            min-height: 100vh;
+            padding: 15px;
+            padding-bottom: 70px;
         }
         
         .header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 30px;
-            padding-top: 10px;
+            margin-bottom: 15px;
+            padding: 10px 0;
         }
         
-        .app-title {
-            font-size: 22px;
-            font-weight: 800;
-            background: linear-gradient(90deg, var(--primary), var(--primary-dark));
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(90deg, var(--telegram-button), var(--secondary));
             -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            color: transparent;
+            font-family: 'Pixelify Sans', sans-serif;
         }
         
-        .user-avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: linear-gradient(145deg, var(--primary), var(--primary-dark));
+        .balance-container {
             display: flex;
             align-items: center;
-            justify-content: center;
-            font-size: 16px;
-            font-weight: 700;
-            cursor: pointer;
+            gap: 10px;
         }
         
-        .balance-card {
-            background: linear-gradient(145deg, rgba(30, 41, 59, 0.8), rgba(15, 23, 42, 0.8));
-            border-radius: 16px;
-            padding: 20px;
-            margin-bottom: 20px;
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            text-align: center;
+        .balance {
+            background: rgba(46, 166, 255, 0.2);
+            padding: 8px 12px;
+            border-radius: 50px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
         }
         
-        .balance-title {
-            font-size: 16px;
-            opacity: 0.8;
-            margin-bottom: 10px;
-            font-weight: 500;
+        .mobile-menu {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(24, 34, 45, 0.95);
+            backdrop-filter: blur(10px);
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 0;
+            z-index: 100;
+            border-top: 1px solid rgba(46, 166, 255, 0.1);
         }
         
-        .balance-amount {
-            font-size: 36px;
-            font-weight: 800;
-            margin-bottom: 8px;
-            background: linear-gradient(90deg, var(--secondary), var(--primary));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-        
-        .balance-subtitle {
-            font-size: 14px;
+        .menu-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            color: var(--telegram-text);
+            text-decoration: none;
+            font-size: 0.7rem;
             opacity: 0.7;
+            transition: opacity 0.2s;
+            padding: 5px;
+        }
+        
+        .menu-item.active {
+            opacity: 1;
+            color: var(--telegram-button);
+        }
+        
+        .menu-icon {
+            font-size: 1.2rem;
+        }
+        
+        .notification {
+            position: fixed;
+            top: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            padding: 10px 15px;
+            border-radius: 50px;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+            animation: slideIn 0.3s ease-out, fadeOut 0.3s ease-out 2s forwards;
+            max-width: 90%;
+        }
+        
+        @keyframes slideIn {
+            from {
+                top: -50px;
+                opacity: 0;
+            }
+            to {
+                top: 15px;
+                opacity: 1;
+            }
+        }
+        
+        @keyframes fadeOut {
+            to {
+                opacity: 0;
+                visibility: hidden;
+            }
+        }
+        
+        .notification-icon {
+            font-size: 1rem;
+        }
+        
+        .notification-success {
+            border-left: 3px solid var(--success);
+        }
+        
+        .notification-error {
+            border-left: 3px solid var(--danger);
+        }
+        
+        .notification-warning {
+            border-left: 3px solid var(--warning);
+        }
+        
+        .telegram-button {
+            background: var(--telegram-button);
+            border: none;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 50px;
+            font-family: 'Geologica', sans-serif;
+            font-weight: 600;
+            margin-top: 15px;
+            cursor: pointer;
+            transition: opacity 0.2s;
+            width: 100%;
+            font-size: 0.9rem;
+        }
+        
+        .telegram-button:active {
+            opacity: 0.8;
+        }
+        
+        /* Стили для чата */
+        .chat-container {
+            display: flex;
+            flex-direction: column;
+            height: 60vh;
+            overflow-y: auto;
+            margin-bottom: 15px;
+            border: 1px solid rgba(46, 166, 255, 0.2);
+            border-radius: 12px;
+            padding: 10px;
+            background: rgba(46, 166, 255, 0.05);
+        }
+        
+        .message {
+            max-width: 80%;
+            margin-bottom: 10px;
+            padding: 8px 12px;
+            border-radius: 12px;
+            word-wrap: break-word;
+        }
+        
+        .user-message {
+            align-self: flex-end;
+            background: rgba(46, 166, 255, 0.2);
+            border-bottom-right-radius: 0;
+        }
+        
+        .bot-message {
+            align-self: flex-start;
+            background: rgba(255, 255, 255, 0.1);
+            border-bottom-left-radius: 0;
+        }
+        
+        .message-time {
+            font-size: 0.7rem;
+            opacity: 0.6;
+            margin-top: 3px;
+            text-align: right;
+        }
+        
+        .chat-input {
+            display: flex;
+            gap: 10px;
             margin-bottom: 15px;
         }
         
-        .action-buttons {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 18px;
-            margin: 25px 0;
+        .chat-input-field {
+            flex: 1;
+            background: rgba(46, 166, 255, 0.1);
+            border: 1px solid rgba(46, 166, 255, 0.2);
+            border-radius: 50px;
+            padding: 10px 15px;
+            color: white;
+            font-family: 'Geologica', sans-serif;
         }
         
-        .btn {
-            padding: 18px;
-            border-radius: 16px;
+        .chat-input-field:focus {
+            outline: none;
+            border-color: var(--telegram-button);
+        }
+        
+        /* Стили для кнопок в чате */
+        .buttons-row {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+            flex-wrap: wrap;
+        }
+        
+        .chat-button {
+            background: var(--button-bg);
             border: none;
-            font-weight: 700;
-            font-size: 17px;
+            color: var(--telegram-text);
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-family: 'Geologica', sans-serif;
+            font-size: 0.8rem;
             cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-            overflow: hidden;
+            transition: background 0.2s;
         }
         
-        .btn i {
-            margin-right: 12px;
-            font-size: 20px;
+        .chat-button:hover {
+            background: var(--button-hover);
         }
         
-        .btn-primary {
-            background: linear-gradient(45deg, var(--primary), var(--primary-dark));
-            color: white;
-            box-shadow: 0 4px 12px rgba(74, 134, 232, 0.3);
+        /* Стили для команд */
+        .command-item {
+            background: rgba(46, 166, 255, 0.1);
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 10px;
+            border: 1px solid rgba(46, 166, 255, 0.2);
         }
         
-        .btn-secondary {
-            background: linear-gradient(45deg, var(--secondary), #d97706);
-            color: white;
-            box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
-        }
-        
-        .btn-success {
-            background: linear-gradient(45deg, var(--success), #0d9c6e);
-            color: white;
-            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
-        }
-        
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(74, 134, 232, 0.4);
-        }
-        
-        .btn-secondary:hover {
-            box-shadow: 0 6px 20px rgba(245, 158, 11, 0.4);
-        }
-        
-        .btn-success:hover {
-            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
-        }
-        
-        /* Модальные окна */
-        .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.7);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.3s ease;
-        }
-        
-        .modal-overlay.active {
-            opacity: 1;
-            pointer-events: all;
-        }
-        
-        .modal {
-            background: rgba(30, 41, 59, 0.95);
-            border-radius: 20px;
-            padding: 20px;
-            width: 90%;
-            max-width: 400px;
-            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.5);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            transform: translateY(20px);
-            transition: transform 0.3s ease;
-        }
-        
-        .modal-overlay.active .modal {
-            transform: translateY(0);
-        }
-        
-        .modal-header {
+        .command-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
+            margin-bottom: 8px;
         }
         
-        .modal-title {
-            font-size: 20px;
-            font-weight: 700;
-            background: linear-gradient(90deg, var(--primary), var(--success));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+        .command-name {
+            font-weight: 600;
+            color: var(--telegram-button);
         }
         
-        .modal-close {
-            background: none;
+        .command-description {
+            font-size: 0.8rem;
+            opacity: 0.8;
+            margin-bottom: 8px;
+        }
+        
+        .command-response {
+            font-size: 0.8rem;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 8px;
+            border-radius: 8px;
+            margin-top: 8px;
+            white-space: pre-wrap;
+        }
+        
+        .command-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        
+        .command-button {
+            background: rgba(46, 166, 255, 0.2);
             border: none;
-            color: var(--text-secondary);
-            font-size: 22px;
+            color: var(--telegram-text);
+            padding: 6px 12px;
+            border-radius: 50px;
+            font-family: 'Geologica', sans-serif;
+            font-weight: 600;
             cursor: pointer;
-            transition: color 0.3s;
+            transition: opacity 0.2s;
+            font-size: 0.8rem;
         }
         
-        .modal-close:hover {
-            color: white;
+        .command-button:active {
+            opacity: 0.8;
+        }
+        
+        .command-button.delete {
+            background: rgba(244, 67, 54, 0.2);
+            color: var(--danger);
+        }
+        
+        .command-button.edit {
+            background: rgba(255, 152, 0, 0.2);
+            color: var(--warning);
+        }
+        
+        /* Стили для переменных */
+        .variable-item {
+            background: rgba(46, 166, 255, 0.1);
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 10px;
+            border: 1px solid rgba(46, 166, 255, 0.2);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .variable-info {
+            flex: 1;
+        }
+        
+        .variable-name {
+            font-weight: 600;
+            color: var(--accent);
+        }
+        
+        .variable-value {
+            font-size: 0.8rem;
+            opacity: 0.8;
+            margin-top: 3px;
+            word-break: break-all;
+        }
+        
+        .variable-type {
+            font-size: 0.7rem;
+            padding: 2px 6px;
+            border-radius: 4px;
+            background: rgba(255, 126, 95, 0.2);
+            color: var(--accent);
+        }
+        
+        /* Стили для форм */
+        .form-container {
+            background: rgba(46, 166, 255, 0.1);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 15px;
+            border: 1px solid rgba(46, 166, 255, 0.2);
         }
         
         .form-group {
-            margin-bottom: 15px;
+            margin-bottom: 12px;
         }
         
         .form-label {
             display: block;
-            margin-bottom: 8px;
-            font-size: 14px;
+            margin-bottom: 5px;
+            font-size: 0.8rem;
             opacity: 0.8;
         }
         
         .form-input {
             width: 100%;
-            padding: 12px 16px;
-            background: rgba(15, 23, 42, 0.5);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
+            background: rgba(46, 166, 255, 0.1);
+            border: 1px solid rgba(46, 166, 255, 0.2);
+            border-radius: 8px;
+            padding: 8px 12px;
             color: white;
-            font-size: 14px;
-            transition: all 0.3s;
+            font-family: 'Geologica', sans-serif;
         }
         
         .form-input:focus {
             outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 2px rgba(74, 134, 232, 0.3);
+            border-color: var(--telegram-button);
         }
         
-        .form-submit {
+        .form-textarea {
             width: 100%;
-            padding: 16px;
+            height: 100px;
+            background: rgba(46, 166, 255, 0.1);
+            border: 1px solid rgba(46, 166, 255, 0.2);
+            border-radius: 8px;
+            padding: 8px 12px;
+            color: white;
+            font-family: 'Geologica', sans-serif;
+            resize: vertical;
+        }
+        
+        .form-textarea:focus {
+            outline: none;
+            border-color: var(--telegram-button);
+        }
+        
+        .form-select {
+            width: 100%;
+            background: rgba(46, 166, 255, 0.1);
+            border: 1px solid rgba(46, 166, 255, 0.2);
+            border-radius: 8px;
+            padding: 8px 12px;
+            color: white;
+            font-family: 'Geologica', sans-serif;
+        }
+        
+        .form-select:focus {
+            outline: none;
+            border-color: var(--telegram-button);
+        }
+        
+        /* Стили для условий */
+        .condition-item {
+            background: rgba(46, 166, 255, 0.1);
             border-radius: 12px;
-            border: none;
-            background: linear-gradient(45deg, var(--primary), var(--primary-dark));
-            color: white;
-            font-weight: 700;
-            font-size: 16px;
-            cursor: pointer;
-            transition: all 0.3s;
+            padding: 12px;
+            margin-bottom: 10px;
+            border: 1px solid rgba(46, 166, 255, 0.2);
+        }
+        
+        .condition-expression {
+            font-family: monospace;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 6px;
+            border-radius: 6px;
+            margin: 8px 0;
+        }
+        
+        .condition-actions {
+            font-size: 0.8rem;
+            background: rgba(76, 175, 80, 0.1);
+            padding: 8px;
+            border-radius: 6px;
             margin-top: 8px;
+            white-space: pre-wrap;
         }
         
-        .form-submit:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(74, 134, 232, 0.4);
-        }
-        
-        /* Прогресс бар */
-        .progress-container {
-            width: 100%;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
-            margin: 10px 0;
-            overflow: hidden;
-        }
-        
-        .progress-bar {
-            height: 8px;
-            background: linear-gradient(90deg, var(--primary), var(--success));
-            border-radius: 10px;
-            transition: width 0.3s;
-        }
-        
-        /* Анимации */
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        
-        .fade-in {
-            animation: fadeIn 0.5s ease forwards;
-        }
-        
-        /* Уведомления */
-        .notification {
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(0, 0, 0, 0.8);
-            color: white;
-            padding: 14px 22px;
-            border-radius: 16px;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            z-index: 1000;
+        /* Общие стили */
+        .section-title {
+            font-size: 1.1rem;
+            margin-bottom: 15px;
             display: flex;
             align-items: center;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
-            max-width: 90%;
-            opacity: 0;
-            animation: fadeIn 0.3s forwards;
+            gap: 8px;
         }
         
-        .notification i {
-            margin-right: 10px;
-            font-size: 18px;
+        .tab-content {
+            display: none;
         }
         
-        .notification-success {
-            background: rgba(16, 185, 129, 0.9);
+        .tab-content.active {
+            display: block;
         }
         
-        .notification-error {
-            background: rgba(239, 68, 68, 0.9);
+        /* Стили для базы данных */
+        .db-status {
+            background: rgba(46, 166, 255, 0.1);
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 15px;
+            border: 1px solid rgba(46, 166, 255, 0.2);
+            font-size: 0.9rem;
         }
         
-        /* Адаптация под PWA */
-        @media all and (display-mode: standalone) {
-            body {
-                padding-top: env(safe-area-inset-top);
-                padding-bottom: env(safe-area-inset-bottom);
-            }
+        .db-status span {
+            font-weight: 600;
+            color: var(--telegram-button);
+        }
+        
+        .backup-controls {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
         }
     </style>
 </head>
 <body>
-    <div class="container">
+    <div id="app">
         <div class="header">
-            <h1 class="app-title"><i class="fas fa-coins"></i> AdLoot</h1>
-            <div class="user-avatar">U</div>
+            <div class="logo">BOT MANAGER PRO</div>
+            <div class="balance-container">
+                <div class="balance">
+                    <span>🤖</span>
+                    <span>{{ botName }}</span>
+                </div>
+            </div>
         </div>
         
-        <div class="balance-card fade-in">
-            <h2 class="balance-title">Ваш баланс</h2>
-            <div class="balance-amount" id="balanceAmount">0.00 ₽</div>
-            <p class="balance-subtitle">Доступно для вывода: <span id="availableAmount">0.00 ₽</span></p>
-            <div class="progress-container">
-                <div class="progress-bar" id="progressBar" style="width: 0%"></div>
+        <div class="tab-content" :class="{active: activeTab === 'chat'}">
+            <h2 class="section-title">💬 Чат с ботом</h2>
+            
+            <div class="chat-container" ref="chatContainer">
+                <div class="message" :class="message.type" v-for="message in chatMessages" :key="message.id">
+                    <div>{{ message.text }}</div>
+                    <div v-if="message.buttons && message.buttons.length > 0" class="buttons-row">
+                        <button 
+                            class="chat-button" 
+                            v-for="(button, btnIndex) in message.buttons" 
+                            :key="btnIndex"
+                            @click="handleButtonClick(button)"
+                        >
+                            {{ button.text }}
+                        </button>
+                    </div>
+                    <div class="message-time">{{ formatTime(message.time) }}</div>
+                </div>
             </div>
-            <p style="font-size: 12px; opacity: 0.7;">Минимальный вывод: 50 ₽</p>
+            
+            <div class="chat-input">
+                <input 
+                    type="text" 
+                    class="chat-input-field" 
+                    v-model="newMessage" 
+                    placeholder="Введите сообщение..."
+                    @keyup.enter="sendMessage"
+                >
+                <button class="telegram-button" @click="sendMessage" style="width: auto; padding: 0 15px;">
+                    📤
+                </button>
+            </div>
         </div>
         
-        <div class="action-buttons">
-            <button class="btn btn-primary" id="watchAdBtn">
-                <i class="fas fa-ad"></i> Смотреть рекламу
-            </button>
-            <button class="btn btn-secondary" id="referralBtn">
-                <i class="fas fa-users"></i> Реферальная система
-            </button>
-            <button class="btn btn-success" id="withdrawBtn">
-                <i class="fas fa-wallet"></i> Вывод средств
-            </button>
-        </div>
-    </div>
-    
-    <!-- Модальное окно для реферальной системы -->
-    <div class="modal-overlay" id="referralModal">
-        <div class="modal">
-            <div class="modal-header">
-                <h3 class="modal-title"><i class="fas fa-users"></i> Реферальная система</h3>
-                <button class="modal-close" id="closeReferralModal">&times;</button>
+        <div class="tab-content" :class="{active: activeTab === 'commands'}">
+            <h2 class="section-title">🛠️ Команды бота</h2>
+            
+            <div class="form-container" v-if="showCommandForm">
+                <h3 class="section-title">{{ editingCommand ? '✏️ Редактировать команду' : '➕ Добавить команду' }}</h3>
+                
+                <div class="form-group">
+                    <label class="form-label">Название команды (без /)</label>
+                    <input type="text" class="form-input" v-model="currentCommand.name" placeholder="start">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Описание команды</label>
+                    <input type="text" class="form-input" v-model="currentCommand.description" placeholder="Приветственное сообщение">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Ответ бота</label>
+                    <textarea class="form-textarea" v-model="currentCommand.response" placeholder="Привет! Я ваш бот. Чем могу помочь?"></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Кнопки (JSON массив)</label>
+                    <textarea 
+                        class="form-textarea" 
+                        v-model="currentCommand.buttons" 
+                        placeholder='[{"text": "Кнопка 1", "action": "command1"}, {"text": "Кнопка 2", "action": "command2"}]'
+                    ></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Доступные переменные: {{ availableVariables.join(', ') }}</label>
+                </div>
+                
+                <button class="telegram-button" @click="saveCommand">
+                    {{ editingCommand ? 'Обновить команду' : 'Добавить команду' }}
+                </button>
+                <button class="telegram-button" @click="cancelCommand" style="background: rgba(244, 67, 54, 0.2); color: var(--danger); margin-top: 10px;">
+                    Отмена
+                </button>
             </div>
-            <div class="form-group">
-                <label class="form-label">Ваша реферальная ссылка</label>
-                <div style="display: flex; background: rgba(15, 23, 42, 0.5); border-radius: 10px; overflow: hidden; border: 1px solid rgba(255, 255, 255, 0.1);">
-                    <input type="text" class="form-input" id="referralLink" value="https://earn-ad.ru/ref/user123" readonly style="border: none; background: none;">
-                    <button style="background: var(--primary); color: white; border: none; padding: 0 12px; cursor: pointer;" onclick="copyReferralLink()">
-                        <i class="fas fa-copy"></i>
+            
+            <button class="telegram-button" @click="addNewCommand" v-if="!showCommandForm">
+                ➕ Добавить новую команду
+            </button>
+            
+            <div class="command-item" v-for="(command, index) in botCommands" :key="index">
+                <div class="command-header">
+                    <div class="command-name">/{{ command.name }}</div>
+                    <div class="command-description">{{ command.description }}</div>
+                </div>
+                <div class="command-response">{{ command.response }}</div>
+                <div v-if="command.buttons && command.buttons.length > 0" class="buttons-row">
+                    <button class="chat-button" v-for="(button, btnIndex) in command.buttons" :key="btnIndex">
+                        {{ button.text }}
                     </button>
                 </div>
-                <p style="font-size: 13px; opacity: 0.7; margin-top: 8px;">Приводите друзей и получайте 10% от их заработка</p>
+                <div class="command-actions">
+                    <button class="command-button edit" @click="editCommand(index)">✏️ Редактировать</button>
+                    <button class="command-button delete" @click="deleteCommand(index)">🗑️ Удалить</button>
+                    <button class="command-button" @click="testCommand(index)">🔄 Тестировать</button>
+                </div>
             </div>
         </div>
-    </div>
-    
-    <!-- Модальное окно для вывода средств -->
-    <div class="modal-overlay" id="withdrawModal">
-        <div class="modal">
-            <div class="modal-header">
-                <h3 class="modal-title"><i class="fas fa-wallet"></i> Вывод средств</h3>
-                <button class="modal-close" id="closeWithdrawModal">&times;</button>
+        
+        <div class="tab-content" :class="{active: activeTab === 'variables'}">
+            <h2 class="section-title">📊 Переменные бота</h2>
+            
+            <div class="form-container" v-if="showVariableForm">
+                <h3 class="section-title">{{ editingVariable ? '✏️ Редактировать переменную' : '➕ Добавить переменную' }}</h3>
+                
+                <div class="form-group">
+                    <label class="form-label">Имя переменной</label>
+                    <input type="text" class="form-input" v-model="currentVariable.name" placeholder="welcome_message">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Тип переменной</label>
+                    <select class="form-select" v-model="currentVariable.type">
+                        <option value="string">Текст (string)</option>
+                        <option value="number">Число (number)</option>
+                        <option value="boolean">Логическое (boolean)</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Значение переменной</label>
+                    <textarea 
+                        class="form-textarea" 
+                        v-model="currentVariable.value" 
+                        :placeholder="currentVariable.type === 'number' ? '0' : currentVariable.type === 'boolean' ? 'true или false' : 'Добро пожаловать!'"
+                    ></textarea>
+                </div>
+                
+                <button class="telegram-button" @click="saveVariable">
+                    {{ editingVariable ? 'Обновить переменную' : 'Добавить переменную' }}
+                </button>
+                <button class="telegram-button" @click="cancelVariable" style="background: rgba(244, 67, 54, 0.2); color: var(--danger); margin-top: 10px;">
+                    Отмена
+                </button>
             </div>
-            <div class="form-group">
-                <label class="form-label">Сумма вывода (₽)</label>
-                <input type="number" class="form-input" id="withdrawAmount" placeholder="Минимум 50 ₽" min="50" step="0.01">
+            
+            <button class="telegram-button" @click="addNewVariable" v-if="!showVariableForm">
+                ➕ Добавить новую переменную
+            </button>
+            
+            <div class="variable-item" v-for="(variable, index) in botVariables" :key="index">
+                <div class="variable-info">
+                    <div class="variable-name">{{ variable.name }} <span class="variable-type">{{ variable.type }}</span></div>
+                    <div class="variable-value">{{ variable.value }}</div>
+                </div>
+                <div class="command-actions">
+                    <button class="command-button edit" @click="editVariable(index)">✏️</button>
+                    <button class="command-button delete" @click="deleteVariable(index)">🗑️</button>
+                </div>
             </div>
-            <div class="form-group">
-                <label class="form-label">Способ вывода</label>
-                <select class="form-input" id="withdrawMethod">
-                    <option value="card">Банковская карта</option>
-                    <option value="qiwi">Qiwi</option>
-                    <option value="yoomoney">ЮMoney</option>
-                    <option value="crypto">Криптовалюта</option>
-                </select>
+        </div>
+        
+        <div class="tab-content" :class="{active: activeTab === 'conditions'}">
+            <h2 class="section-title">🔀 Условия бота</h2>
+            
+            <div class="form-container" v-if="showConditionForm">
+                <h3 class="section-title">{{ editingCondition ? '✏️ Редактировать условие' : '➕ Добавить условие' }}</h3>
+                
+                <div class="form-group">
+                    <label class="form-label">Выражение условия (JavaScript)</label>
+                    <textarea 
+                        class="form-textarea" 
+                        v-model="currentCondition.expression" 
+                        placeholder="user.balance > 100"
+                    ></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Действия при true (выполняются, если условие истинно)</label>
+                    <textarea 
+                        class="form-textarea" 
+                        v-model="currentCondition.trueActions" 
+                        placeholder="user.balance -= 100; bot.sendMessage('Спасибо за покупку!');"
+                    ></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Действия при false (выполняются, если условие ложно)</label>
+                    <textarea 
+                        class="form-textarea" 
+                        v-model="currentCondition.falseActions" 
+                        placeholder="bot.sendMessage('Недостаточно средств!');"
+                    ></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Доступные переменные: user (объект пользователя), bot (методы бота)</label>
+                </div>
+                
+                <button class="telegram-button" @click="saveCondition">
+                    {{ editingCondition ? 'Обновить условие' : 'Добавить условие' }}
+                </button>
+                <button class="telegram-button" @click="cancelCondition" style="background: rgba(244, 67, 54, 0.2); color: var(--danger); margin-top: 10px;">
+                    Отмена
+                </button>
             </div>
-            <div class="form-group">
-                <label class="form-label">Реквизиты</label>
-                <input type="text" class="form-input" id="withdrawDetails" placeholder="Номер карты/кошелька">
+            
+            <button class="telegram-button" @click="addNewCondition" v-if="!showConditionForm">
+                ➕ Добавить новое условие
+            </button>
+            
+            <div class="condition-item" v-for="(condition, index) in botConditions" :key="index">
+                <div class="command-header">
+                    <div class="command-name">Условие #{{ index + 1 }}</div>
+                </div>
+                <div class="condition-expression">if ({{ condition.expression }})</div>
+                <div class="condition-actions">
+                    <strong>True:</strong> {{ condition.trueActions || 'нет действий' }}
+                </div>
+                <div class="condition-actions">
+                    <strong>False:</strong> {{ condition.falseActions || 'нет действий' }}
+                </div>
+                <div class="command-actions">
+                    <button class="command-button edit" @click="editCondition(index)">✏️ Редактировать</button>
+                    <button class="command-button delete" @click="deleteCondition(index)">🗑️ Удалить</button>
+                    <button class="command-button" @click="testCondition(index)">🔄 Тестировать</button>
+                </div>
             </div>
-            <button class="form-submit" id="submitWithdraw">Заказать выплату</button>
+        </div>
+        
+        <div class="tab-content" :class="{active: activeTab === 'database'}">
+            <h2 class="section-title">💾 База данных</h2>
+            
+            <div class="db-status">
+                <div><span>Статус:</span> {{ dbStatus }}</div>
+                <div><span>Размер:</span> {{ dbSize }} KB</div>
+                <div><span>Последнее сохранение:</span> {{ lastSaveTime }}</div>
+            </div>
+            
+            <div class="form-container">
+                <h3 class="section-title">🔁 Импорт/Экспорт данных</h3>
+                
+                <div class="form-group">
+                    <label class="form-label">Экспортировать все данные в JSON</label>
+                    <button class="telegram-button" @click="exportData">
+                        📤 Экспорт данных
+                    </button>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Импортировать данные из JSON</label>
+                    <textarea 
+                        class="form-textarea" 
+                        v-model="importDataJson" 
+                        placeholder="Вставьте JSON данные для импорта..."
+                    ></textarea>
+                    <button class="telegram-button" @click="importData" style="margin-top: 10px;">
+                        📥 Импорт данных
+                    </button>
+                </div>
+            </div>
+            
+            <div class="form-container">
+                <h3 class="section-title">⚙️ Настройки базы данных</h3>
+                
+                <div class="form-group">
+                    <label class="form-label">Автосохранение каждые</label>
+                    <select class="form-select" v-model="autoSaveInterval">
+                        <option value="5000">5 секунд</option>
+                        <option value="15000">15 секунд</option>
+                        <option value="30000">30 секунд</option>
+                        <option value="60000">1 минута</option>
+                        <option value="300000">5 минут</option>
+                    </select>
+                </div>
+                
+                <button class="telegram-button" @click="forceSave" style="margin-top: 10px;">
+                    💾 Принудительное сохранение
+                </button>
+            </div>
+        </div>
+        
+        <div class="mobile-menu">
+            <div class="menu-item" :class="{active: activeTab === 'chat'}" @click="activeTab = 'chat'">
+                <div class="menu-icon">💬</div>
+                <div>Чат</div>
+            </div>
+            <div class="menu-item" :class="{active: activeTab === 'commands'}" @click="activeTab = 'commands'">
+                <div class="menu-icon">🛠️</div>
+                <div>Команды</div>
+            </div>
+            <div class="menu-item" :class="{active: activeTab === 'variables'}" @click="activeTab = 'variables'">
+                <div class="menu-icon">📊</div>
+                <div>Переменные</div>
+            </div>
+            <div class="menu-item" :class="{active: activeTab === 'conditions'}" @click="activeTab = 'conditions'">
+                <div class="menu-icon">🔀</div>
+                <div>Условия</div>
+            </div>
+            <div class="menu-item" :class="{active: activeTab === 'database'}" @click="activeTab = 'database'">
+                <div class="menu-icon">💾</div>
+                <div>База данных</div>
+            </div>
+        </div>
+        
+        <div class="notification" v-if="notification.show" :class="'notification-' + notification.type">
+            <div class="notification-icon">{{ notification.emoji }}</div>
+            <div>{{ notification.text }}</div>
         </div>
     </div>
-    
-    <!-- Уведомление -->
-    <div class="notification" id="notification" style="display: none;"></div>
-    
+
+    <script src="https://cdn.jsdelivr.net/npm/vue@3.2.47/dist/vue.global.min.js"></script>
     <script>
-        // Данные пользователя
-        let userData = {
-            balance: 0
-        };
+        const { createApp, ref, computed, onMounted, nextTick } = Vue;
         
-        // Загрузка данных из localStorage
-        function loadUserData() {
-            const savedData = localStorage.getItem('adEarnData');
-            if (savedData) {
-                userData = JSON.parse(savedData);
-                updateUI();
-            }
-        }
-        
-        // Сохранение данных в localStorage
-        function saveUserData() {
-            localStorage.setItem('adEarnData', JSON.stringify(userData));
-            updateUI();
-        }
-        
-        // Обновление интерфейса
-        function updateUI() {
-            document.getElementById('balanceAmount').textContent = userData.balance.toFixed(2) + ' ₽';
-            document.getElementById('availableAmount').textContent = userData.balance.toFixed(2) + ' ₽';
-            
-            // Обновление прогресс бара
-            const progress = Math.min((userData.balance / 50) * 100, 100);
-            document.getElementById('progressBar').style.width = progress + '%';
-        }
-        
-        // Генерация случайной суммы вознаграждения (от 0.01 до 0.05 руб)
-        function getRandomReward() {
-            return Math.random() * 0.04 + 0.01;
-        }
-        
-        // Показ уведомления
-        function showNotification(message, type) {
-            const notification = document.getElementById('notification');
-            notification.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i> ${message}`;
-            notification.className = `notification notification-${type}`;
-            notification.style.display = 'flex';
-            
-            setTimeout(() => {
-                notification.style.display = 'none';
-            }, 3000);
-        }
-        
-        // Копирование реферальной ссылки
-        function copyReferralLink() {
-            const link = document.getElementById('referralLink').value;
-            navigator.clipboard.writeText(link);
-            showNotification('Ссылка скопирована в буфер обмена', 'success');
-        }
-        
-        // Просмотр рекламы
-        function watchAd() {
-            const btn = document.getElementById('watchAdBtn');
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Загрузка рекламы...';
-            btn.disabled = true;
-            
-            // Имитация загрузки рекламы
-            setTimeout(() => {
-                btn.innerHTML = '<i class="fas fa-ad"></i> Идёт реклама...';
+        createApp({
+            setup() {
+                // Telegram WebApp integration
+                const tg = window.Telegram.WebApp;
+                const userId = ref(tg.initDataUnsafe.user?.id || Math.floor(Math.random() * 1000000));
+                const userFirstName = ref(tg.initDataUnsafe.user?.first_name || 'Админ');
+                const botName = ref("Мой Бот");
                 
-                // Имитация просмотра рекламы
-                setTimeout(() => {
-                    // Генерация вознаграждения (0.01 - 0.05 руб)
-                    const reward = getRandomReward();
-                    userData.balance += reward;
-                    
-                    // Обновление данных
-                    saveUserData();
-                    
-                    btn.innerHTML = '<i class="fas fa-check"></i> Реклама просмотрена!';
-                    showNotification(`Вы заработали ${reward.toFixed(2)} ₽ за просмотр рекламы`, 'success');
-                    
-                    // Возвращаем исходное состояние кнопки
-                    setTimeout(() => {
-                        btn.innerHTML = '<i class="fas fa-ad"></i> Смотреть рекламу';
-                        btn.disabled = false;
-                    }, 2000);
-                }, 3000); // 3 секунды просмотра рекламы
-            }, 1500); // 1.5 секунды загрузки
-        }
-        
-        // Запрос на вывод средств
-        function requestWithdraw() {
-            const amount = parseFloat(document.getElementById('withdrawAmount').value);
-            const method = document.getElementById('withdrawMethod').value;
-            const details = document.getElementById('withdrawDetails').value;
-            
-            if (isNaN(amount)) {
-                showNotification('Введите корректную сумму', 'error');
-                return;
-            }
-            
-            if (amount < 50) {
-                showNotification('Минимальная сумма вывода - 50 ₽', 'error');
-                return;
-            }
-            
-            if (amount > userData.balance) {
-                showNotification('Недостаточно средств для вывода', 'error');
-                return;
-            }
-            
-            if (!details.trim()) {
-                showNotification('Введите реквизиты для вывода', 'error');
-                return;
-            }
-            
-            // Имитация запроса на вывод
-            document.getElementById('submitWithdraw').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Обработка...';
-            document.getElementById('submitWithdraw').disabled = true;
-            
-            setTimeout(() => {
-                userData.balance -= amount;
-                saveUserData();
-                
-                document.getElementById('withdrawModal').classList.remove('active');
-                document.getElementById('submitWithdraw').innerHTML = 'Заказать выплату';
-                document.getElementById('submitWithdraw').disabled = false;
-                
-                showNotification(`Запрос на вывод ${amount.toFixed(2)} ₽ успешно отправлен!`, 'success');
-            }, 2000);
-        }
-        
-        // Инициализация при загрузке страницы
-        document.addEventListener('DOMContentLoaded', function() {
-            loadUserData();
-            
-            // Открытие модальных окон
-            document.getElementById('referralBtn').addEventListener('click', function() {
-                document.getElementById('referralModal').classList.add('active');
-            });
-            
-            document.getElementById('withdrawBtn').addEventListener('click', function() {
-                document.getElementById('withdrawAmount').value = Math.min(userData.balance, 500).toFixed(2);
-                document.getElementById('withdrawModal').classList.add('active');
-            });
-            
-            // Закрытие модальных окон
-            document.getElementById('closeReferralModal').addEventListener('click', function() {
-                document.getElementById('referralModal').classList.remove('active');
-            });
-            
-            document.getElementById('closeWithdrawModal').addEventListener('click', function() {
-                document.getElementById('withdrawModal').classList.remove('active');
-            });
-            
-            // Закрытие по клику вне модального окна
-            document.querySelectorAll('.modal-overlay').forEach(modal => {
-                modal.addEventListener('click', function(e) {
-                    if (e.target === this) {
-                        this.classList.remove('active');
-                    }
+                // App state
+                const activeTab = ref('chat');
+                const notification = ref({
+                    show: false,
+                    text: '',
+                    type: 'success',
+                    emoji: '✅'
                 });
-            });
-            
-            // Просмотр рекламы
-            document.getElementById('watchAdBtn').addEventListener('click', watchAd);
-            
-            // Запрос на вывод
-            document.getElementById('submitWithdraw').addEventListener('click', requestWithdraw);
-        });
+                
+                // Chat
+                const chatMessages = ref([
+                    { 
+                        id: 1,
+                        text: "Привет! Я ваш бот. Чем могу помочь?", 
+                        type: "bot-message", 
+                        time: new Date(),
+                        buttons: [
+                            { text: "Помощь", action: "/help" },
+                            { text: "Баланс", action: "/balance" }
+                        ]
+                    }
+                ]);
+                const newMessage = ref("");
+                const chatContainer = ref(null);
+                
+                // Commands
+                const botCommands = ref([
+                    { 
+                        name: "start", 
+                        description: "Приветственное сообщение", 
+                        response: "Привет! Я ваш бот. Напишите /help для списка команд",
+                        buttons: [
+                            { text: "Помощь", action: "/help" },
+                            { text: "Баланс", action: "/balance" }
+                        ]
+                    },
+                    { 
+                        name: "help", 
+                        description: "Список команд", 
+                        response: "Доступные команды:\n/start - приветствие\n/help - эта справка\n/balance - показать баланс" 
+                    },
+                    { 
+                        name: "balance", 
+                        description: "Показать баланс", 
+                        response: "Ваш баланс: {{user_balance}} баллов",
+                        buttons: [
+                            { text: "Пополнить +10", action: "/add_balance 10" },
+                            { text: "Потратить -5", action: "/subtract_balance 5" }
+                        ]
+                    },
+                    { 
+                        name: "add_balance", 
+                        description: "Пополнить баланс", 
+                        response: "Ваш баланс увеличен на {{amount}}. Текущий баланс: {{user_balance}}"
+                    },
+                    { 
+                        name: "subtract_balance", 
+                        description: "Списать с баланса", 
+                        response: "С вашего баланса списано {{amount}}. Текущий баланс: {{user_balance}}"
+                    }
+                ]);
+                const showCommandForm = ref(false);
+                const editingCommand = ref(false);
+                const currentCommand = ref({
+                    name: "",
+                    description: "",
+                    response: "",
+                    buttons: "[]"
+                });
+                
+                // Variables
+                const botVariables = ref([
+                    { name: "welcome_message", value: "Добро пожаловать в наш бот!", type: "string" },
+                    { name: "admin_contact", value: "@support", type: "string" },
+                    { name: "user_balance", value: "100", type: "number" },
+                    { name: "premium_enabled", value: "false", type: "boolean" }
+                ]);
+                const showVariableForm = ref(false);
+                const editingVariable = ref(false);
+                const currentVariable = ref({
+                    name: "",
+                    value: "",
+                    type: "string"
+                });
+                
+                // Conditions
+                const botConditions = ref([
+                    {
+                        expression: "user.balance >= amount",
+                        trueActions: "user.balance -= amount;\nbot.sendMessage(`Спасибо за покупку! Ваш баланс: ${user.balance}`);",
+                        falseActions: "bot.sendMessage('Недостаточно средств на балансе!');"
+                    }
+                ]);
+                const showConditionForm = ref(false);
+                const editingCondition = ref(false);
+                const currentCondition = ref({
+                    expression: "",
+                    trueActions: "",
+                    falseActions: ""
+                });
+                
+                // Database
+                const dbStatus = ref("Активна");
+                const dbSize = ref(0);
+                const lastSaveTime = ref("никогда");
+                const autoSaveInterval = ref(30000);
+                const importDataJson = ref("");
+                let saveInterval = null;
+                
+                // Computed properties
+                const availableVariables = computed(() => {
+                    return botVariables.value.map(v => `{{${v.name}}}`);
+                });
+                
+                // Methods
+                const sendMessage = () => {
+                    if (!newMessage.value.trim()) return;
+                    
+                    // Add user message
+                    const userMsg = {
+                        id: Date.now(),
+                        text: newMessage.value,
+                        type: "user-message",
+                        time: new Date()
+                    };
+                    chatMessages.value.push(userMsg);
+                    
+                    // Process message
+                    processMessage(newMessage.value);
+                    
+                    newMessage.value = "";
+                    scrollChatToBottom();
+                    saveBotData();
+                };
+                
+                const processMessage = (message) => {
+                    // Check if message is a command
+                    if (message.startsWith("/")) {
+                        const cmdParts = message.slice(1).split(" ");
+                        const cmd = cmdParts[0];
+                        const args = cmdParts.slice(1);
+                        
+                        const foundCmd = botCommands.value.find(c => c.name === cmd);
+                        
+                        if (foundCmd) {
+                            // Process command
+                            processCommand(foundCmd, args);
+                        } else {
+                            // Command not found
+                            setTimeout(() => {
+                                addBotMessage(`Команда "/${cmd}" не найдена. Напишите /help для списка команд.`);
+                            }, 500);
+                        }
+                    } else {
+                        // Check conditions for regular messages
+                        checkConditions(message);
+                        
+                        // Default response for non-command messages
+                        setTimeout(() => {
+                            addBotMessage("Я простой бот. Для работы используйте команды. Напишите /help для списка команд.");
+                        }, 500);
+                    }
+                };
+                
+                const processCommand = (command, args = []) => {
+                    // Create context for variables and conditions
+                    const context = {
+                        user: {},
+                        bot: {
+                            sendMessage: (text, buttons = []) => {
+                                addBotMessage(text, buttons);
+                            }
+                        },
+                        args,
+                        amount: args[0] ? parseFloat(args[0]) : 0
+                    };
+                    
+                    // Prepare user variables
+                    botVariables.value.forEach(v => {
+                        if (v.name.startsWith("user_")) {
+                            const varName = v.name.replace("user_", "");
+                            let value = v.value;
+                            
+                            // Convert value based on type
+                            if (v.type === "number") {
+                                value = parseFloat(value) || 0;
+                            } else if (v.type === "boolean") {
+                                value = value === "true";
+                            }
+                            
+                            context.user[varName] = value;
+                        }
+                    });
+                    
+                    // Process variables in response
+                    let response = command.response;
+                    let buttons = [];
+                    
+                    try {
+                        buttons = JSON.parse(command.buttons || "[]");
+                    } catch (e) {
+                        console.error("Error parsing buttons:", e);
+                    }
+                    
+                    botVariables.value.forEach(v => {
+                        const regex = new RegExp(`\\{\\{${v.name}\\}\\}`, 'g');
+                        response = response.replace(regex, v.value);
+                    });
+                    
+                    // Replace args placeholders
+                    args.forEach((arg, index) => {
+                        const regex = new RegExp(`\\{\\{args\\[${index}\\]\\}\\}`, 'g');
+                        response = response.replace(regex, arg);
+                    });
+                    
+                    // Replace amount placeholder
+                    if (context.amount) {
+                        response = response.replace(/\{\{amount\}\}/g, context.amount);
+                    }
+                    
+                    // Check conditions for this command
+                    const conditionResults = checkConditions(command.name, context);
+                    
+                    // If no conditions intercepted, send default response
+                    if (!conditionResults.some(r => r.intercepted)) {
+                        setTimeout(() => {
+                            addBotMessage(response, buttons);
+                        }, 500);
+                    }
+                };
+                
+                const checkConditions = (trigger, context = {}) => {
+                    const results = [];
+                    
+                    botConditions.value.forEach(condition => {
+                        try {
+                            // Create safe evaluation context
+                            const evalContext = {
+                                user: context.user || {},
+                                bot: context.bot || {
+                                    sendMessage: (text) => addBotMessage(text)
+                                },
+                                args: context.args || [],
+                                amount: context.amount || 0,
+                                trigger
+                            };
+                            
+                            // Evaluate condition
+                            const conditionResult = new Function('context', `with(context) { return ${condition.expression}; }`)(evalContext);
+                            
+                            results.push({
+                                condition: condition.expression,
+                                result: conditionResult,
+                                intercepted: false
+                            });
+                            
+                            // Execute actions based on condition result
+                            if (conditionResult) {
+                                if (condition.trueActions) {
+                                    try {
+                                        new Function('context', `with(context) { ${condition.trueActions} }`)(evalContext);
+                                        results[results.length - 1].intercepted = true;
+                                    } catch (e) {
+                                        console.error("Error executing true actions:", e);
+                                    }
+                                }
+                            } else {
+                                if (condition.falseActions) {
+                                    try {
+                                        new Function('context', `with(context) { ${condition.falseActions} }`)(evalContext);
+                                        results[results.length - 1].intercepted = true;
+                                    } catch (e) {
+                                        console.error("Error executing false actions:", e);
+                                    }
+                                }
+                            }
+                        } catch (e) {
+                            console.error("Error evaluating condition:", e);
+                            results.push({
+                                condition: condition.expression,
+                                result: null,
+                                error: e.message,
+                                intercepted: false
+                            });
+                        }
+                    });
+                    
+                    return results;
+                };
+                
+                const addBotMessage = (text, buttons = []) => {
+                    chatMessages.value.push({
+                        id: Date.now(),
+                        text,
+                        type: "bot-message",
+                        time: new Date(),
+                        buttons
+                    });
+                    scrollChatToBottom();
+                };
+                
+                const handleButtonClick = (button) => {
+                    // Add button click as user message
+                    chatMessages.value.push({
+                        id: Date.now(),
+                        text: button.action,
+                        type: "user-message",
+                        time: new Date()
+                    });
+                    
+                    // Process button action
+                    if (button.action.startsWith("/")) {
+                        processMessage(button.action);
+                    } else {
+                        // Custom action
+                        setTimeout(() => {
+                            addBotMessage(`Вы нажали кнопку "${button.text}" (действие: ${button.action})`);
+                        }, 500);
+                    }
+                    
+                    scrollChatToBottom();
+                };
+                
+                const scrollChatToBottom = () => {
+                    nextTick(() => {
+                        if (chatContainer.value) {
+                            chatContainer.value.scrollTop = chatContainer.value.scrollHeight;
+                        }
+                    });
+                };
+                
+                const formatTime = (date) => {
+                    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                };
+                
+                // Command methods
+                const addNewCommand = () => {
+                    currentCommand.value = { 
+                        name: "", 
+                        description: "", 
+                        response: "",
+                        buttons: "[]"
+                    };
+                    showCommandForm.value = true;
+                    editingCommand.value = false;
+                };
+                
+                const editCommand = (index) => {
+                    const cmd = botCommands.value[index];
+                    currentCommand.value = { 
+                        ...cmd,
+                        buttons: JSON.stringify(cmd.buttons || [], null, 2)
+                    };
+                    showCommandForm.value = true;
+                    editingCommand.value = true;
+                    currentCommand.editIndex = index;
+                };
+                
+                const saveCommand = () => {
+                    if (!currentCommand.value.name.trim()) {
+                        showNotification("Введите название команды", "error", "❌");
+                        return;
+                    }
+                    
+                    if (!currentCommand.value.response.trim()) {
+                        showNotification("Введите ответ бота", "error", "❌");
+                        return;
+                    }
+                    
+                    // Validate buttons JSON
+                    let buttons = [];
+                    try {
+                        buttons = JSON.parse(currentCommand.value.buttons || "[]");
+                        if (!Array.isArray(buttons)) {
+                            throw new Error("Buttons should be an array");
+                        }
+                    } catch (e) {
+                        showNotification("Некорректный формат кнопок (должен быть JSON массив)", "error", "❌");
+                        return;
+                    }
+                    
+                    const commandData = {
+                        name: currentCommand.value.name,
+                        description: currentCommand.value.description,
+                        response: currentCommand.value.response,
+                        buttons
+                    };
+                    
+                    if (editingCommand.value) {
+                        botCommands.value[currentCommand.editIndex] = commandData;
+                        showNotification("Команда обновлена", "success", "✅");
+                    } else {
+                        // Check if command already exists
+                        const exists = botCommands.value.some(c => c.name === commandData.name);
+                        if (exists) {
+                            showNotification("Команда с таким именем уже существует", "error", "❌");
+                            return;
+                        }
+                        
+                        botCommands.value.push(commandData);
+                        showNotification("Команда добавлена", "success", "✅");
+                    }
+                    
+                    cancelCommand();
+                    saveBotData();
+                };
+                
+                const cancelCommand = () => {
+                    showCommandForm.value = false;
+                    editingCommand.value = false;
+                    currentCommand.value = { 
+                        name: "", 
+                        description: "", 
+                        response: "",
+                        buttons: "[]"
+                    };
+                };
+                
+                const deleteCommand = (index) => {
+                    if (confirm("Удалить эту команду?")) {
+                        botCommands.value.splice(index, 1);
+                        showNotification("Команда удалена", "success", "✅");
+                        saveBotData();
+                    }
+                };
+                
+                const testCommand = (index) => {
+                    const cmd = botCommands.value[index];
+                    chatMessages.value.push({
+                        id: Date.now(),
+                        text: `/${cmd.name}`,
+                        type: "user-message",
+                        time: new Date()
+                    });
+                    
+                    processCommand(cmd);
+                    scrollChatToBottom();
+                };
+                
+                // Variable methods
+                const addNewVariable = () => {
+                    currentVariable.value = { 
+                        name: "", 
+                        value: "",
+                        type: "string"
+                    };
+                    showVariableForm.value = true;
+                    editingVariable.value = false;
+                };
+                
+                const editVariable = (index) => {
+                    currentVariable.value = { ...botVariables.value[index] };
+                    showVariableForm.value = true;
+                    editingVariable.value = true;
+                    currentVariable.editIndex = index;
+                };
+                
+                const saveVariable = () => {
+                    if (!currentVariable.value.name.trim()) {
+                        showNotification("Введите имя переменной", "error", "❌");
+                        return;
+                    }
+                    
+                    // Validate value based on type
+                    let validatedValue = currentVariable.value.value;
+                    
+                    if (currentVariable.value.type === "number") {
+                        if (isNaN(parseFloat(validatedValue))) {
+                            showNotification("Введите корректное число", "error", "❌");
+                            return;
+                        }
+                        validatedValue = parseFloat(validatedValue).toString();
+                    } else if (currentVariable.value.type === "boolean") {
+                        if (validatedValue !== "true" && validatedValue !== "false") {
+                            showNotification("Введите 'true' или 'false'", "error", "❌");
+                            return;
+                        }
+                    }
+                    
+                    const variableData = {
+                        name: currentVariable.value.name,
+                        value: validatedValue,
+                        type: currentVariable.value.type
+                    };
+                    
+                    if (editingVariable.value) {
+                        botVariables.value[currentVariable.editIndex] = variableData;
+                        showNotification("Переменная обновлена", "success", "✅");
+                    } else {
+                        // Check if variable already exists
+                        const exists = botVariables.value.some(v => v.name === variableData.name);
+                        if (exists) {
+                            showNotification("Переменная с таким именем уже существует", "error", "❌");
+                            return;
+                        }
+                        
+                        botVariables.value.push(variableData);
+                        showNotification("Переменная добавлена", "success", "✅");
+                    }
+                    
+                    cancelVariable();
+                    saveBotData();
+                };
+                
+                const cancelVariable = () => {
+                    showVariableForm.value = false;
+                    editingVariable.value = false;
+                    currentVariable.value = { 
+                        name: "", 
+                        value: "",
+                        type: "string"
+                    };
+                };
+                
+                const deleteVariable = (index) => {
+                    if (confirm("Удалить эту переменную?")) {
+                        botVariables.value.splice(index, 1);
+                        showNotification("Переменная удалена", "success", "✅");
+                        saveBotData();
+                    }
+                };
+                
+                // Condition methods
+                const addNewCondition = () => {
+                    currentCondition.value = { 
+                        expression: "",
+                        trueActions: "",
+                        falseActions: ""
+                    };
+                    showConditionForm.value = true;
+                    editingCondition.value = false;
+                };
+                
+                const editCondition = (index) => {
+                    currentCondition.value = { ...botConditions.value[index] };
+                    showConditionForm.value = true;
+                    editingCondition.value = true;
+                    currentCondition.editIndex = index;
+                };
+                
+                const saveCondition = () => {
+                    if (!currentCondition.value.expression.trim()) {
+                        showNotification("Введите выражение условия", "error", "❌");
+                        return;
+                    }
+                    
+                    // Basic validation of the expression
+                    try {
+                        new Function('context', `with(context) { return ${currentCondition.value.expression}; }`);
+                    } catch (e) {
+                        showNotification("Некорректное выражение: " + e.message, "error", "❌");
+                        return;
+                    }
+                    
+                    if (editingCondition.value) {
+                        botConditions.value[currentCondition.editIndex] = { ...currentCondition.value };
+                        showNotification("Условие обновлено", "success", "✅");
+                    } else {
+                        botConditions.value.push({ ...currentCondition.value });
+                        showNotification("Условие добавлено", "success", "✅");
+                    }
+                    
+                    cancelCondition();
+                    saveBotData();
+                };
+                
+                const cancelCondition = () => {
+                    showConditionForm.value = false;
+                    editingCondition.value = false;
+                    currentCondition.value = { 
+                        expression: "",
+                        trueActions: "",
+                        falseActions: ""
+                    };
+                };
+                
+                const deleteCondition = (index) => {
+                    if (confirm("Удалить это условие?")) {
+                        botConditions.value.splice(index, 1);
+                        showNotification("Условие удалено", "success", "✅");
+                        saveBotData();
+                    }
+                };
+                
+                const testCondition = (index) => {
+                    const condition = botConditions.value[index];
+                    
+                    // Create test context
+                    const testContext = {
+                        user: {
+                            balance: 100
+                        },
+                        bot: {
+                            sendMessage: (text) => {
+                                addBotMessage(`[TEST] ${text}`);
+                            }
+                        },
+                        amount: 50
+                    };
+                    
+                    try {
+                        // Test condition
+                        const result = new Function('context', `with(context) { return ${condition.expression}; }`)(testContext);
+                        
+                        addBotMessage(`Тест условия:\nВыражение: ${condition.expression}\nРезультат: ${result}`);
+                        
+                        // Test actions
+                        if (result && condition.trueActions) {
+                            new Function('context', `with(context) { ${condition.trueActions} }`)(testContext);
+                        } else if (!result && condition.falseActions) {
+                            new Function('context', `with(context) { ${condition.falseActions} }`)(testContext);
+                        }
+                    } catch (e) {
+                        addBotMessage(`Ошибка тестирования условия: ${e.message}`);
+                    }
+                };
+                
+                // Database methods
+                const saveBotData = () => {
+                    const botData = {
+                        version: 2,
+                        commands: botCommands.value,
+                        variables: botVariables.value,
+                        conditions: botConditions.value,
+                        messages: chatMessages.value,
+                        settings: {
+                            autoSaveInterval: autoSaveInterval.value
+                        }
+                    };
+                    
+                    const dataStr = JSON.stringify(botData);
+                    localStorage.setItem('botManagerProData', dataStr);
+                    
+                    // Update db info
+                    dbSize.value = (dataStr.length / 1024).toFixed(2);
+                    lastSaveTime.value = new Date().toLocaleString();
+                    
+                    return true;
+                };
+                
+                const loadBotData = () => {
+                    const savedData = localStorage.getItem('botManagerProData');
+                    if (savedData) {
+                        try {
+                            const parsed = JSON.parse(savedData);
+                            
+                            // Migration from version 1 to version 2
+                            if (!parsed.version) {
+                                parsed.version = 1;
+                                parsed.conditions = [];
+                            }
+                            
+                            botCommands.value = parsed.commands || botCommands.value;
+                            botVariables.value = parsed.variables || botVariables.value;
+                            botConditions.value = parsed.conditions || botConditions.value;
+                            chatMessages.value = parsed.messages || chatMessages.value;
+                            
+                            if (parsed.settings) {
+                                autoSaveInterval.value = parsed.settings.autoSaveInterval || autoSaveInterval.value;
+                            }
+                            
+                            // Update db info
+                            dbSize.value = (savedData.length / 1024).toFixed(2);
+                            lastSaveTime.value = "только что";
+                            
+                            return true;
+                        } catch (e) {
+                            console.error("Error loading bot data:", e);
+                            return false;
+                        }
+                    }
+                    return false;
+                };
+                
+                const exportData = () => {
+                    const botData = {
+                        commands: botCommands.value,
+                        variables: botVariables.value,
+                        conditions: botConditions.value
+                    };
+                    
+                    const dataStr = JSON.stringify(botData, null, 2);
+                    const blob = new Blob([dataStr], { type: 'application/json' });
+                    const url = URL.createObjectURL(blob);
+                    
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `bot_manager_export_${new Date().toISOString().slice(0, 10)}.json`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                    
+                    showNotification("Данные экспортированы", "success", "✅");
+                };
+                
+                const importData = () => {
+                    if (!importDataJson.value.trim()) {
+                        showNotification("Введите данные для импорта", "error", "❌");
+                        return;
+                    }
+                    
+                    try {
+                        const data = JSON.parse(importDataJson.value);
+                        
+                        if (confirm("Заменить текущие команды, переменные и условия импортированными?")) {
+                            if (data.commands) botCommands.value = data.commands;
+                            if (data.variables) botVariables.value = data.variables;
+                            if (data.conditions) botConditions.value = data.conditions;
+                            
+                            saveBotData();
+                            showNotification("Данные успешно импортированы", "success", "✅");
+                            importDataJson.value = "";
+                        }
+                    } catch (e) {
+                        showNotification("Ошибка импорта: " + e.message, "error", "❌");
+                    }
+                };
+                
+                const forceSave = () => {
+                    if (saveBotData()) {
+                        showNotification("Данные успешно сохранены", "success", "✅");
+                    } else {
+                        showNotification("Ошибка сохранения данных", "error", "❌");
+                    }
+                };
+                
+                const setupAutoSave = () => {
+                    if (saveInterval) {
+                        clearInterval(saveInterval);
+                    }
+                    
+                    saveInterval = setInterval(() => {
+                        saveBotData();
+                    }, parseInt(autoSaveInterval.value));
+                };
+                
+                // Notification
+                const showNotification = (text, type, emoji) => {
+                    notification.value = {
+                        show: true,
+                        text,
+                        type,
+                        emoji
+                    };
+                    
+                    setTimeout(() => {
+                        notification.value.show = false;
+                    }, 2000);
+                };
+                
+                // Initialize
+                onMounted(() => {
+                    loadBotData();
+                    scrollChatToBottom();
+                    setupAutoSave();
+                    
+                    // Calculate initial db size
+                    const savedData = localStorage.getItem('botManagerProData');
+                    if (savedData) {
+                        dbSize.value = (savedData.length / 1024).toFixed(2);
+                    }
+                    
+                    // Expand Telegram WebApp
+                    tg.expand();
+                });
+                
+                // Watch for autoSaveInterval changes
+                watch(autoSaveInterval, () => {
+                    setupAutoSave();
+                    saveBotData();
+                });
+                
+                return {
+                    botName,
+                    activeTab,
+                    notification,
+                    chatMessages,
+                    newMessage,
+                    chatContainer,
+                    botCommands,
+                    showCommandForm,
+                    editingCommand,
+                    currentCommand,
+                    botVariables,
+                    showVariableForm,
+                    editingVariable,
+                    currentVariable,
+                    botConditions,
+                    showConditionForm,
+                    editingCondition,
+                    currentCondition,
+                    availableVariables,
+                    dbStatus,
+                    dbSize,
+                    lastSaveTime,
+                    autoSaveInterval,
+                    importDataJson,
+                    sendMessage,
+                    handleButtonClick,
+                    formatTime,
+                    addNewCommand,
+                    editCommand,
+                    saveCommand,
+                    cancelCommand,
+                    deleteCommand,
+                    testCommand,
+                    addNewVariable,
+                    editVariable,
+                    saveVariable,
+                    cancelVariable,
+                    deleteVariable,
+                    addNewCondition,
+                    editCondition,
+                    saveCondition,
+                    cancelCondition,
+                    deleteCondition,
+                    testCondition,
+                    exportData,
+                    importData,
+                    forceSave
+                };
+            }
+        }).mount('#app');
     </script>
 </body>
 </html>
