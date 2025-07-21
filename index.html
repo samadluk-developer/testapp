@@ -831,840 +831,616 @@
 
     <script src="https://cdn.jsdelivr.net/npm/vue@3.2.47/dist/vue.global.min.js"></script>
     <script>
-        const { createApp, ref, computed, onMounted, nextTick } = Vue;
-        
-        createApp({
-            setup() {
-                // Telegram WebApp integration
-                const tg = window.Telegram.WebApp;
-                const userId = ref(tg.initDataUnsafe.user?.id || Math.floor(Math.random() * 1000000));
-                const userFirstName = ref(tg.initDataUnsafe.user?.first_name || 'Админ');
-                const botName = ref("Мой Бот");
+    const { createApp, ref, computed, onMounted, nextTick, watch } = Vue;
+    
+    createApp({
+        setup() {
+            // Telegram WebApp integration
+            const tg = window.Telegram?.WebApp || {};
+            const userId = ref(tg.initDataUnsafe?.user?.id || Math.floor(Math.random() * 1000000));
+            const userFirstName = ref(tg.initDataUnsafe?.user?.first_name || 'Админ');
+            const botName = ref("Мой Бот");
+            
+            // App state
+            const activeTab = ref('chat');
+            const notification = ref({
+                show: false,
+                text: '',
+                type: 'success',
+                emoji: '✅'
+            });
+            
+            // Chat
+            const chatMessages = ref([
+                { 
+                    id: 1,
+                    text: "Привет! Я ваш бот. Чем могу помочь?", 
+                    type: "bot-message", 
+                    time: new Date(),
+                    buttons: [
+                        { text: "Помощь", action: "/help" },
+                        { text: "Баланс", action: "/balance" }
+                    ]
+                }
+            ]);
+            const newMessage = ref("");
+            const chatContainer = ref(null);
+            
+            // Commands
+            const botCommands = ref([
+                { 
+                    name: "start", 
+                    description: "Приветственное сообщение", 
+                    response: "Привет! Я ваш бот. Напишите /help для списка команд",
+                    buttons: [
+                        { text: "Помощь", action: "/help" },
+                        { text: "Баланс", action: "/balance" }
+                    ]
+                },
+                { 
+                    name: "help", 
+                    description: "Список команд", 
+                    response: "Доступные команды:\n/start - приветствие\n/help - эта справка\n/balance - показать баланс" 
+                },
+                { 
+                    name: "balance", 
+                    description: "Показать баланс", 
+                    response: "Ваш баланс: {{user_balance}} баллов",
+                    buttons: [
+                        { text: "Пополнить +10", action: "/add_balance 10" },
+                        { text: "Потратить -5", action: "/subtract_balance 5" }
+                    ]
+                }
+            ]);
+            const showCommandForm = ref(false);
+            const editingCommand = ref(false);
+            const currentCommand = ref({
+                name: "",
+                description: "",
+                response: "",
+                buttons: "[]"
+            });
+            
+            // Variables
+            const botVariables = ref([
+                { name: "welcome_message", value: "Добро пожаловать в наш бот!", type: "string" },
+                { name: "admin_contact", value: "@support", type: "string" },
+                { name: "user_balance", value: "100", type: "number" }
+            ]);
+            const showVariableForm = ref(false);
+            const editingVariable = ref(false);
+            const currentVariable = ref({
+                name: "",
+                value: "",
+                type: "string"
+            });
+            
+            // Conditions
+            const botConditions = ref([]);
+            const showConditionForm = ref(false);
+            const editingCondition = ref(false);
+            const currentCondition = ref({
+                expression: "",
+                trueActions: "",
+                falseActions: ""
+            });
+            
+            // Database
+            const dbStatus = ref("Активна");
+            const dbSize = ref(0);
+            const lastSaveTime = ref("никогда");
+            const autoSaveInterval = ref(30000);
+            const importDataJson = ref("");
+            let saveInterval = null;
+            
+            // Computed properties
+            const availableVariables = computed(() => {
+                return botVariables.value.map(v => `{{${v.name}}}`);
+            });
+            
+            // Methods
+            const sendMessage = () => {
+                if (!newMessage.value.trim()) return;
                 
-                // App state
-                const activeTab = ref('chat');
-                const notification = ref({
-                    show: false,
-                    text: '',
-                    type: 'success',
-                    emoji: '✅'
+                // Add user message
+                const userMsg = {
+                    id: Date.now(),
+                    text: newMessage.value,
+                    type: "user-message",
+                    time: new Date()
+                };
+                chatMessages.value.push(userMsg);
+                
+                // Process message
+                processMessage(newMessage.value);
+                
+                newMessage.value = "";
+                scrollChatToBottom();
+                saveBotData();
+            };
+            
+            const processMessage = (message) => {
+                // Check if message is a command
+                if (message.startsWith("/")) {
+                    const cmdParts = message.slice(1).split(" ");
+                    const cmd = cmdParts[0];
+                    const args = cmdParts.slice(1);
+                    
+                    const foundCmd = botCommands.value.find(c => c.name === cmd);
+                    
+                    if (foundCmd) {
+                        // Process command
+                        processCommand(foundCmd, args);
+                    } else {
+                        // Command not found
+                        setTimeout(() => {
+                            addBotMessage(`Команда "/${cmd}" не найдена. Напишите /help для списка команд.`);
+                        }, 500);
+                    }
+                } else {
+                    // Default response for non-command messages
+                    setTimeout(() => {
+                        addBotMessage("Я простой бот. Для работы используйте команды. Напишите /help для списка команд.");
+                    }, 500);
+                }
+            };
+            
+            const processCommand = (command, args = []) => {
+                // Process variables in response
+                let response = command.response;
+                let buttons = [];
+                
+                try {
+                    buttons = JSON.parse(command.buttons || "[]");
+                } catch (e) {
+                    console.error("Error parsing buttons:", e);
+                }
+                
+                botVariables.value.forEach(v => {
+                    const regex = new RegExp(`\\{\\{${v.name}\\}\\}`, 'g');
+                    response = response.replace(regex, v.value);
                 });
                 
-                // Chat
-                const chatMessages = ref([
-                    { 
-                        id: 1,
-                        text: "Привет! Я ваш бот. Чем могу помочь?", 
-                        type: "bot-message", 
-                        time: new Date(),
-                        buttons: [
-                            { text: "Помощь", action: "/help" },
-                            { text: "Баланс", action: "/balance" }
-                        ]
-                    }
-                ]);
-                const newMessage = ref("");
-                const chatContainer = ref(null);
+                // Replace args placeholders
+                args.forEach((arg, index) => {
+                    const regex = new RegExp(`\\{\\{args\\[${index}\\]\\}\\}`, 'g');
+                    response = response.replace(regex, arg);
+                });
                 
-                // Commands
-                const botCommands = ref([
-                    { 
-                        name: "start", 
-                        description: "Приветственное сообщение", 
-                        response: "Привет! Я ваш бот. Напишите /help для списка команд",
-                        buttons: [
-                            { text: "Помощь", action: "/help" },
-                            { text: "Баланс", action: "/balance" }
-                        ]
-                    },
-                    { 
-                        name: "help", 
-                        description: "Список команд", 
-                        response: "Доступные команды:\n/start - приветствие\n/help - эта справка\n/balance - показать баланс" 
-                    },
-                    { 
-                        name: "balance", 
-                        description: "Показать баланс", 
-                        response: "Ваш баланс: {{user_balance}} баллов",
-                        buttons: [
-                            { text: "Пополнить +10", action: "/add_balance 10" },
-                            { text: "Потратить -5", action: "/subtract_balance 5" }
-                        ]
-                    },
-                    { 
-                        name: "add_balance", 
-                        description: "Пополнить баланс", 
-                        response: "Ваш баланс увеличен на {{amount}}. Текущий баланс: {{user_balance}}"
-                    },
-                    { 
-                        name: "subtract_balance", 
-                        description: "Списать с баланса", 
-                        response: "С вашего баланса списано {{amount}}. Текущий баланс: {{user_balance}}"
+                setTimeout(() => {
+                    addBotMessage(response, buttons);
+                }, 500);
+            };
+            
+            const addBotMessage = (text, buttons = []) => {
+                chatMessages.value.push({
+                    id: Date.now(),
+                    text,
+                    type: "bot-message",
+                    time: new Date(),
+                    buttons
+                });
+                scrollChatToBottom();
+            };
+            
+            const handleButtonClick = (button) => {
+                // Add button click as user message
+                chatMessages.value.push({
+                    id: Date.now(),
+                    text: button.action,
+                    type: "user-message",
+                    time: new Date()
+                });
+                
+                // Process button action
+                if (button.action.startsWith("/")) {
+                    processMessage(button.action);
+                } else {
+                    // Custom action
+                    setTimeout(() => {
+                        addBotMessage(`Вы нажали кнопку "${button.text}" (действие: ${button.action})`);
+                    }, 500);
+                }
+                
+                scrollChatToBottom();
+            };
+            
+            const scrollChatToBottom = () => {
+                nextTick(() => {
+                    if (chatContainer.value) {
+                        chatContainer.value.scrollTop = chatContainer.value.scrollHeight;
                     }
-                ]);
-                const showCommandForm = ref(false);
-                const editingCommand = ref(false);
-                const currentCommand = ref({
-                    name: "",
-                    description: "",
+                });
+            };
+            
+            const formatTime = (date) => {
+                return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            };
+            
+            // Command methods
+            const addNewCommand = () => {
+                currentCommand.value = { 
+                    name: "", 
+                    description: "", 
                     response: "",
                     buttons: "[]"
+                };
+                showCommandForm.value = true;
+                editingCommand.value = false;
+            };
+            
+            const editCommand = (index) => {
+                const cmd = botCommands.value[index];
+                currentCommand.value = { 
+                    ...cmd,
+                    buttons: JSON.stringify(cmd.buttons || [], null, 2)
+                };
+                showCommandForm.value = true;
+                editingCommand.value = true;
+                currentCommand.editIndex = index;
+            };
+            
+            const saveCommand = () => {
+                if (!currentCommand.value.name.trim()) {
+                    showNotification("Введите название команды", "error", "❌");
+                    return;
+                }
+                
+                if (!currentCommand.value.response.trim()) {
+                    showNotification("Введите ответ бота", "error", "❌");
+                    return;
+                }
+                
+                // Validate buttons JSON
+                let buttons = [];
+                try {
+                    buttons = JSON.parse(currentCommand.value.buttons || "[]");
+                    if (!Array.isArray(buttons)) {
+                        throw new Error("Buttons should be an array");
+                    }
+                } catch (e) {
+                    showNotification("Некорректный формат кнопок (должен быть JSON массив)", "error", "❌");
+                    return;
+                }
+                
+                const commandData = {
+                    name: currentCommand.value.name,
+                    description: currentCommand.value.description,
+                    response: currentCommand.value.response,
+                    buttons
+                };
+                
+                if (editingCommand.value) {
+                    botCommands.value[currentCommand.editIndex] = commandData;
+                    showNotification("Команда обновлена", "success", "✅");
+                } else {
+                    // Check if command already exists
+                    const exists = botCommands.value.some(c => c.name === commandData.name);
+                    if (exists) {
+                        showNotification("Команда с таким именем уже существует", "error", "❌");
+                        return;
+                    }
+                    
+                    botCommands.value.push(commandData);
+                    showNotification("Команда добавлена", "success", "✅");
+                }
+                
+                cancelCommand();
+                saveBotData();
+            };
+            
+            const cancelCommand = () => {
+                showCommandForm.value = false;
+                editingCommand.value = false;
+                currentCommand.value = { 
+                    name: "", 
+                    description: "", 
+                    response: "",
+                    buttons: "[]"
+                };
+            };
+            
+            const deleteCommand = (index) => {
+                if (confirm("Удалить эту команду?")) {
+                    botCommands.value.splice(index, 1);
+                    showNotification("Команда удалена", "success", "✅");
+                    saveBotData();
+                }
+            };
+            
+            const testCommand = (index) => {
+                const cmd = botCommands.value[index];
+                chatMessages.value.push({
+                    id: Date.now(),
+                    text: `/${cmd.name}`,
+                    type: "user-message",
+                    time: new Date()
                 });
                 
-                // Variables
-                const botVariables = ref([
-                    { name: "welcome_message", value: "Добро пожаловать в наш бот!", type: "string" },
-                    { name: "admin_contact", value: "@support", type: "string" },
-                    { name: "user_balance", value: "100", type: "number" },
-                    { name: "premium_enabled", value: "false", type: "boolean" }
-                ]);
-                const showVariableForm = ref(false);
-                const editingVariable = ref(false);
-                const currentVariable = ref({
-                    name: "",
+                processCommand(cmd);
+                scrollChatToBottom();
+            };
+            
+            // Variable methods
+            const addNewVariable = () => {
+                currentVariable.value = { 
+                    name: "", 
                     value: "",
                     type: "string"
-                });
+                };
+                showVariableForm.value = true;
+                editingVariable.value = false;
+            };
+            
+            const editVariable = (index) => {
+                currentVariable.value = { ...botVariables.value[index] };
+                showVariableForm.value = true;
+                editingVariable.value = true;
+                currentVariable.editIndex = index;
+            };
+            
+            const saveVariable = () => {
+                if (!currentVariable.value.name.trim()) {
+                    showNotification("Введите имя переменной", "error", "❌");
+                    return;
+                }
                 
-                // Conditions
-                const botConditions = ref([
-                    {
-                        expression: "user.balance >= amount",
-                        trueActions: "user.balance -= amount;\nbot.sendMessage(`Спасибо за покупку! Ваш баланс: ${user.balance}`);",
-                        falseActions: "bot.sendMessage('Недостаточно средств на балансе!');"
+                // Validate value based on type
+                let validatedValue = currentVariable.value.value;
+                
+                if (currentVariable.value.type === "number") {
+                    if (isNaN(parseFloat(validatedValue))) {
+                        showNotification("Введите корректное число", "error", "❌");
+                        return;
                     }
-                ]);
-                const showConditionForm = ref(false);
-                const editingCondition = ref(false);
-                const currentCondition = ref({
-                    expression: "",
-                    trueActions: "",
-                    falseActions: ""
-                });
+                    validatedValue = parseFloat(validatedValue).toString();
+                } else if (currentVariable.value.type === "boolean") {
+                    if (validatedValue !== "true" && validatedValue !== "false") {
+                        showNotification("Введите 'true' или 'false'", "error", "❌");
+                        return;
+                    }
+                }
                 
-                // Database
-                const dbStatus = ref("Активна");
-                const dbSize = ref(0);
-                const lastSaveTime = ref("никогда");
-                const autoSaveInterval = ref(30000);
-                const importDataJson = ref("");
-                let saveInterval = null;
+                const variableData = {
+                    name: currentVariable.value.name,
+                    value: validatedValue,
+                    type: currentVariable.value.type
+                };
                 
-                // Computed properties
-                const availableVariables = computed(() => {
-                    return botVariables.value.map(v => `{{${v.name}}}`);
-                });
+                if (editingVariable.value) {
+                    botVariables.value[currentVariable.editIndex] = variableData;
+                    showNotification("Переменная обновлена", "success", "✅");
+                } else {
+                    // Check if variable already exists
+                    const exists = botVariables.value.some(v => v.name === variableData.name);
+                    if (exists) {
+                        showNotification("Переменная с таким именем уже существует", "error", "❌");
+                        return;
+                    }
+                    
+                    botVariables.value.push(variableData);
+                    showNotification("Переменная добавлена", "success", "✅");
+                }
                 
-                // Methods
-                const sendMessage = () => {
-                    if (!newMessage.value.trim()) return;
-                    
-                    // Add user message
-                    const userMsg = {
-                        id: Date.now(),
-                        text: newMessage.value,
-                        type: "user-message",
-                        time: new Date()
-                    };
-                    chatMessages.value.push(userMsg);
-                    
-                    // Process message
-                    processMessage(newMessage.value);
-                    
-                    newMessage.value = "";
-                    scrollChatToBottom();
+                cancelVariable();
+                saveBotData();
+            };
+            
+            const cancelVariable = () => {
+                showVariableForm.value = false;
+                editingVariable.value = false;
+                currentVariable.value = { 
+                    name: "", 
+                    value: "",
+                    type: "string"
+                };
+            };
+            
+            const deleteVariable = (index) => {
+                if (confirm("Удалить эту переменную?")) {
+                    botVariables.value.splice(index, 1);
+                    showNotification("Переменная удалена", "success", "✅");
                     saveBotData();
-                };
-                
-                const processMessage = (message) => {
-                    // Check if message is a command
-                    if (message.startsWith("/")) {
-                        const cmdParts = message.slice(1).split(" ");
-                        const cmd = cmdParts[0];
-                        const args = cmdParts.slice(1);
-                        
-                        const foundCmd = botCommands.value.find(c => c.name === cmd);
-                        
-                        if (foundCmd) {
-                            // Process command
-                            processCommand(foundCmd, args);
-                        } else {
-                            // Command not found
-                            setTimeout(() => {
-                                addBotMessage(`Команда "/${cmd}" не найдена. Напишите /help для списка команд.`);
-                            }, 500);
-                        }
-                    } else {
-                        // Check conditions for regular messages
-                        checkConditions(message);
-                        
-                        // Default response for non-command messages
-                        setTimeout(() => {
-                            addBotMessage("Я простой бот. Для работы используйте команды. Напишите /help для списка команд.");
-                        }, 500);
+                }
+            };
+            
+            // Database methods
+            const saveBotData = () => {
+                const botData = {
+                    version: 1,
+                    commands: botCommands.value,
+                    variables: botVariables.value,
+                    conditions: botConditions.value,
+                    messages: chatMessages.value,
+                    settings: {
+                        autoSaveInterval: autoSaveInterval.value
                     }
                 };
                 
-                const processCommand = (command, args = []) => {
-                    // Create context for variables and conditions
-                    const context = {
-                        user: {},
-                        bot: {
-                            sendMessage: (text, buttons = []) => {
-                                addBotMessage(text, buttons);
-                            }
-                        },
-                        args,
-                        amount: args[0] ? parseFloat(args[0]) : 0
-                    };
-                    
-                    // Prepare user variables
-                    botVariables.value.forEach(v => {
-                        if (v.name.startsWith("user_")) {
-                            const varName = v.name.replace("user_", "");
-                            let value = v.value;
-                            
-                            // Convert value based on type
-                            if (v.type === "number") {
-                                value = parseFloat(value) || 0;
-                            } else if (v.type === "boolean") {
-                                value = value === "true";
-                            }
-                            
-                            context.user[varName] = value;
-                        }
-                    });
-                    
-                    // Process variables in response
-                    let response = command.response;
-                    let buttons = [];
-                    
+                const dataStr = JSON.stringify(botData);
+                localStorage.setItem('botManagerData', dataStr);
+                
+                // Update db info
+                dbSize.value = (dataStr.length / 1024).toFixed(2);
+                lastSaveTime.value = new Date().toLocaleString();
+                
+                return true;
+            };
+            
+            const loadBotData = () => {
+                const savedData = localStorage.getItem('botManagerData');
+                if (savedData) {
                     try {
-                        buttons = JSON.parse(command.buttons || "[]");
-                    } catch (e) {
-                        console.error("Error parsing buttons:", e);
-                    }
-                    
-                    botVariables.value.forEach(v => {
-                        const regex = new RegExp(`\\{\\{${v.name}\\}\\}`, 'g');
-                        response = response.replace(regex, v.value);
-                    });
-                    
-                    // Replace args placeholders
-                    args.forEach((arg, index) => {
-                        const regex = new RegExp(`\\{\\{args\\[${index}\\]\\}\\}`, 'g');
-                        response = response.replace(regex, arg);
-                    });
-                    
-                    // Replace amount placeholder
-                    if (context.amount) {
-                        response = response.replace(/\{\{amount\}\}/g, context.amount);
-                    }
-                    
-                    // Check conditions for this command
-                    const conditionResults = checkConditions(command.name, context);
-                    
-                    // If no conditions intercepted, send default response
-                    if (!conditionResults.some(r => r.intercepted)) {
-                        setTimeout(() => {
-                            addBotMessage(response, buttons);
-                        }, 500);
-                    }
-                };
-                
-                const checkConditions = (trigger, context = {}) => {
-                    const results = [];
-                    
-                    botConditions.value.forEach(condition => {
-                        try {
-                            // Create safe evaluation context
-                            const evalContext = {
-                                user: context.user || {},
-                                bot: context.bot || {
-                                    sendMessage: (text) => addBotMessage(text)
-                                },
-                                args: context.args || [],
-                                amount: context.amount || 0,
-                                trigger
-                            };
-                            
-                            // Evaluate condition
-                            const conditionResult = new Function('context', `with(context) { return ${condition.expression}; }`)(evalContext);
-                            
-                            results.push({
-                                condition: condition.expression,
-                                result: conditionResult,
-                                intercepted: false
-                            });
-                            
-                            // Execute actions based on condition result
-                            if (conditionResult) {
-                                if (condition.trueActions) {
-                                    try {
-                                        new Function('context', `with(context) { ${condition.trueActions} }`)(evalContext);
-                                        results[results.length - 1].intercepted = true;
-                                    } catch (e) {
-                                        console.error("Error executing true actions:", e);
-                                    }
-                                }
-                            } else {
-                                if (condition.falseActions) {
-                                    try {
-                                        new Function('context', `with(context) { ${condition.falseActions} }`)(evalContext);
-                                        results[results.length - 1].intercepted = true;
-                                    } catch (e) {
-                                        console.error("Error executing false actions:", e);
-                                    }
-                                }
-                            }
-                        } catch (e) {
-                            console.error("Error evaluating condition:", e);
-                            results.push({
-                                condition: condition.expression,
-                                result: null,
-                                error: e.message,
-                                intercepted: false
-                            });
-                        }
-                    });
-                    
-                    return results;
-                };
-                
-                const addBotMessage = (text, buttons = []) => {
-                    chatMessages.value.push({
-                        id: Date.now(),
-                        text,
-                        type: "bot-message",
-                        time: new Date(),
-                        buttons
-                    });
-                    scrollChatToBottom();
-                };
-                
-                const handleButtonClick = (button) => {
-                    // Add button click as user message
-                    chatMessages.value.push({
-                        id: Date.now(),
-                        text: button.action,
-                        type: "user-message",
-                        time: new Date()
-                    });
-                    
-                    // Process button action
-                    if (button.action.startsWith("/")) {
-                        processMessage(button.action);
-                    } else {
-                        // Custom action
-                        setTimeout(() => {
-                            addBotMessage(`Вы нажали кнопку "${button.text}" (действие: ${button.action})`);
-                        }, 500);
-                    }
-                    
-                    scrollChatToBottom();
-                };
-                
-                const scrollChatToBottom = () => {
-                    nextTick(() => {
-                        if (chatContainer.value) {
-                            chatContainer.value.scrollTop = chatContainer.value.scrollHeight;
-                        }
-                    });
-                };
-                
-                const formatTime = (date) => {
-                    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                };
-                
-                // Command methods
-                const addNewCommand = () => {
-                    currentCommand.value = { 
-                        name: "", 
-                        description: "", 
-                        response: "",
-                        buttons: "[]"
-                    };
-                    showCommandForm.value = true;
-                    editingCommand.value = false;
-                };
-                
-                const editCommand = (index) => {
-                    const cmd = botCommands.value[index];
-                    currentCommand.value = { 
-                        ...cmd,
-                        buttons: JSON.stringify(cmd.buttons || [], null, 2)
-                    };
-                    showCommandForm.value = true;
-                    editingCommand.value = true;
-                    currentCommand.editIndex = index;
-                };
-                
-                const saveCommand = () => {
-                    if (!currentCommand.value.name.trim()) {
-                        showNotification("Введите название команды", "error", "❌");
-                        return;
-                    }
-                    
-                    if (!currentCommand.value.response.trim()) {
-                        showNotification("Введите ответ бота", "error", "❌");
-                        return;
-                    }
-                    
-                    // Validate buttons JSON
-                    let buttons = [];
-                    try {
-                        buttons = JSON.parse(currentCommand.value.buttons || "[]");
-                        if (!Array.isArray(buttons)) {
-                            throw new Error("Buttons should be an array");
-                        }
-                    } catch (e) {
-                        showNotification("Некорректный формат кнопок (должен быть JSON массив)", "error", "❌");
-                        return;
-                    }
-                    
-                    const commandData = {
-                        name: currentCommand.value.name,
-                        description: currentCommand.value.description,
-                        response: currentCommand.value.response,
-                        buttons
-                    };
-                    
-                    if (editingCommand.value) {
-                        botCommands.value[currentCommand.editIndex] = commandData;
-                        showNotification("Команда обновлена", "success", "✅");
-                    } else {
-                        // Check if command already exists
-                        const exists = botCommands.value.some(c => c.name === commandData.name);
-                        if (exists) {
-                            showNotification("Команда с таким именем уже существует", "error", "❌");
-                            return;
+                        const parsed = JSON.parse(savedData);
+                        
+                        botCommands.value = parsed.commands || botCommands.value;
+                        botVariables.value = parsed.variables || botVariables.value;
+                        botConditions.value = parsed.conditions || botConditions.value;
+                        chatMessages.value = parsed.messages || chatMessages.value;
+                        
+                        if (parsed.settings) {
+                            autoSaveInterval.value = parsed.settings.autoSaveInterval || autoSaveInterval.value;
                         }
                         
-                        botCommands.value.push(commandData);
-                        showNotification("Команда добавлена", "success", "✅");
-                    }
-                    
-                    cancelCommand();
-                    saveBotData();
-                };
-                
-                const cancelCommand = () => {
-                    showCommandForm.value = false;
-                    editingCommand.value = false;
-                    currentCommand.value = { 
-                        name: "", 
-                        description: "", 
-                        response: "",
-                        buttons: "[]"
-                    };
-                };
-                
-                const deleteCommand = (index) => {
-                    if (confirm("Удалить эту команду?")) {
-                        botCommands.value.splice(index, 1);
-                        showNotification("Команда удалена", "success", "✅");
-                        saveBotData();
-                    }
-                };
-                
-                const testCommand = (index) => {
-                    const cmd = botCommands.value[index];
-                    chatMessages.value.push({
-                        id: Date.now(),
-                        text: `/${cmd.name}`,
-                        type: "user-message",
-                        time: new Date()
-                    });
-                    
-                    processCommand(cmd);
-                    scrollChatToBottom();
-                };
-                
-                // Variable methods
-                const addNewVariable = () => {
-                    currentVariable.value = { 
-                        name: "", 
-                        value: "",
-                        type: "string"
-                    };
-                    showVariableForm.value = true;
-                    editingVariable.value = false;
-                };
-                
-                const editVariable = (index) => {
-                    currentVariable.value = { ...botVariables.value[index] };
-                    showVariableForm.value = true;
-                    editingVariable.value = true;
-                    currentVariable.editIndex = index;
-                };
-                
-                const saveVariable = () => {
-                    if (!currentVariable.value.name.trim()) {
-                        showNotification("Введите имя переменной", "error", "❌");
-                        return;
-                    }
-                    
-                    // Validate value based on type
-                    let validatedValue = currentVariable.value.value;
-                    
-                    if (currentVariable.value.type === "number") {
-                        if (isNaN(parseFloat(validatedValue))) {
-                            showNotification("Введите корректное число", "error", "❌");
-                            return;
-                        }
-                        validatedValue = parseFloat(validatedValue).toString();
-                    } else if (currentVariable.value.type === "boolean") {
-                        if (validatedValue !== "true" && validatedValue !== "false") {
-                            showNotification("Введите 'true' или 'false'", "error", "❌");
-                            return;
-                        }
-                    }
-                    
-                    const variableData = {
-                        name: currentVariable.value.name,
-                        value: validatedValue,
-                        type: currentVariable.value.type
-                    };
-                    
-                    if (editingVariable.value) {
-                        botVariables.value[currentVariable.editIndex] = variableData;
-                        showNotification("Переменная обновлена", "success", "✅");
-                    } else {
-                        // Check if variable already exists
-                        const exists = botVariables.value.some(v => v.name === variableData.name);
-                        if (exists) {
-                            showNotification("Переменная с таким именем уже существует", "error", "❌");
-                            return;
-                        }
-                        
-                        botVariables.value.push(variableData);
-                        showNotification("Переменная добавлена", "success", "✅");
-                    }
-                    
-                    cancelVariable();
-                    saveBotData();
-                };
-                
-                const cancelVariable = () => {
-                    showVariableForm.value = false;
-                    editingVariable.value = false;
-                    currentVariable.value = { 
-                        name: "", 
-                        value: "",
-                        type: "string"
-                    };
-                };
-                
-                const deleteVariable = (index) => {
-                    if (confirm("Удалить эту переменную?")) {
-                        botVariables.value.splice(index, 1);
-                        showNotification("Переменная удалена", "success", "✅");
-                        saveBotData();
-                    }
-                };
-                
-                // Condition methods
-                const addNewCondition = () => {
-                    currentCondition.value = { 
-                        expression: "",
-                        trueActions: "",
-                        falseActions: ""
-                    };
-                    showConditionForm.value = true;
-                    editingCondition.value = false;
-                };
-                
-                const editCondition = (index) => {
-                    currentCondition.value = { ...botConditions.value[index] };
-                    showConditionForm.value = true;
-                    editingCondition.value = true;
-                    currentCondition.editIndex = index;
-                };
-                
-                const saveCondition = () => {
-                    if (!currentCondition.value.expression.trim()) {
-                        showNotification("Введите выражение условия", "error", "❌");
-                        return;
-                    }
-                    
-                    // Basic validation of the expression
-                    try {
-                        new Function('context', `with(context) { return ${currentCondition.value.expression}; }`);
-                    } catch (e) {
-                        showNotification("Некорректное выражение: " + e.message, "error", "❌");
-                        return;
-                    }
-                    
-                    if (editingCondition.value) {
-                        botConditions.value[currentCondition.editIndex] = { ...currentCondition.value };
-                        showNotification("Условие обновлено", "success", "✅");
-                    } else {
-                        botConditions.value.push({ ...currentCondition.value });
-                        showNotification("Условие добавлено", "success", "✅");
-                    }
-                    
-                    cancelCondition();
-                    saveBotData();
-                };
-                
-                const cancelCondition = () => {
-                    showConditionForm.value = false;
-                    editingCondition.value = false;
-                    currentCondition.value = { 
-                        expression: "",
-                        trueActions: "",
-                        falseActions: ""
-                    };
-                };
-                
-                const deleteCondition = (index) => {
-                    if (confirm("Удалить это условие?")) {
-                        botConditions.value.splice(index, 1);
-                        showNotification("Условие удалено", "success", "✅");
-                        saveBotData();
-                    }
-                };
-                
-                const testCondition = (index) => {
-                    const condition = botConditions.value[index];
-                    
-                    // Create test context
-                    const testContext = {
-                        user: {
-                            balance: 100
-                        },
-                        bot: {
-                            sendMessage: (text) => {
-                                addBotMessage(`[TEST] ${text}`);
-                            }
-                        },
-                        amount: 50
-                    };
-                    
-                    try {
-                        // Test condition
-                        const result = new Function('context', `with(context) { return ${condition.expression}; }`)(testContext);
-                        
-                        addBotMessage(`Тест условия:\nВыражение: ${condition.expression}\nРезультат: ${result}`);
-                        
-                        // Test actions
-                        if (result && condition.trueActions) {
-                            new Function('context', `with(context) { ${condition.trueActions} }`)(testContext);
-                        } else if (!result && condition.falseActions) {
-                            new Function('context', `with(context) { ${condition.falseActions} }`)(testContext);
-                        }
-                    } catch (e) {
-                        addBotMessage(`Ошибка тестирования условия: ${e.message}`);
-                    }
-                };
-                
-                // Database methods
-                const saveBotData = () => {
-                    const botData = {
-                        version: 2,
-                        commands: botCommands.value,
-                        variables: botVariables.value,
-                        conditions: botConditions.value,
-                        messages: chatMessages.value,
-                        settings: {
-                            autoSaveInterval: autoSaveInterval.value
-                        }
-                    };
-                    
-                    const dataStr = JSON.stringify(botData);
-                    localStorage.setItem('botManagerProData', dataStr);
-                    
-                    // Update db info
-                    dbSize.value = (dataStr.length / 1024).toFixed(2);
-                    lastSaveTime.value = new Date().toLocaleString();
-                    
-                    return true;
-                };
-                
-                const loadBotData = () => {
-                    const savedData = localStorage.getItem('botManagerProData');
-                    if (savedData) {
-                        try {
-                            const parsed = JSON.parse(savedData);
-                            
-                            // Migration from version 1 to version 2
-                            if (!parsed.version) {
-                                parsed.version = 1;
-                                parsed.conditions = [];
-                            }
-                            
-                            botCommands.value = parsed.commands || botCommands.value;
-                            botVariables.value = parsed.variables || botVariables.value;
-                            botConditions.value = parsed.conditions || botConditions.value;
-                            chatMessages.value = parsed.messages || chatMessages.value;
-                            
-                            if (parsed.settings) {
-                                autoSaveInterval.value = parsed.settings.autoSaveInterval || autoSaveInterval.value;
-                            }
-                            
-                            // Update db info
-                            dbSize.value = (savedData.length / 1024).toFixed(2);
-                            lastSaveTime.value = "только что";
-                            
-                            return true;
-                        } catch (e) {
-                            console.error("Error loading bot data:", e);
-                            return false;
-                        }
-                    }
-                    return false;
-                };
-                
-                const exportData = () => {
-                    const botData = {
-                        commands: botCommands.value,
-                        variables: botVariables.value,
-                        conditions: botConditions.value
-                    };
-                    
-                    const dataStr = JSON.stringify(botData, null, 2);
-                    const blob = new Blob([dataStr], { type: 'application/json' });
-                    const url = URL.createObjectURL(blob);
-                    
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = `bot_manager_export_${new Date().toISOString().slice(0, 10)}.json`;
-                    document.body.appendChild(a);
-                    a.click();
-                    document.body.removeChild(a);
-                    URL.revokeObjectURL(url);
-                    
-                    showNotification("Данные экспортированы", "success", "✅");
-                };
-                
-                const importData = () => {
-                    if (!importDataJson.value.trim()) {
-                        showNotification("Введите данные для импорта", "error", "❌");
-                        return;
-                    }
-                    
-                    try {
-                        const data = JSON.parse(importDataJson.value);
-                        
-                        if (confirm("Заменить текущие команды, переменные и условия импортированными?")) {
-                            if (data.commands) botCommands.value = data.commands;
-                            if (data.variables) botVariables.value = data.variables;
-                            if (data.conditions) botConditions.value = data.conditions;
-                            
-                            saveBotData();
-                            showNotification("Данные успешно импортированы", "success", "✅");
-                            importDataJson.value = "";
-                        }
-                    } catch (e) {
-                        showNotification("Ошибка импорта: " + e.message, "error", "❌");
-                    }
-                };
-                
-                const forceSave = () => {
-                    if (saveBotData()) {
-                        showNotification("Данные успешно сохранены", "success", "✅");
-                    } else {
-                        showNotification("Ошибка сохранения данных", "error", "❌");
-                    }
-                };
-                
-                const setupAutoSave = () => {
-                    if (saveInterval) {
-                        clearInterval(saveInterval);
-                    }
-                    
-                    saveInterval = setInterval(() => {
-                        saveBotData();
-                    }, parseInt(autoSaveInterval.value));
-                };
-                
-                // Notification
-                const showNotification = (text, type, emoji) => {
-                    notification.value = {
-                        show: true,
-                        text,
-                        type,
-                        emoji
-                    };
-                    
-                    setTimeout(() => {
-                        notification.value.show = false;
-                    }, 2000);
-                };
-                
-                // Initialize
-                onMounted(() => {
-                    loadBotData();
-                    scrollChatToBottom();
-                    setupAutoSave();
-                    
-                    // Calculate initial db size
-                    const savedData = localStorage.getItem('botManagerProData');
-                    if (savedData) {
+                        // Update db info
                         dbSize.value = (savedData.length / 1024).toFixed(2);
+                        lastSaveTime.value = "только что";
+                        
+                        return true;
+                    } catch (e) {
+                        console.error("Error loading bot data:", e);
+                        return false;
                     }
-                    
-                    // Expand Telegram WebApp
-                    tg.expand();
-                });
-                
-                // Watch for autoSaveInterval changes
-                watch(autoSaveInterval, () => {
-                    setupAutoSave();
-                    saveBotData();
-                });
-                
-                return {
-                    botName,
-                    activeTab,
-                    notification,
-                    chatMessages,
-                    newMessage,
-                    chatContainer,
-                    botCommands,
-                    showCommandForm,
-                    editingCommand,
-                    currentCommand,
-                    botVariables,
-                    showVariableForm,
-                    editingVariable,
-                    currentVariable,
-                    botConditions,
-                    showConditionForm,
-                    editingCondition,
-                    currentCondition,
-                    availableVariables,
-                    dbStatus,
-                    dbSize,
-                    lastSaveTime,
-                    autoSaveInterval,
-                    importDataJson,
-                    sendMessage,
-                    handleButtonClick,
-                    formatTime,
-                    addNewCommand,
-                    editCommand,
-                    saveCommand,
-                    cancelCommand,
-                    deleteCommand,
-                    testCommand,
-                    addNewVariable,
-                    editVariable,
-                    saveVariable,
-                    cancelVariable,
-                    deleteVariable,
-                    addNewCondition,
-                    editCondition,
-                    saveCondition,
-                    cancelCondition,
-                    deleteCondition,
-                    testCondition,
-                    exportData,
-                    importData,
-                    forceSave
+                }
+                return false;
+            };
+            
+            const exportData = () => {
+                const botData = {
+                    commands: botCommands.value,
+                    variables: botVariables.value,
+                    conditions: botConditions.value
                 };
-            }
-        }).mount('#app');
-    </script>
+                
+                const dataStr = JSON.stringify(botData, null, 2);
+                const blob = new Blob([dataStr], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `bot_manager_export_${new Date().toISOString().slice(0, 10)}.json`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                
+                showNotification("Данные экспортированы", "success", "✅");
+            };
+            
+            const importData = () => {
+                if (!importDataJson.value.trim()) {
+                    showNotification("Введите данные для импорта", "error", "❌");
+                    return;
+                }
+                
+                try {
+                    const data = JSON.parse(importDataJson.value);
+                    
+                    if (confirm("Заменить текущие команды, переменные и условия импортированными?")) {
+                        if (data.commands) botCommands.value = data.commands;
+                        if (data.variables) botVariables.value = data.variables;
+                        if (data.conditions) botConditions.value = data.conditions;
+                        
+                        saveBotData();
+                        showNotification("Данные успешно импортированы", "success", "✅");
+                        importDataJson.value = "";
+                    }
+                } catch (e) {
+                    showNotification("Ошибка импорта: " + e.message, "error", "❌");
+                }
+            };
+            
+            const forceSave = () => {
+                if (saveBotData()) {
+                    showNotification("Данные успешно сохранены", "success", "✅");
+                } else {
+                    showNotification("Ошибка сохранения данных", "error", "❌");
+                }
+            };
+            
+            const setupAutoSave = () => {
+                if (saveInterval) {
+                    clearInterval(saveInterval);
+                }
+                
+                saveInterval = setInterval(() => {
+                    saveBotData();
+                }, parseInt(autoSaveInterval.value));
+            };
+            
+            // Notification
+            const showNotification = (text, type, emoji) => {
+                notification.value = {
+                    show: true,
+                    text,
+                    type,
+                    emoji
+                };
+                
+                setTimeout(() => {
+                    notification.value.show = false;
+                }, 2000);
+            };
+            
+            // Initialize
+            onMounted(() => {
+                loadBotData();
+                scrollChatToBottom();
+                setupAutoSave();
+                
+                // Calculate initial db size
+                const savedData = localStorage.getItem('botManagerData');
+                if (savedData) {
+                    dbSize.value = (savedData.length / 1024).toFixed(2);
+                }
+                
+                // Expand Telegram WebApp if available
+                if (tg.expand) {
+                    tg.expand();
+                }
+            });
+            
+            // Watch for autoSaveInterval changes
+            watch(autoSaveInterval, () => {
+                setupAutoSave();
+                saveBotData();
+            });
+            
+            return {
+                botName,
+                activeTab,
+                notification,
+                chatMessages,
+                newMessage,
+                chatContainer,
+                botCommands,
+                showCommandForm,
+                editingCommand,
+                currentCommand,
+                botVariables,
+                showVariableForm,
+                editingVariable,
+                currentVariable,
+                botConditions,
+                showConditionForm,
+                editingCondition,
+                currentCondition,
+                availableVariables,
+                dbStatus,
+                dbSize,
+                lastSaveTime,
+                autoSaveInterval,
+                importDataJson,
+                sendMessage,
+                handleButtonClick,
+                formatTime,
+                addNewCommand,
+                editCommand,
+                saveCommand,
+                cancelCommand,
+                deleteCommand,
+                testCommand,
+                addNewVariable,
+                editVariable,
+                saveVariable,
+                cancelVariable,
+                deleteVariable,
+                exportData,
+                importData,
+                forceSave
+            };
+        }
+    }).mount('#app');
+</script>
 </body>
 </html>
