@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VK Top 100 Active Users</title>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script crossorigin src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #4361EE;
+            --primary-hover: #3A56D8;
+            --secondary: #7209B7;
+            --background: #F8F9FA;
+            --card-bg: #FFFFFF;
+            --text: #212529;
+            --text-secondary: #6C757D;
+            --border: #DEE2E6;
+            --error: #EF233C;
+            --success: #4CC9F0;
+            --warning: #F8961E;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            --radius: 8px;
+            --header-height: 60px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--background);
+            color: var(--text);
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+            min-height: 100vh;
+            padding-top: var(--header-height);
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1rem;
+        }
+
+        .app-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: var(--header-height);
+            background-color: var(--card-bg);
+            box-shadow: var(--shadow);
+            display: flex;
+            align-items: center;
+            padding: 0 1rem;
+            z-index: 100;
+        }
+
+        .app-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .app-subtitle {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .refresh-btn {
+            background: none;
+            border: none;
+            color: var(--primary);
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: var(--radius);
+            transition: all 0.2s;
+        }
+
+        .refresh-btn:hover {
+            background-color: rgba(67, 97, 238, 0.1);
+        }
+
+        .refresh-btn:active {
+            transform: scale(0.98);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        @media (max-width: 768px) {
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        .stat-card {
+            background-color: var(--card-bg);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 1.25rem;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.75rem;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .ranking-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .section-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .ranking-table {
+            width: 100%;
+            background-color: var(--card-bg);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+
+        .table-header {
+            display: grid;
+            grid-template-columns: 50px 1fr 100px 100px 100px 100px;
+            background-color: var(--primary);
+            color: white;
+            font-weight: 600;
+            font-size: 0.875rem;
+            padding: 0.75rem 1rem;
+        }
+
+        .table-row {
+            display: grid;
+            grid-template-columns: 50px 1fr 100px 100px 100px 100px;
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid var(--border);
+            align-items: center;
+            transition: background-color 0.2s;
+        }
+
+        .table-row:hover {
+            background-color: rgba(67, 97, 238, 0.05);
+        }
+
+        .table-row:last-child {
+            border-bottom: none;
+        }
+
+        .rank {
+            font-weight: 700;
+            color: var(--text-secondary);
+            display: flex;
+            justify-content: center;
+        }
+
+        .rank-1 {
+            color: #FFD700;
+            font-weight: 800;
+        }
+
+        .rank-2 {
+            color: #C0C0C0;
+            font-weight: 800;
+        }
+
+        .rank-3 {
+            color: #CD7F32;
+            font-weight: 800;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--border);
+        }
+
+        .user-name {
+            font-weight: 500;
+        }
+
+        .user-link {
+            color: var(--primary);
+            text-decoration: none;
+            font-size: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .user-link:hover {
+            text-decoration: underline;
+        }
+
+        .activity-score {
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .last-active {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            text-align: center;
+        }
+
+        .online-status {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 0.25rem;
+        }
+
+        .online {
+            background-color: var(--success);
+        }
+
+        .offline {
+            background-color: var(--text-secondary);
+        }
+
+        .loading {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            color: var(--text-secondary);
+        }
+
+        .spinner {
+            width: 2rem;
+            height: 2rem;
+            border: 3px solid rgba(67, 97, 238, 0.1);
+            border-radius: 50%;
+            border-top-color: var(--primary);
+            animation: spin 1s ease-in-out infinite;
+            margin-bottom: 1rem;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .error-message {
+            color: var(--error);
+            font-size: 0.875rem;
+            padding: 1rem;
+            background-color: rgba(239, 35, 60, 0.05);
+            border-radius: var(--radius);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .note {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            text-align: center;
+            margin-top: 2rem;
+            line-height: 1.6;
+        }
+
+        .note a {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .note a:hover {
+            text-decoration: underline;
+        }
+
+        .progress-bar {
+            height: 6px;
+            background-color: var(--border);
+            border-radius: 3px;
+            margin-top: 0.25rem;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background-color: var(--primary);
+            border-radius: 3px;
+        }
+
+        .activity-details {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            text-align: center;
+        }
+
+        @media (max-width: 768px) {
+            .table-header, .table-row {
+                grid-template-columns: 40px 1fr 80px 80px;
+            }
+            
+            .table-header :nth-child(5),
+            .table-header :nth-child(6),
+            .table-row :nth-child(5),
+            .table-row :nth-child(6) {
+                display: none;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .table-header, .table-row {
+                grid-template-columns: 30px 1fr 70px;
+            }
+            
+            .table-header :nth-child(4),
+            .table-row :nth-child(4) {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+<script type="text/babel">
+    const { useState, useEffect } = React;
+
+    function VKTopUsers() {
+        const [users, setUsers] = useState([]);
+        const [loading, setLoading] = useState(true);
+        const [error, setError] = useState('');
+        const [lastUpdated, setLastUpdated] = useState(null);
+        const [stats, setStats] = useState({
+            totalActivity: 0,
+            onlineCount: 0,
+            avgActivity: 0,
+            activeToday: 0
+        });
+
+        const SERVICE_TOKEN = '806b9bd9806b9bd9806b9bd9ef835e41ab8806b806b9bd9e802949b24494cf04a81d71d';
+        const API_VERSION = '5.131';
+        const PROXY_URL = 'https://cors-anywhere.herokuapp.com/';
+        const UPDATE_INTERVAL = 5 * 60 * 1000; // 5 minutes in milliseconds
+
+        // Popular VK users IDs for more realistic data
+        const POPULAR_USER_IDS = [
+            1, 3, 5, 47, 61, 63, 72, 73, 93, 94, 106, 140, 155, 160, 165, 168, 
+            178, 183, 203, 205, 206, 208, 210, 213, 220, 221, 225, 227, 228, 235,
+            237, 244, 245, 246, 247, 248, 249, 250, 251, 252, 253, 254, 255, 256,
+            257, 258, 259, 260, 261, 262, 263, 264, 265, 266, 267, 268, 269, 270,
+            271, 272, 273, 274, 275, 276, 277, 278, 279, 280, 281, 282, 283, 284,
+            285, 286, 287, 288, 289, 290, 291, 292, 293, 294, 295, 296, 297, 298,
+            299, 300, 301, 302, 303, 304, 305, 306, 307, 308, 309, 310, 311, 312
+        ];
+
+        // Enhanced activity score calculation
+        const calculateActivityScore = (user) => {
+            if (!user) return 0;
+            
+            const now = Math.floor(Date.now() / 1000);
+            let score = 0;
+            
+            // 1. Profile completeness (max 20 points)
+            let completeness = 0;
+            if (user.photo_200 && !user.photo_200.includes('camera_200')) completeness += 5;
+            if (user.status && user.status.length > 0) completeness += 3;
+            if (user.city) completeness += 4;
+            if (user.country) completeness += 4;
+            if (user.bdate) completeness += 4;
+            score += completeness;
+
+            // 2. Social connections (max 30 points)
+            const friendsScore = Math.min(user.counters?.friends || 0, 5000) / 166.67; // max 30 points
+            score += friendsScore;
+
+            // 3. Content activity (max 30 points)
+            const contentScore = (
+                (Math.min(user.counters?.photos || 0, 1000) * 0.01) +
+                (Math.min(user.counters?.videos || 0, 500) * 0.02) +
+                (Math.min(user.counters?.audios || 0, 1000) * 0.01) +
+                (Math.min(user.counters?.groups || 0, 500) * 0.02) +
+                (Math.min(user.counters?.wall || 0, 1000) * 0.02)
+            );
+            score += Math.min(contentScore, 30);
+
+            // 4. Recent activity (max 20 points)
+            if (user.online) {
+                score += 15; // Online now bonus
+            } else if (user.last_seen) {
+                const hoursSinceLastSeen = (now - user.last_seen.time) / 3600;
+                if (hoursSinceLastSeen < 1) score += 12;
+                else if (hoursSinceLastSeen < 6) score += 8;
+                else if (hoursSinceLastSeen < 24) score += 4;
+                else if (hoursSinceLastSeen < 168) score += 2; // Last week
+            }
+
+            // 5. Engagement (max 10 points)
+            if (user.counters?.followers && user.counters?.friends) {
+                const engagementRatio = user.counters.followers / Math.max(user.counters.friends, 1);
+                score += Math.min(engagementRatio * 5, 10);
+            }
+
+            // 6. Account age bonus (max 10 points)
+            if (user.created_at) {
+                const accountAgeDays = (now - user.created_at) / 86400;
+                if (accountAgeDays > 365 * 5) score += 10;
+                else if (accountAgeDays > 365 * 2) score += 7;
+                else if (accountAgeDays > 365) score += 4;
+                else if (accountAgeDays > 180) score += 2;
+            }
+
+            // Normalize score to 0-100 range
+            score = Math.min(Math.max(score, 0), 100);
+            
+            return Math.round(score * 10) / 10; // Round to 1 decimal place
+        };
+
+        const fetchUserData = async (userIds) => {
+            try {
+                setLoading(true);
+                setError('');
+                
+                // 1. Get basic user info
+                const url = `https://api.vk.com/method/users.get?user_ids=${userIds.join(',')}&fields=photo_200,domain,status,counters,city,country,last_seen,online,sex,bdate&access_token=${SERVICE_TOKEN}&v=${API_VERSION}`;
+                const response = await fetch(PROXY_URL + url, {
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                });
+                const data = await response.json();
+                
+                if (data.error) {
+                    throw new Error(data.error.error_msg || 'Ошибка VK API');
+                }
+                
+                if (!data.response || data.response.length === 0) {
+                    throw new Error('Не удалось получить данные пользователей');
+                }
+                
+                // 2. Get account creation dates and wall posts count
+                const usersWithExtendedData = await Promise.all(data.response.map(async (user) => {
+                    let created_at = null;
+                    let wall_count = 0;
+                    
+                    try {
+                        // Get account creation date from first wall post
+                        const wallUrl = `https://api.vk.com/method/wall.get?owner_id=${user.id}&count=1&filter=owner&access_token=${SERVICE_TOKEN}&v=${API_VERSION}`;
+                        const wallResponse = await fetch(PROXY_URL + wallUrl, {
+                            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                        });
+                        const wallData = await wallResponse.json();
+                        
+                        if (wallData.response?.items?.[0]?.date) {
+                            created_at = wallData.response.items[0].date;
+                        }
+                        
+                        // Get wall posts count
+                        const wallCountUrl = `https://api.vk.com/method/wall.get?owner_id=${user.id}&count=0&access_token=${SERVICE_TOKEN}&v=${API_VERSION}`;
+                        const wallCountResponse = await fetch(PROXY_URL + wallCountUrl, {
+                            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                        });
+                        const wallCountData = await wallCountResponse.json();
+                        
+                        if (wallCountData.response?.count) {
+                            wall_count = wallCountData.response.count;
+                        }
+                    } catch (e) {
+                        console.error('Error fetching extended data:', e);
+                    }
+                    
+                    return {
+                        ...user,
+                        created_at,
+                        counters: {
+                            ...(user.counters || {}),
+                            wall: wall_count
+                        }
+                    };
+                }));
+                
+                // Calculate activity scores
+                const usersWithScores = usersWithExtendedData.map(user => ({
+                    ...user,
+                    activityScore: calculateActivityScore(user)
+                }));
+                
+                // Sort by activity score (descending)
+                usersWithScores.sort((a, b) => b.activityScore - a.activityScore);
+                
+                // Calculate statistics
+                const totalActivity = usersWithScores.reduce((sum, user) => sum + user.activityScore, 0);
+                const onlineCount = usersWithScores.filter(user => user.online).length;
+                const avgActivity = totalActivity / usersWithScores.length;
+                const now = Math.floor(Date.now() / 1000);
+                const activeToday = usersWithScores.filter(user => {
+                    if (user.online) return true;
+                    if (!user.last_seen) return false;
+                    return (now - user.last_seen.time) < 86400; // active in last 24 hours
+                }).length;
+                
+                setStats({
+                    totalActivity: Math.round(totalActivity),
+                    onlineCount,
+                    avgActivity: Math.round(avgActivity * 10) / 10,
+                    activeToday
+                });
+                
+                setUsers(usersWithScores.slice(0, 100)); // Take top 100
+                setLastUpdated(new Date());
+            } catch (err) {
+                setError(err.message || 'Произошла ошибка при получении данных');
+                console.error(err);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        const refreshData = () => {
+            // Use popular user IDs for more realistic data
+            fetchUserData(POPULAR_USER_IDS);
+        };
+
+        const formatLastSeen = (timestamp) => {
+            if (!timestamp) return 'Неизвестно';
+            const now = Math.floor(Date.now() / 1000);
+            const diff = now - timestamp;
+            
+            if (diff < 60) return 'Только что';
+            if (diff < 3600) return `${Math.floor(diff / 60)} мин. назад`;
+            if (diff < 86400) return `${Math.floor(diff / 3600)} ч. назад`;
+            return `${Math.floor(diff / 86400)} дн. назад`;
+        };
+
+        const getActivityDetails = (user) => {
+            if (!user) return '';
+            
+            const details = [];
+            if (user.online) details.push('онлайн');
+            if (user.counters?.friends) details.push(`${user.counters.friends} друзей`);
+            if (user.counters?.wall) details.push(`${user.counters.wall} постов`);
+            
+            return details.join(' · ');
+        };
+
+        // Initial data fetch
+        useEffect(() => {
+            refreshData();
+            
+            // Set up auto-refresh every 5 minutes
+            const intervalId = setInterval(refreshData, UPDATE_INTERVAL);
+            return () => clearInterval(intervalId);
+        }, []);
+
+        return (
+            <>
+                <header className="app-header">
+                    <h1 className="app-title">
+                        <i className="fas fa-trophy"></i>
+                        VK Top 100
+                    </h1>
+                    <div className="app-subtitle">
+                        {lastUpdated && `Обновлено: ${lastUpdated.toLocaleTimeString()}`}
+                        <button className="refresh-btn" onClick={refreshData} disabled={loading}>
+                            <i className={`fas fa-sync-alt ${loading ? 'fa-spin' : ''}`}></i>
+                            Обновить
+                        </button>
+                    </div>
+                </header>
+                
+                <div className="container">
+                    {error && (
+                        <div className="error-message">
+                            <i className="fas fa-exclamation-circle"></i>
+                            {error}
+                        </div>
+                    )}
+                    
+                    <div className="stats-grid">
+                        <div className="stat-card">
+                            <div className="stat-value">{stats.totalActivity}</div>
+                            <div className="stat-label">Общая активность</div>
+                        </div>
+                        <div className="stat-card">
+                            <div className="stat-value">{stats.onlineCount}</div>
+                            <div className="stat-label">Сейчас онлайн</div>
+                        </div>
+                        <div className="stat-card">
+                            <div className="stat-value">{stats.avgActivity}</div>
+                            <div className="stat-label">Средняя активность</div>
+                        </div>
+                        <div className="stat-card">
+                            <div className="stat-value">{stats.activeToday}</div>
+                            <div className="stat-label">Активны сегодня</div>
+                        </div>
+                    </div>
+                    
+                    <div className="ranking-header">
+                        <h2 className="section-title">
+                            <i className="fas fa-chart-line"></i>
+                            Топ 100 активных пользователей
+                        </h2>
+                        <div className="last-updated">
+                            {lastUpdated && `Следующее обновление: ${new Date(lastUpdated.getTime() + UPDATE_INTERVAL).toLocaleTimeString()}`}
+                        </div>
+                    </div>
+                    
+                    {loading && users.length === 0 ? (
+                        <div className="loading">
+                            <div className="spinner"></div>
+                            <p>Загрузка данных...</p>
+                        </div>
+                    ) : (
+                        <div className="ranking-table">
+                            <div className="table-header">
+                                <div>#</div>
+                                <div>Пользователь</div>
+                                <div>Активность</div>
+                                <div>Статус</div>
+                                <div>Был в сети</div>
+                                <div>Детали</div>
+                            </div>
+                            
+                            {users.map((user, index) => (
+                                <div key={user.id} className="table-row">
+                                    <div className={`rank rank-${index + 1}`}>
+                                        {index + 1}
+                                    </div>
+                                    <div className="user-info">
+                                        <img 
+                                            src={user.photo_200 || 'https://vk.com/images/camera_200.png'} 
+                                            alt="Аватар" 
+                                            className="user-avatar"
+                                            onError={(e) => e.target.src = 'https://vk.com/images/camera_200.png'}
+                                        />
+                                        <div>
+                                            <div className="user-name">{user.first_name} {user.last_name}</div>
+                                            <a 
+                                                href={`https://vk.com/${user.domain || 'id' + user.id}`} 
+                                                className="user-link"
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                            >
+                                                <i className="fas fa-external-link-alt"></i>
+                                                Профиль
+                                            </a>
+                                        </div>
+                                    </div>
+                                    <div className="activity-score">
+                                        {user.activityScore}
+                                        <div className="progress-bar">
+                                            <div 
+                                                className="progress-fill" 
+                                                style={{ width: `${user.activityScore}%` }}
+                                            ></div>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <span className={`online-status ${user.online ? 'online' : 'offline'}`}></span>
+                                        {user.online ? 'Онлайн' : 'Офлайн'}
+                                    </div>
+                                    <div className="last-active">
+                                        {user.last_seen ? formatLastSeen(user.last_seen.time) : 'Неизвестно'}
+                                    </div>
+                                    <div className="activity-details">
+                                        {getActivityDetails(user)}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                    
+                    <div className="note">
+                        Примечание: Для работы скрипта может потребоваться разрешить CORS Anywhere. 
+                        Перейдите по <a href="https://cors-anywhere.herokuapp.com/corsdemo" target="_blank" rel="noopener noreferrer">этой ссылке</a> 
+                        и нажмите "Request temporary access to the demo server".<br />
+                        Данные обновляются автоматически каждые 5 минут.
+                    </div>
+                </div>
+            </>
+        );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<VKTopUsers />);
+</script>
+</body>
+</html>
