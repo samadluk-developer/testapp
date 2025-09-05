@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="ru" ng-app="telegramApp">
+<html lang="ru" ng-app="starShopApp">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Telegram User Info</title>
+    <title>Star Shop | Магазин Звёзд</title>
     
     <!-- Angular CDN -->
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
@@ -17,25 +17,27 @@
     
     <style>
         :root {
-            --primary: #6f42c1;
-            --primary-gradient: linear-gradient(135deg, #6f42c1, #8b5ceb);
-            --secondary: #20c997;
-            --dark: #2d3748;
-            --light: #f8f9fa;
-            --background: #f5f7ff;
-            --card-bg: #ffffff;
-            --menu-bg: rgba(255, 255, 255, 0.95);
-            --text-primary: #2d3748;
-            --text-secondary: #718096;
+            --tg-theme-bg-color: #fff;
+            --tg-theme-text-color: #222;
+            --tg-theme-button-color: #40a7e3;
+            --tg-theme-button-text-color: #fff;
+            --tg-theme-secondary-bg-color: #f1f1f1;
+            --tg-theme-hint-color: #999;
+            --tg-theme-link-color: #2481cc;
+            --tg-theme-section-bg-color: #fff;
+            --border-radius: 12px;
         }
         
         @media (prefers-color-scheme: dark) {
             :root {
-                --background: #1a202c;
-                --card-bg: #2d3748;
-                --text-primary: #e2e8f0;
-                --text-secondary: #a0aec0;
-                --menu-bg: rgba(45, 55, 72, 0.98);
+                --tg-theme-bg-color: #212121;
+                --tg-theme-text-color: #fff;
+                --tg-theme-button-color: #40a7e3;
+                --tg-theme-button-text-color: #fff;
+                --tg-theme-secondary-bg-color: #181818;
+                --tg-theme-hint-color: #aaa;
+                --tg-theme-link-color: #6ab3f3;
+                --tg-theme-section-bg-color: #1c1c1c;
             }
         }
         
@@ -46,13 +48,13 @@
         }
         
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--background);
-            color: var(--text-primary);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', sans-serif;
+            background-color: var(--tg-theme-bg-color);
+            color: var(--tg-theme-text-color);
             padding: 0;
             margin: 0;
             min-height: 100vh;
-            padding-bottom: 80px; /* Space for bottom menu */
+            padding-bottom: 80px;
         }
         
         .container {
@@ -61,45 +63,71 @@
             padding: 20px;
         }
         
+        /* Header Styles */
         .header {
-            text-align: center;
-            margin-bottom: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 25px;
+            padding: 15px 0;
+            border-bottom: 1px solid var(--tg-theme-secondary-bg-color);
         }
         
-        .header h1 {
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #40a7e3, #2e93d2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 20px;
+        }
+        
+        .logo-text {
+            font-size: 22px;
             font-weight: 700;
-            color: var(--primary);
-            margin-bottom: 10px;
         }
         
-        .header p {
-            color: var(--text-secondary);
-            font-size: 18px;
-        }
-        
-        .profile-card {
-            background: var(--card-bg);
+        .user-balance {
+            background-color: var(--tg-theme-secondary-bg-color);
+            padding: 8px 15px;
             border-radius: 20px;
-            padding: 30px;
-            text-align: center;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-            margin-bottom: 30px;
-            transition: transform 0.3s, box-shadow 0.3s;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
         
-        .profile-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+        .stars-icon {
+            color: #ffcc00;
+        }
+        
+        /* Profile Section */
+        .profile-section {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 25px;
+            padding: 15px;
+            background-color: var(--tg-theme-section-bg-color);
+            border-radius: var(--border-radius);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
         }
         
         .avatar-container {
-            width: 120px;
-            height: 120px;
+            width: 60px;
+            height: 60px;
             border-radius: 50%;
             overflow: hidden;
-            margin: 0 auto 20px;
-            border: 4px solid var(--primary);
-            box-shadow: 0 5px 15px rgba(111, 66, 193, 0.3);
+            flex-shrink: 0;
         }
         
         .avatar {
@@ -114,46 +142,188 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            background: var(--primary-gradient);
+            background: linear-gradient(135deg, #40a7e3, #2e93d2);
             color: white;
-            font-size: 48px;
+            font-size: 24px;
         }
         
         .user-info {
-            margin-bottom: 20px;
+            flex-grow: 1;
         }
         
         .user-name {
-            font-size: 24px;
-            font-weight: 700;
-            margin-bottom: 5px;
-            color: var(--text-primary);
-        }
-        
-        .user-id {
+            font-weight: 600;
             font-size: 18px;
-            color: var(--text-secondary);
-            margin-bottom: 15px;
+            margin-bottom: 4px;
         }
         
-        .user-data-item {
+        .user-handle {
+            color: var(--tg-theme-hint-color);
+            font-size: 14px;
+        }
+        
+        /* Navigation */
+        .nav-tabs {
             display: flex;
-            justify-content: space-between;
-            padding: 10px 0;
-            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+            background-color: var(--tg-theme-secondary-bg-color);
+            border-radius: var(--border-radius);
+            padding: 5px;
+            margin-bottom: 25px;
+            overflow-x: auto;
+            -ms-overflow-style: none;
+            scrollbar-width: none;
         }
         
-        .user-data-item:last-child {
+        .nav-tabs::-webkit-scrollbar {
+            display: none;
+        }
+        
+        .nav-tab {
+            flex: 1;
+            text-align: center;
+            padding: 12px 15px;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+            color: var(--tg-theme-hint-color);
+            text-decoration: none;
+            display: block;
+        }
+        
+        .nav-tab.active {
+            background-color: var(--tg-theme-bg-color);
+            color: var(--tg-theme-text-color);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* Content Sections */
+        .section-title {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .section-title i {
+            color: #40a7e3;
+        }
+        
+        /* Products Grid */
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        
+        .product-card {
+            background-color: var(--tg-theme-section-bg-color);
+            border-radius: var(--border-radius);
+            padding: 15px;
+            text-align: center;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+        }
+        
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+        }
+        
+        .product-icon {
+            font-size: 36px;
+            margin-bottom: 12px;
+            color: #ffcc00;
+        }
+        
+        .product-name {
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 16px;
+        }
+        
+        .product-price {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            margin-bottom: 15px;
+            color: var(--tg-theme-hint-color);
+            font-size: 14px;
+        }
+        
+        .buy-button {
+            background-color: var(--tg-theme-button-color);
+            color: var(--tg-theme-button-text-color);
+            border: none;
+            border-radius: 8px;
+            padding: 8px 15px;
+            font-weight: 600;
+            width: 100%;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .buy-button:hover {
+            background-color: #2e93d2;
+        }
+        
+        /* History List */
+        .history-list {
+            background-color: var(--tg-theme-section-bg-color);
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+        }
+        
+        .history-item {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            border-bottom: 1px solid var(--tg-theme-secondary-bg-color);
+        }
+        
+        .history-item:last-child {
             border-bottom: none;
         }
         
-        .data-label {
-            font-weight: 600;
-            color: var(--text-secondary);
+        .history-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: rgba(64, 167, 227, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            color: #40a7e3;
+            font-size: 18px;
         }
         
-        .data-value {
-            color: var(--text-primary);
+        .history-details {
+            flex-grow: 1;
+        }
+        
+        .history-title {
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        
+        .history-date {
+            font-size: 12px;
+            color: var(--tg-theme-hint-color);
+        }
+        
+        .history-amount {
+            font-weight: 700;
+            color: #ffcc00;
+            display: flex;
+            align-items: center;
+            gap: 4px;
         }
         
         /* Bottom Navigation */
@@ -162,18 +332,12 @@
             bottom: 0;
             left: 0;
             right: 0;
-            background: var(--menu-bg);
-            backdrop-filter: blur(10px);
-            box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.1);
+            background-color: var(--tg-theme-bg-color);
+            border-top: 1px solid var(--tg-theme-secondary-bg-color);
+            padding: 12px 0;
             z-index: 1000;
-            padding: 10px 0;
-        }
-        
-        .nav-items {
             display: flex;
             justify-content: space-around;
-            max-width: 800px;
-            margin: 0 auto;
         }
         
         .nav-item {
@@ -181,55 +345,28 @@
             flex-direction: column;
             align-items: center;
             text-decoration: none;
-            padding: 10px 15px;
-            border-radius: 15px;
-            transition: all 0.3s;
+            color: var(--tg-theme-hint-color);
+            font-size: 12px;
+            gap: 5px;
+            transition: color 0.2s;
         }
         
         .nav-item.active {
-            background: rgba(111, 66, 193, 0.15);
+            color: var(--tg-theme-button-color);
         }
         
         .nav-icon {
             font-size: 20px;
-            margin-bottom: 5px;
-            color: var(--primary);
         }
         
-        .nav-item.active .nav-icon {
-            color: var(--primary);
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
         
-        .nav-label {
-            font-size: 12px;
-            font-weight: 600;
-            color: var(--text-secondary);
-        }
-        
-        .nav-item.active .nav-label {
-            color: var(--primary);
-        }
-        
-        /* Additional Sections */
-        .section {
-            background: var(--card-bg);
-            border-radius: 20px;
-            padding: 25px;
-            margin-bottom: 20px;
-            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
-        }
-        
-        .section-title {
-            font-size: 20px;
-            font-weight: 700;
-            margin-bottom: 15px;
-            color: var(--primary);
-            display: flex;
-            align-items: center;
-        }
-        
-        .section-title i {
-            margin-right: 10px;
+        .animate-fade-in {
+            animation: fadeIn 0.4s ease-out forwards;
         }
         
         /* Responsive Design */
@@ -238,252 +375,438 @@
                 padding: 15px;
             }
             
-            .profile-card {
-                padding: 20px;
+            .products-grid {
+                grid-template-columns: repeat(2, 1fr);
             }
             
-            .avatar-container {
-                width: 100px;
-                height: 100px;
+            .logo-text {
+                font-size: 20px;
             }
             
-            .user-name {
-                font-size: 22px;
-            }
-            
-            .section {
-                padding: 20px;
-            }
-            
-            .nav-label {
-                font-size: 11px;
-            }
-            
-            .nav-item {
-                padding: 8px 10px;
+            .user-balance {
+                font-size: 14px;
             }
         }
         
         @media (max-width: 480px) {
-            .header h1 {
-                font-size: 24px;
+            .products-grid {
+                grid-template-columns: 1fr;
             }
             
-            .header p {
-                font-size: 16px;
+            .nav-tab {
+                padding: 10px;
+                font-size: 14px;
             }
             
-            .user-name {
-                font-size: 20px;
+            .header {
+                flex-direction: column;
+                gap: 15px;
+                align-items: flex-start;
             }
             
-            .user-id {
-                font-size: 16px;
-            }
-            
-            .nav-items {
-                justify-content: space-between;
-                padding: 0 10px;
-            }
-            
-            .nav-item {
-                padding: 8px;
-            }
-            
-            .nav-label {
-                font-size: 10px;
+            .user-balance {
+                align-self: stretch;
+                justify-content: center;
             }
         }
         
-        /* Animation */
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        
-        .animate-fade-in {
-            animation: fadeIn 0.6s ease-out forwards;
-        }
-        
-        /* Telegram WebApp Compatibility */
-        .tg-background {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            z-index: -1;
-            opacity: 0.03;
-            background: var(--primary);
+        /* Utility Classes */
+        .hidden {
+            display: none;
         }
     </style>
 </head>
 <body>
-    <div class="tg-background"></div>
-    
-    <div class="container" ng-controller="MainController as main">
+    <div class="container">
         <!-- Header -->
-        <div class="header animate-fade-in">
-            <h1><i class="fas fa-user-circle"></i> Профиль Telegram</h1>
-            <p>Ваша информация в Telegram</p>
+        <div class="header">
+            <div class="logo">
+                <div class="logo-icon">
+                    <i class="fas fa-star"></i>
+                </div>
+                <div class="logo-text">Star Shop</div>
+            </div>
+            <div class="user-balance">
+                <i class="fas fa-star stars-icon"></i>
+                <span id="userBalance">100</span> звёзд
+            </div>
         </div>
         
-        <!-- Profile Card -->
-        <div class="profile-card animate-fade-in">
+        <!-- Profile Section -->
+        <div class="profile-section animate-fade-in">
             <div class="avatar-container">
-                <div ng-if="!userData.photo_url" class="default-avatar">
+                <div id="defaultAvatar" class="default-avatar">
                     <i class="fas fa-user"></i>
                 </div>
-                <img ng-if="userData.photo_url" ng-src="{{userData.photo_url}}" class="avatar" alt="User Avatar">
+                <img id="userAvatar" class="avatar" alt="User Avatar" style="display: none;">
             </div>
-            
             <div class="user-info">
-                <h2 class="user-name">{{userData.first_name}} {{userData.last_name}}</h2>
-                <p class="user-id">ID: {{userData.id}}</p>
-            </div>
-            
-            <div class="user-data">
-                <div class="user-data-item">
-                    <span class="data-label">Имя пользователя:</span>
-                    <span class="data-value">@{{userData.username || 'не указан'}}</span>
-                </div>
-                <div class="user-data-item">
-                    <span class="data-label">Язык:</span>
-                    <span class="data-value">{{userData.language_code || 'не указан'}}</span>
-                </div>
-                <div class="user-data-item">
-                    <span class="data-label">Платформа:</span>
-                    <span class="data-value">{{platform}}</span>
-                </div>
-                <div class="user-data-item">
-                    <span class="data-label">Версия Telegram:</span>
-                    <span class="data-value">{{version}}</span>
-                </div>
+                <div id="userName" class="user-name">Пользователь Telegram</div>
+                <div id="userHandle" class="user-handle">@username</div>
             </div>
         </div>
         
-        <!-- Additional Sections -->
-        <div class="section animate-fade-in">
-            <h3 class="section-title"><i class="fas fa-info-circle"></i> О приложении</h3>
-            <p>Это приложение показывает информацию вашего аккаунта Telegram с использованием Telegram WebApp API.</p>
+        <!-- Navigation Tabs -->
+        <div class="nav-tabs">
+            <a href="#!/shop" class="nav-tab active">Магазин</a>
+            <a href="#!/history" class="nav-tab">История</a>
+            <a href="#!/profile" class="nav-tab">Профиль</a>
+            <a href="#!/about" class="nav-tab">О нас</a>
         </div>
         
-        <div class="section animate-fade-in">
-            <h3 class="section-title"><i class="fas fa-shield-alt"></i> Безопасность</h3>
-            <p>Ваши данные загружаются непосредственно из Telegram и не сохраняются на наших серверах.</p>
-        </div>
+        <!-- Content Area with Routing -->
+        <div ng-view></div>
     </div>
     
-    <!-- Bottom Navigation Menu -->
+    <!-- Bottom Navigation -->
     <nav class="bottom-nav">
-        <div class="nav-items">
-            <a href="#" class="nav-item active">
-                <div class="nav-icon">
-                    <i class="fas fa-user"></i>
-                </div>
-                <span class="nav-label">Профиль</span>
-            </a>
-            <a href="#" class="nav-item">
-                <div class="nav-icon">
-                    <i class="fas fa-cog"></i>
-                </div>
-                <span class="nav-label">Настройки</span>
-            </a>
-            <a href="#" class="nav-item">
-                <div class="nav-icon">
-                    <i class="fas fa-share-alt"></i>
-                </div>
-                <span class="nav-label">Поделиться</span>
-            </a>
-            <a href="#" class="nav-item">
-                <div class="nav-icon">
-                    <i class="fas fa-info-circle"></i>
-                </div>
-                <span class="nav-label">О нас</span>
-            </a>
-        </div>
+        <a href="#!/shop" class="nav-item active">
+            <i class="fas fa-store nav-icon"></i>
+            <span>Магазин</span>
+        </a>
+        <a href="#!/history" class="nav-item">
+            <i class="fas fa-history nav-icon"></i>
+            <span>История</span>
+        </a>
+        <a href="#!/profile" class="nav-item">
+            <i class="fas fa-user nav-icon"></i>
+            <span>Профиль</span>
+        </a>
+        <a href="#!/about" class="nav-item">
+            <i class="fas fa-info-circle nav-icon"></i>
+            <span>О нас</span>
+        </a>
     </nav>
 
     <!-- Angular and Bootstrap JS -->
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular-route.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
         // Create Angular application
-        var app = angular.module('telegramApp', []);
+        var app = angular.module('starShopApp', ['ngRoute']);
+        
+        // Configure routes
+        app.config(function($routeProvider) {
+            $routeProvider
+                .when('/shop', {
+                    template: `
+                        <div class="animate-fade-in">
+                            <h2 class="section-title"><i class="fas fa-shopping-bag"></i> Пакеты звёзд</h2>
+                            <div class="products-grid">
+                                <div class="product-card">
+                                    <div class="product-icon">
+                                        <i class="fas fa-star"></i>
+                                    </div>
+                                    <h3 class="product-name">Малый набор</h3>
+                                    <div class="product-price">
+                                        <i class="fas fa-star" style="color: #ffcc00;"></i> 10 звёзд
+                                    </div>
+                                    <div class="product-price">$1.99</div>
+                                    <button class="buy-button" ng-click="buyProduct(10, 1.99)">Купить</button>
+                                </div>
+                                
+                                <div class="product-card">
+                                    <div class="product-icon">
+                                        <i class="fas fa-stars"></i>
+                                    </div>
+                                    <h3 class="product-name">Средний набор</h3>
+                                    <div class="product-price">
+                                        <i class="fas fa-star" style="color: #ffcc00;"></i> 25 звёзд
+                                    </div>
+                                    <div class="product-price">$4.49</div>
+                                    <button class="buy-button" ng-click="buyProduct(25, 4.49)">Купить</button>
+                                </div>
+                                
+                                <div class="product-card">
+                                    <div class="product-icon">
+                                        <i class="fas fa-gem"></i>
+                                    </div>
+                                    <h3 class="product-name">Большой набор</h3>
+                                    <div class="product-price">
+                                        <i class="fas fa-star" style="color: #ffcc00;"></i> 50 звёзд
+                                    </div>
+                                    <div class="product-price">$7.99</div>
+                                    <button class="buy-button" ng-click="buyProduct(50, 7.99)">Купить</button>
+                                </div>
+                                
+                                <div class="product-card">
+                                    <div class="product-icon">
+                                        <i class="fas fa-crown"></i>
+                                    </div>
+                                    <h3 class="product-name">Мега набор</h3>
+                                    <div class="product-price">
+                                        <i class="fas fa-star" style="color: #ffcc00;"></i> 100 звёзд
+                                    </div>
+                                    <div class="product-price">$14.99</div>
+                                    <button class="buy-button" ng-click="buyProduct(100, 14.99)">Купить</button>
+                                </div>
+                            </div>
+                        </div>
+                    `,
+                    controller: 'ShopController'
+                })
+                .when('/history', {
+                    template: `
+                        <div class="animate-fade-in">
+                            <h2 class="section-title"><i class="fas fa-history"></i> История покупок</h2>
+                            <div class="history-list">
+                                <div class="history-item" ng-repeat="purchase in purchases">
+                                    <div class="history-icon">
+                                        <i class="fas fa-shopping-cart"></i>
+                                    </div>
+                                    <div class="history-details">
+                                        <div class="history-title">Покупка звёзд</div>
+                                        <div class="history-date">{{purchase.date}}</div>
+                                    </div>
+                                    <div class="history-amount">
+                                        <i class="fas fa-star"></i> +{{purchase.amount}}
+                                    </div>
+                                </div>
+                                
+                                <div class="history-item" ng-if="purchases.length === 0">
+                                    <div class="history-icon">
+                                        <i class="fas fa-info-circle"></i>
+                                    </div>
+                                    <div class="history-details">
+                                        <div class="history-title">Пока нет покупок</div>
+                                        <div class="history-date">Совершите первую покупку в магазине</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `,
+                    controller: 'HistoryController'
+                })
+                .when('/profile', {
+                    template: `
+                        <div class="animate-fade-in">
+                            <h2 class="section-title"><i class="fas fa-user"></i> Ваш профиль</h2>
+                            <div class="profile-details" style="background-color: var(--tg-theme-section-bg-color); border-radius: var(--border-radius); padding: 20px; margin-bottom: 20px;">
+                                <div style="display: flex; align-items: center; margin-bottom: 20px;">
+                                    <div class="avatar-container" style="width: 80px; height: 80px;">
+                                        <div id="profileDefaultAvatar" class="default-avatar">
+                                            <i class="fas fa-user"></i>
+                                        </div>
+                                        <img id="profileUserAvatar" class="avatar" alt="User Avatar" style="display: none;">
+                                    </div>
+                                    <div style="margin-left: 15px;">
+                                        <h3 id="profileUserName" style="font-weight: 600; margin-bottom: 5px;">Пользователь Telegram</h3>
+                                        <p id="profileUserHandle" style="color: var(--tg-theme-hint-color);">@username</p>
+                                    </div>
+                                </div>
+                                
+                                <div style="border-top: 1px solid var(--tg-theme-secondary-bg-color); padding-top: 15px;">
+                                    <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
+                                        <span>ID пользователя:</span>
+                                        <strong id="userId">123456789</strong>
+                                    </div>
+                                    <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
+                                        <span>Язык:</span>
+                                        <strong id="userLanguage">ru</strong>
+                                    </div>
+                                    <div style="display: flex; justify-content: space-between;">
+                                        <span>Баланс:</span>
+                                        <strong><i class="fas fa-star" style="color: #ffcc00;"></i> <span id="profileBalance">100</span> звёзд</strong>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `,
+                    controller: 'ProfileController'
+                })
+                .when('/about', {
+                    template: `
+                        <div class="animate-fade-in">
+                            <h2 class="section-title"><i class="fas fa-info-circle"></i> О магазине Star Shop</h2>
+                            <div style="background-color: var(--tg-theme-section-bg-color); border-radius: var(--border-radius); padding: 20px; margin-bottom: 20px;">
+                                <p style="margin-bottom: 15px;">Star Shop — это магазин внутри Telegram, где вы можете покупать звёзды для использования в различных ботах и мини-приложениях.</p>
+                                
+                                <h3 style="font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+                                    <i class="fas fa-star" style="color: #ffcc00;"></i> Что такое звёзды?
+                                </h3>
+                                <p style="margin-bottom: 15px;">Звёзды — это внутренняя валюта Telegram, которую можно использовать для покупки цифровых товаров и услуг в различных приложениях.</p>
+                                
+                                <h3 style="font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+                                    <i class="fas fa-shield-alt" style="color: #40a7e3;"></i> Безопасность
+                                </h3>
+                                <p>Все транзакции защищены с помощью Telegram Payments. Ваши платежные данные не сохраняются в нашем приложении.</p>
+                            </div>
+                        </div>
+                    `
+                })
+                .otherwise({
+                    redirectTo: '/shop'
+                });
+        });
         
         // Main controller
         app.controller('MainController', function($scope) {
-            // Default user data
+            // Initialize user data
             $scope.userData = {
                 id: 123456789,
-                first_name: "Иван",
-                last_name: "Иванов",
-                username: "ivanov",
+                first_name: "Пользователь",
+                last_name: "Telegram",
+                username: "username",
                 language_code: "ru",
-                photo_url: "" // Empty for default avatar
+                photo_url: ""
             };
             
-            $scope.platform = "Web";
-            $scope.version = "7.5";
+            $scope.userBalance = 100;
+            $scope.purchases = [];
             
             // Check if we're in Telegram WebApp
             if (typeof Telegram !== 'undefined' && Telegram.WebApp) {
-                // Initialize with Telegram WebApp data[citation:5][citation:6]
                 const tg = Telegram.WebApp;
                 
-                // Expand to full screen[citation:6]
+                // Expand to full screen
                 tg.expand();
                 
                 // Get user data
-                $scope.userData = tg.initDataUnsafe.user || $scope.userData;
-                $scope.platform = tg.platform;
-                $scope.version = tg.version;
+                if (tg.initDataUnsafe.user) {
+                    $scope.userData = tg.initDataUnsafe.user;
+                    
+                    // Update UI with user data
+                    document.getElementById('userName').textContent = `${$scope.userData.first_name} ${$scope.userData.last_name || ''}`;
+                    document.getElementById('userHandle').textContent = `@${$scope.userData.username || 'user'}`;
+                    document.getElementById('profileUserName').textContent = `${$scope.userData.first_name} ${$scope.userData.last_name || ''}`;
+                    document.getElementById('profileUserHandle').textContent = `@${$scope.userData.username || 'user'}`;
+                    document.getElementById('userId').textContent = $scope.userData.id;
+                    document.getElementById('userLanguage').textContent = $scope.userData.language_code || 'ru';
+                    
+                    // Set user avatar if available
+                    if ($scope.userData.photo_url) {
+                        document.getElementById('userAvatar').src = $scope.userData.photo_url;
+                        document.getElementById('userAvatar').style.display = 'block';
+                        document.getElementById('defaultAvatar').style.display = 'none';
+                        
+                        document.getElementById('profileUserAvatar').src = $scope.userData.photo_url;
+                        document.getElementById('profileUserAvatar').style.display = 'block';
+                        document.getElementById('profileDefaultAvatar').style.display = 'none';
+                    }
+                }
+                
+                // Enable closing confirmation
+                tg.enableClosingConfirmation();
                 
                 // Apply changes
                 $scope.$apply();
-                
-                // Enable closing confirmation[citation:8]
-                tg.enableClosingConfirmation();
             }
             
-            // Function to share profile
-            $scope.shareProfile = function() {
-                if (typeof Telegram !== 'undefined' && Telegram.WebApp) {
-                    const shareText = `Мой Telegram ID: ${$scope.userData.id}`;
-                    Telegram.WebApp.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(shareText)}`);
-                } else {
-                    alert(`Мой Telegram ID: ${$scope.userData.id}`);
-                }
-            };
+            // Load purchases from localStorage
+            const savedPurchases = localStorage.getItem('starShopPurchases');
+            if (savedPurchases) {
+                $scope.purchases = JSON.parse(savedPurchases);
+            }
+            
+            // Load balance from localStorage
+            const savedBalance = localStorage.getItem('starShopBalance');
+            if (savedBalance) {
+                $scope.userBalance = parseInt(savedBalance);
+                document.getElementById('userBalance').textContent = $scope.userBalance;
+                document.getElementById('profileBalance').textContent = $scope.userBalance;
+            }
         });
         
-        // Add animation on scroll
-        document.addEventListener('DOMContentLoaded', function() {
-            const animatedElements = document.querySelectorAll('.animate-fade-in');
+        // Shop controller
+        app.controller('ShopController', function($scope) {
+            $scope.buyProduct = function(amount, price) {
+                if (typeof Telegram !== 'undefined' && Telegram.WebApp) {
+                    // In Telegram, we would open the payment interface
+                    Telegram.WebApp.showPopup({
+                        title: "Покупка звёзд",
+                        message: `Вы хотите купить ${amount} звёзд за $${price}?`,
+                        buttons: [
+                            {type: "ok", text: "Купить"},
+                            {type: "cancel", text: "Отмена"}
+                        ]
+                    }, function(buttonId) {
+                        if (buttonId === "ok") {
+                            // Simulate successful purchase
+                            simulatePurchase(amount, price);
+                        }
+                    });
+                } else {
+                    // Outside Telegram, simulate purchase
+                    simulatePurchase(amount, price);
+                }
+            };
             
-            const observer = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        entry.target.style.opacity = 1;
-                        observer.unobserve(entry.target);
+            function simulatePurchase(amount, price) {
+                // Update balance
+                const currentBalance = parseInt(localStorage.getItem('starShopBalance') || "100");
+                const newBalance = currentBalance + amount;
+                localStorage.setItem('starShopBalance', newBalance.toString());
+                
+                // Add to purchase history
+                const purchases = JSON.parse(localStorage.getItem('starShopPurchases') || "[]");
+                purchases.unshift({
+                    amount: amount,
+                    price: price,
+                    date: new Date().toLocaleDateString('ru-RU')
+                });
+                localStorage.setItem('starShopPurchases', JSON.stringify(purchases));
+                
+                // Update UI
+                document.getElementById('userBalance').textContent = newBalance;
+                document.getElementById('profileBalance').textContent = newBalance;
+                
+                // Show success message
+                alert(`Успешно! Вы приобрели ${amount} звёзд.`);
+                
+                // Refresh the scope
+                $scope.$apply();
+            }
+        });
+        
+        // History controller
+        app.controller('HistoryController', function($scope) {
+            // Load purchases from localStorage
+            const savedPurchases = localStorage.getItem('starShopPurchases');
+            $scope.purchases = savedPurchases ? JSON.parse(savedPurchases) : [];
+        });
+        
+        // Profile controller
+        app.controller('ProfileController', function($scope) {
+            // Profile data is loaded in MainController
+        });
+        
+        // Initialize navigation
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set active tab based on hash
+            function setActiveTab() {
+                const hash = window.location.hash || '#!/shop';
+                const tabName = hash.split('!/')[1] || 'shop';
+                
+                // Update top tabs
+                document.querySelectorAll('.nav-tab').forEach(tab => {
+                    tab.classList.remove('active');
+                    if (tab.getAttribute('href') === hash) {
+                        tab.classList.add('active');
                     }
                 });
-            }, { threshold: 0.1 });
+                
+                // Update bottom navigation
+                document.querySelectorAll('.nav-item').forEach(item => {
+                    item.classList.remove('active');
+                    if (item.getAttribute('href') === hash) {
+                        item.classList.add('active');
+                    }
+                });
+            }
             
-            animatedElements.forEach(element => {
-                element.style.opacity = 0;
-                element.style.transition = 'opacity 0.6s ease-out, transform 0.6s ease-out';
-                observer.observe(element);
-            });
+            // Set initial active tab
+            setActiveTab();
             
-            // Add active class to nav items on click
-            const navItems = document.querySelectorAll('.nav-item');
-            navItems.forEach(item => {
-                item.addEventListener('click', function(e) {
+            // Update active tab when hash changes
+            window.addEventListener('hashchange', setActiveTab);
+            
+            // Add click handlers for top tabs
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                tab.addEventListener('click', function(e) {
                     e.preventDefault();
-                    navItems.forEach(i => i.classList.remove('active'));
-                    this.classList.add('active');
+                    window.location.hash = this.getAttribute('href');
                 });
             });
         });
