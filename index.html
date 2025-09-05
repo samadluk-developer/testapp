@@ -1,736 +1,533 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="ru" ng-app="clickerApp">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VK Top 100 Active Users</title>
-    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
-    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
-    <script crossorigin src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <title>Telegram Clicker Game</title>
+    
+    <!-- Angular CDN -->
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular-route.min.js"></script>
+    
+    <!-- Bootstrap для стилей -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome для иконок -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
     <style>
         :root {
-            --primary: #4361EE;
-            --primary-hover: #3A56D8;
-            --secondary: #7209B7;
-            --background: #F8F9FA;
-            --card-bg: #FFFFFF;
-            --text: #212529;
-            --text-secondary: #6C757D;
-            --border: #DEE2E6;
-            --error: #EF233C;
-            --success: #4CC9F0;
-            --warning: #F8961E;
-            --shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-            --radius: 8px;
-            --header-height: 60px;
+            --primary: #6f42c1;
+            --secondary: #20c997;
+            --dark: #2d3748;
+            --light: #f8f9fa;
+            --background: #f5f7ff;
+            --card-bg: #ffffff;
         }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
+        
         body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
             background-color: var(--background);
-            color: var(--text);
-            line-height: 1.6;
-            -webkit-font-smoothing: antialiased;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: var(--dark);
+            padding-top: 20px;
             min-height: 100vh;
-            padding-top: var(--header-height);
         }
-
+        
         .container {
-            width: 100%;
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 1rem;
+            max-width: 800px;
         }
-
-        .app-header {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: var(--header-height);
-            background-color: var(--card-bg);
-            box-shadow: var(--shadow);
-            display: flex;
-            align-items: center;
-            padding: 0 1rem;
-            z-index: 100;
+        
+        .navbar {
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
         }
-
-        .app-title {
-            font-size: 1.25rem;
-            font-weight: 700;
-            background: linear-gradient(90deg, var(--primary), var(--secondary));
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
+        
+        .click-area {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 30px;
+            text-align: center;
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+            margin-bottom: 20px;
+            transition: transform 0.2s;
+            border: 1px solid rgba(111, 66, 193, 0.1);
         }
-
-        .app-subtitle {
-            font-size: 0.875rem;
-            color: var(--text-secondary);
-            margin-left: auto;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .refresh-btn {
-            background: none;
-            border: none;
-            color: var(--primary);
-            font-size: 0.875rem;
-            font-weight: 500;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 0.25rem;
-            padding: 0.25rem 0.5rem;
-            border-radius: var(--radius);
-            transition: all 0.2s;
-        }
-
-        .refresh-btn:hover {
-            background-color: rgba(67, 97, 238, 0.1);
-        }
-
-        .refresh-btn:active {
+        
+        .click-area:active {
             transform: scale(0.98);
         }
-
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 1rem;
-            margin-bottom: 2rem;
-        }
-
-        @media (max-width: 768px) {
-            .stats-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-        }
-
-        .stat-card {
-            background-color: var(--card-bg);
-            border-radius: var(--radius);
-            box-shadow: var(--shadow);
-            padding: 1.25rem;
-            text-align: center;
-        }
-
-        .stat-value {
-            font-size: 1.75rem;
-            font-weight: 700;
-            margin-bottom: 0.25rem;
-        }
-
-        .stat-label {
-            font-size: 0.75rem;
-            color: var(--text-secondary);
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-
-        .ranking-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1rem;
-        }
-
-        .section-title {
-            font-size: 1.25rem;
-            font-weight: 700;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .ranking-table {
-            width: 100%;
-            background-color: var(--card-bg);
-            border-radius: var(--radius);
-            box-shadow: var(--shadow);
-            overflow: hidden;
-        }
-
-        .table-header {
-            display: grid;
-            grid-template-columns: 50px 1fr 100px 100px 100px 100px;
-            background-color: var(--primary);
+        
+        .click-button {
+            background: linear-gradient(135deg, var(--primary), #8b5ceb);
+            border: none;
+            border-radius: 50%;
+            width: 160px;
+            height: 160px;
             color: white;
+            font-size: 22px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 8px 20px rgba(111, 66, 193, 0.3);
+            transition: all 0.2s;
+            margin: 20px 0;
+        }
+        
+        .click-button:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 25px rgba(111, 66, 193, 0.4);
+        }
+        
+        .click-button:active {
+            transform: scale(0.95);
+        }
+        
+        .stats-card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+        
+        .upgrade-item {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 15px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.06);
+            transition: transform 0.2s;
+            border-left: 4px solid var(--primary);
+        }
+        
+        .upgrade-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .btn-upgrade {
+            background: var(--secondary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 8px 16px;
             font-weight: 600;
-            font-size: 0.875rem;
-            padding: 0.75rem 1rem;
+            transition: all 0.2s;
         }
-
-        .table-row {
-            display: grid;
-            grid-template-columns: 50px 1fr 100px 100px 100px 100px;
-            padding: 0.75rem 1rem;
-            border-bottom: 1px solid var(--border);
-            align-items: center;
-            transition: background-color 0.2s;
+        
+        .btn-upgrade:hover {
+            background: #198764;
+            transform: translateY(-2px);
         }
-
-        .table-row:hover {
-            background-color: rgba(67, 97, 238, 0.05);
+        
+        .btn-upgrade:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
         }
-
-        .table-row:last-child {
-            border-bottom: none;
-        }
-
-        .rank {
-            font-weight: 700;
-            color: var(--text-secondary);
-            display: flex;
-            justify-content: center;
-        }
-
-        .rank-1 {
-            color: #FFD700;
-            font-weight: 800;
-        }
-
-        .rank-2 {
-            color: #C0C0C0;
-            font-weight: 800;
-        }
-
-        .rank-3 {
-            color: #CD7F32;
-            font-weight: 800;
-        }
-
-        .user-info {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-        }
-
-        .user-avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 2px solid var(--border);
-        }
-
-        .user-name {
-            font-weight: 500;
-        }
-
-        .user-link {
-            color: var(--primary);
-            text-decoration: none;
-            font-size: 0.75rem;
-            display: flex;
-            align-items: center;
-            gap: 0.25rem;
-        }
-
-        .user-link:hover {
-            text-decoration: underline;
-        }
-
-        .activity-score {
+        
+        .nav-link {
             font-weight: 600;
-            text-align: center;
+            color: var(--dark);
+            border-radius: 8px;
+            margin: 0 5px;
+            transition: all 0.2s;
         }
-
-        .last-active {
-            color: var(--text-secondary);
-            font-size: 0.875rem;
-            text-align: center;
-        }
-
-        .online-status {
-            display: inline-block;
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            margin-right: 0.25rem;
-        }
-
-        .online {
-            background-color: var(--success);
-        }
-
-        .offline {
-            background-color: var(--text-secondary);
-        }
-
-        .loading {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 2rem;
-            color: var(--text-secondary);
-        }
-
-        .spinner {
-            width: 2rem;
-            height: 2rem;
-            border: 3px solid rgba(67, 97, 238, 0.1);
-            border-radius: 50%;
-            border-top-color: var(--primary);
-            animation: spin 1s ease-in-out infinite;
-            margin-bottom: 1rem;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        .error-message {
-            color: var(--error);
-            font-size: 0.875rem;
-            padding: 1rem;
-            background-color: rgba(239, 35, 60, 0.05);
-            border-radius: var(--radius);
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            margin-bottom: 1rem;
-        }
-
-        .note {
-            font-size: 0.75rem;
-            color: var(--text-secondary);
-            text-align: center;
-            margin-top: 2rem;
-            line-height: 1.6;
-        }
-
-        .note a {
+        
+        .nav-link.active {
+            background: rgba(111, 66, 193, 0.15);
             color: var(--primary);
-            text-decoration: none;
-            font-weight: 500;
         }
-
-        .note a:hover {
-            text-decoration: underline;
+        
+        .nav-link:hover {
+            background: rgba(111, 66, 193, 0.1);
         }
-
-        .progress-bar {
-            height: 6px;
-            background-color: var(--border);
-            border-radius: 3px;
-            margin-top: 0.25rem;
-            overflow: hidden;
+        
+        .coin-count {
+            font-size: 28px;
+            font-weight: 800;
+            color: var(--primary);
         }
-
-        .progress-fill {
-            height: 100%;
-            background-color: var(--primary);
-            border-radius: 3px;
+        
+        .pulse {
+            animation: pulse 0.5s;
         }
-
-        .activity-details {
-            font-size: 0.75rem;
-            color: var(--text-secondary);
-            text-align: center;
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
         }
-
+        
+        @keyframes coinBounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        .coin-animation {
+            animation: coinBounce 0.3s;
+        }
+        
+        /* Адаптивность */
         @media (max-width: 768px) {
-            .table-header, .table-row {
-                grid-template-columns: 40px 1fr 80px 80px;
+            .click-button {
+                width: 130px;
+                height: 130px;
+                font-size: 18px;
             }
             
-            .table-header :nth-child(5),
-            .table-header :nth-child(6),
-            .table-row :nth-child(5),
-            .table-row :nth-child(6) {
-                display: none;
+            .container {
+                padding: 0 15px;
+            }
+            
+            .coin-count {
+                font-size: 24px;
             }
         }
-
-        @media (max-width: 480px) {
-            .table-header, .table-row {
-                grid-template-columns: 30px 1fr 70px;
+        
+        /* Темная тема */
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --background: #1a202c;
+                --card-bg: #2d3748;
+                --dark: #e2e8f0;
+                --light: #4a5568;
             }
             
-            .table-header :nth-child(4),
-            .table-row :nth-child(4) {
-                display: none;
+            body {
+                background-color: var(--background);
+                color: var(--dark);
             }
         }
     </style>
 </head>
 <body>
-    <div id="root"></div>
+    <div class="container" ng-controller="MainController as main">
+        <!-- Навигация -->
+        <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+            <div class="container-fluid">
+                <a class="navbar-brand" href="#">
+                    <i class="fas fa-hand-pointer me-2"></i>Telegram Clicker
+                </a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav">
+                        <li class="nav-item">
+                            <a class="nav-link" href="#!/" ng-class="{ active: $route.current.originalPath === '/' }">Игра</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#!/upgrades" ng-class="{ active: $route.current.originalPath === '/upgrades' }">Улучшения</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#!/stats" ng-class="{ active: $route.current.originalPath === '/stats' }">Статистика</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
 
-<script type="text/babel">
-    const { useState, useEffect } = React;
+        <!-- Контент с маршрутизацией -->
+        <div ng-view></div>
+    </div>
 
-    function VKTopUsers() {
-        const [users, setUsers] = useState([]);
-        const [loading, setLoading] = useState(true);
-        const [error, setError] = useState('');
-        const [lastUpdated, setLastUpdated] = useState(null);
-        const [stats, setStats] = useState({
-            totalActivity: 0,
-            onlineCount: 0,
-            avgActivity: 0,
-            activeToday: 0
-        });
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-        const SERVICE_TOKEN = '806b9bd9806b9bd9806b9bd9ef835e41ab8806b806b9bd9e802949b24494cf04a81d71d';
-        const API_VERSION = '5.131';
-        const PROXY_URL = 'https://cors-anywhere.herokuapp.com/';
-        const UPDATE_INTERVAL = 5 * 60 * 1000; // 5 minutes in milliseconds
-
-        // Popular VK users IDs for more realistic data
-        const POPULAR_USER_IDS = [
-            1, 3, 5, 47, 61, 63, 72, 73, 93, 94, 106, 140, 155, 160, 165, 168, 
-            178, 183, 203, 205, 206, 208, 210, 213, 220, 221, 225, 227, 228, 235,
-            237, 244, 245, 246, 247, 248, 249, 250, 251, 252, 253, 254, 255, 256,
-            257, 258, 259, 260, 261, 262, 263, 264, 265, 266, 267, 268, 269, 270,
-            271, 272, 273, 274, 275, 276, 277, 278, 279, 280, 281, 282, 283, 284,
-            285, 286, 287, 288, 289, 290, 291, 292, 293, 294, 295, 296, 297, 298,
-            299, 300, 301, 302, 303, 304, 305, 306, 307, 308, 309, 310, 311, 312
-        ];
-
-        // Enhanced activity score calculation
-        const calculateActivityScore = (user) => {
-            if (!user) return 0;
-            
-            const now = Math.floor(Date.now() / 1000);
-            let score = 0;
-            
-            // 1. Profile completeness (max 20 points)
-            let completeness = 0;
-            if (user.photo_200 && !user.photo_200.includes('camera_200')) completeness += 5;
-            if (user.status && user.status.length > 0) completeness += 3;
-            if (user.city) completeness += 4;
-            if (user.country) completeness += 4;
-            if (user.bdate) completeness += 4;
-            score += completeness;
-
-            // 2. Social connections (max 30 points)
-            const friendsScore = Math.min(user.counters?.friends || 0, 5000) / 166.67; // max 30 points
-            score += friendsScore;
-
-            // 3. Content activity (max 30 points)
-            const contentScore = (
-                (Math.min(user.counters?.photos || 0, 1000) * 0.01) +
-                (Math.min(user.counters?.videos || 0, 500) * 0.02) +
-                (Math.min(user.counters?.audios || 0, 1000) * 0.01) +
-                (Math.min(user.counters?.groups || 0, 500) * 0.02) +
-                (Math.min(user.counters?.wall || 0, 1000) * 0.02)
-            );
-            score += Math.min(contentScore, 30);
-
-            // 4. Recent activity (max 20 points)
-            if (user.online) {
-                score += 15; // Online now bonus
-            } else if (user.last_seen) {
-                const hoursSinceLastSeen = (now - user.last_seen.time) / 3600;
-                if (hoursSinceLastSeen < 1) score += 12;
-                else if (hoursSinceLastSeen < 6) score += 8;
-                else if (hoursSinceLastSeen < 24) score += 4;
-                else if (hoursSinceLastSeen < 168) score += 2; // Last week
-            }
-
-            // 5. Engagement (max 10 points)
-            if (user.counters?.followers && user.counters?.friends) {
-                const engagementRatio = user.counters.followers / Math.max(user.counters.friends, 1);
-                score += Math.min(engagementRatio * 5, 10);
-            }
-
-            // 6. Account age bonus (max 10 points)
-            if (user.created_at) {
-                const accountAgeDays = (now - user.created_at) / 86400;
-                if (accountAgeDays > 365 * 5) score += 10;
-                else if (accountAgeDays > 365 * 2) score += 7;
-                else if (accountAgeDays > 365) score += 4;
-                else if (accountAgeDays > 180) score += 2;
-            }
-
-            // Normalize score to 0-100 range
-            score = Math.min(Math.max(score, 0), 100);
-            
-            return Math.round(score * 10) / 10; // Round to 1 decimal place
-        };
-
-        const fetchUserData = async (userIds) => {
-            try {
-                setLoading(true);
-                setError('');
-                
-                // 1. Get basic user info
-                const url = `https://api.vk.com/method/users.get?user_ids=${userIds.join(',')}&fields=photo_200,domain,status,counters,city,country,last_seen,online,sex,bdate&access_token=${SERVICE_TOKEN}&v=${API_VERSION}`;
-                const response = await fetch(PROXY_URL + url, {
-                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
-                });
-                const data = await response.json();
-                
-                if (data.error) {
-                    throw new Error(data.error.error_msg || 'Ошибка VK API');
-                }
-                
-                if (!data.response || data.response.length === 0) {
-                    throw new Error('Не удалось получить данные пользователей');
-                }
-                
-                // 2. Get account creation dates and wall posts count
-                const usersWithExtendedData = await Promise.all(data.response.map(async (user) => {
-                    let created_at = null;
-                    let wall_count = 0;
-                    
-                    try {
-                        // Get account creation date from first wall post
-                        const wallUrl = `https://api.vk.com/method/wall.get?owner_id=${user.id}&count=1&filter=owner&access_token=${SERVICE_TOKEN}&v=${API_VERSION}`;
-                        const wallResponse = await fetch(PROXY_URL + wallUrl, {
-                            headers: { 'X-Requested-With': 'XMLHttpRequest' }
-                        });
-                        const wallData = await wallResponse.json();
-                        
-                        if (wallData.response?.items?.[0]?.date) {
-                            created_at = wallData.response.items[0].date;
-                        }
-                        
-                        // Get wall posts count
-                        const wallCountUrl = `https://api.vk.com/method/wall.get?owner_id=${user.id}&count=0&access_token=${SERVICE_TOKEN}&v=${API_VERSION}`;
-                        const wallCountResponse = await fetch(PROXY_URL + wallCountUrl, {
-                            headers: { 'X-Requested-With': 'XMLHttpRequest' }
-                        });
-                        const wallCountData = await wallCountResponse.json();
-                        
-                        if (wallCountData.response?.count) {
-                            wall_count = wallCountData.response.count;
-                        }
-                    } catch (e) {
-                        console.error('Error fetching extended data:', e);
-                    }
-                    
-                    return {
-                        ...user,
-                        created_at,
-                        counters: {
-                            ...(user.counters || {}),
-                            wall: wall_count
-                        }
-                    };
-                }));
-                
-                // Calculate activity scores
-                const usersWithScores = usersWithExtendedData.map(user => ({
-                    ...user,
-                    activityScore: calculateActivityScore(user)
-                }));
-                
-                // Sort by activity score (descending)
-                usersWithScores.sort((a, b) => b.activityScore - a.activityScore);
-                
-                // Calculate statistics
-                const totalActivity = usersWithScores.reduce((sum, user) => sum + user.activityScore, 0);
-                const onlineCount = usersWithScores.filter(user => user.online).length;
-                const avgActivity = totalActivity / usersWithScores.length;
-                const now = Math.floor(Date.now() / 1000);
-                const activeToday = usersWithScores.filter(user => {
-                    if (user.online) return true;
-                    if (!user.last_seen) return false;
-                    return (now - user.last_seen.time) < 86400; // active in last 24 hours
-                }).length;
-                
-                setStats({
-                    totalActivity: Math.round(totalActivity),
-                    onlineCount,
-                    avgActivity: Math.round(avgActivity * 10) / 10,
-                    activeToday
-                });
-                
-                setUsers(usersWithScores.slice(0, 100)); // Take top 100
-                setLastUpdated(new Date());
-            } catch (err) {
-                setError(err.message || 'Произошла ошибка при получении данных');
-                console.error(err);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        const refreshData = () => {
-            // Use popular user IDs for more realistic data
-            fetchUserData(POPULAR_USER_IDS);
-        };
-
-        const formatLastSeen = (timestamp) => {
-            if (!timestamp) return 'Неизвестно';
-            const now = Math.floor(Date.now() / 1000);
-            const diff = now - timestamp;
-            
-            if (diff < 60) return 'Только что';
-            if (diff < 3600) return `${Math.floor(diff / 60)} мин. назад`;
-            if (diff < 86400) return `${Math.floor(diff / 3600)} ч. назад`;
-            return `${Math.floor(diff / 86400)} дн. назад`;
-        };
-
-        const getActivityDetails = (user) => {
-            if (!user) return '';
-            
-            const details = [];
-            if (user.online) details.push('онлайн');
-            if (user.counters?.friends) details.push(`${user.counters.friends} друзей`);
-            if (user.counters?.wall) details.push(`${user.counters.wall} постов`);
-            
-            return details.join(' · ');
-        };
-
-        // Initial data fetch
-        useEffect(() => {
-            refreshData();
-            
-            // Set up auto-refresh every 5 minutes
-            const intervalId = setInterval(refreshData, UPDATE_INTERVAL);
-            return () => clearInterval(intervalId);
-        }, []);
-
-        return (
-            <>
-                <header className="app-header">
-                    <h1 className="app-title">
-                        <i className="fas fa-trophy"></i>
-                        VK Top 100
-                    </h1>
-                    <div className="app-subtitle">
-                        {lastUpdated && `Обновлено: ${lastUpdated.toLocaleTimeString()}`}
-                        <button className="refresh-btn" onClick={refreshData} disabled={loading}>
-                            <i className={`fas fa-sync-alt ${loading ? 'fa-spin' : ''}`}></i>
-                            Обновить
-                        </button>
-                    </div>
-                </header>
-                
-                <div className="container">
-                    {error && (
-                        <div className="error-message">
-                            <i className="fas fa-exclamation-circle"></i>
-                            {error}
-                        </div>
-                    )}
-                    
-                    <div className="stats-grid">
-                        <div className="stat-card">
-                            <div className="stat-value">{stats.totalActivity}</div>
-                            <div className="stat-label">Общая активность</div>
-                        </div>
-                        <div className="stat-card">
-                            <div className="stat-value">{stats.onlineCount}</div>
-                            <div className="stat-label">Сейчас онлайн</div>
-                        </div>
-                        <div className="stat-card">
-                            <div className="stat-value">{stats.avgActivity}</div>
-                            <div className="stat-label">Средняя активность</div>
-                        </div>
-                        <div className="stat-card">
-                            <div className="stat-value">{stats.activeToday}</div>
-                            <div className="stat-label">Активны сегодня</div>
-                        </div>
-                    </div>
-                    
-                    <div className="ranking-header">
-                        <h2 className="section-title">
-                            <i className="fas fa-chart-line"></i>
-                            Топ 100 активных пользователей
-                        </h2>
-                        <div className="last-updated">
-                            {lastUpdated && `Следующее обновление: ${new Date(lastUpdated.getTime() + UPDATE_INTERVAL).toLocaleTimeString()}`}
-                        </div>
-                    </div>
-                    
-                    {loading && users.length === 0 ? (
-                        <div className="loading">
-                            <div className="spinner"></div>
-                            <p>Загрузка данных...</p>
-                        </div>
-                    ) : (
-                        <div className="ranking-table">
-                            <div className="table-header">
-                                <div>#</div>
-                                <div>Пользователь</div>
-                                <div>Активность</div>
-                                <div>Статус</div>
-                                <div>Был в сети</div>
-                                <div>Детали</div>
-                            </div>
+    <script>
+        // Создаем Angular приложение
+        var app = angular.module('clickerApp', ['ngRoute']);
+        
+        // Конфигурация маршрутов
+        app.config(function($routeProvider) {
+            $routeProvider
+                .when('/', {
+                    template: `
+                        <div class="click-area" ng-class="{'pulse': game.clickAnimation}">
+                            <h2>Ваши монеты: <span class="coin-count" ng-class="{'coin-animation': game.coinAnimation}">{{gameState.coins}}</span></h2>
+                            <p>Доход в секунду: {{gameState.coinsPerSecond}}</p>
                             
-                            {users.map((user, index) => (
-                                <div key={user.id} className="table-row">
-                                    <div className={`rank rank-${index + 1}`}>
-                                        {index + 1}
-                                    </div>
-                                    <div className="user-info">
-                                        <img 
-                                            src={user.photo_200 || 'https://vk.com/images/camera_200.png'} 
-                                            alt="Аватар" 
-                                            className="user-avatar"
-                                            onError={(e) => e.target.src = 'https://vk.com/images/camera_200.png'}
-                                        />
-                                        <div>
-                                            <div className="user-name">{user.first_name} {user.last_name}</div>
-                                            <a 
-                                                href={`https://vk.com/${user.domain || 'id' + user.id}`} 
-                                                className="user-link"
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                            >
-                                                <i className="fas fa-external-link-alt"></i>
-                                                Профиль
-                                            </a>
-                                        </div>
-                                    </div>
-                                    <div className="activity-score">
-                                        {user.activityScore}
-                                        <div className="progress-bar">
-                                            <div 
-                                                className="progress-fill" 
-                                                style={{ width: `${user.activityScore}%` }}
-                                            ></div>
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <span className={`online-status ${user.online ? 'online' : 'offline'}`}></span>
-                                        {user.online ? 'Онлайн' : 'Офлайн'}
-                                    </div>
-                                    <div className="last-active">
-                                        {user.last_seen ? formatLastSeen(user.last_seen.time) : 'Неизвестно'}
-                                    </div>
-                                    <div className="activity-details">
-                                        {getActivityDetails(user)}
+                            <button class="click-button" ng-click="game.handleClick()">
+                                <i class="fas fa-coins fa-2x"></i><br>
+                                Клик!<br>
+                                +{{gameState.coinsPerClick}}
+                            </button>
+                            
+                            <div class="mt-3">
+                                <small class="text-muted">Нажимайте на кнопку или используйте пробел</small>
+                            </div>
+                        </div>
+                        
+                        <div class="stats-card">
+                            <h4><i class="fas fa-chart-line me-2"></i>Быстрые улучшения</h4>
+                            <div class="row">
+                                <div class="col-md-6" ng-repeat="upgrade in gameState.upgrades | limitTo:2">
+                                    <div class="upgrade-item">
+                                        <h5>{{upgrade.name}}</h5>
+                                        <p>Стоимость: {{upgrade.cost}} монет</p>
+                                        <button class="btn-upgrade" ng-click="upgrades.purchaseUpgrade(upgrade.id)" ng-disabled="gameState.coins < upgrade.cost">
+                                            Купить ({{upgrade.purchased}})
+                                        </button>
                                     </div>
                                 </div>
-                            ))}
+                            </div>
                         </div>
-                    )}
+                    `,
+                    controller: 'GameController'
+                })
+                .when('/upgrades', {
+                    template: `
+                        <div class="stats-card">
+                            <h2><i class="fas fa-arrow-up me-2"></i>Улучшения</h2>
+                            <p>Увеличивайте свою мощь и зарабатывайте больше монет!</p>
+                        </div>
+                        
+                        <div class="upgrade-item" ng-repeat="upgrade in gameState.upgrades" ng-class="{'pulse': upgrades.purchaseAnimation === upgrade.id}">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h5>{{upgrade.name}}</h5>
+                                    <p class="mb-1">+{{upgrade.increase}} {{upgrade.type == 'click' ? 'за клик' : 'в секунду'}}</p>
+                                    <p class="mb-0">Стоимость: {{upgrade.cost}} монет</p>
+                                </div>
+                                <button class="btn-upgrade" ng-click="upgrades.purchaseUpgrade(upgrade.id)" ng-disabled="gameState.coins < upgrade.cost">
+                                    Купить ({{upgrade.purchased}})
+                                </button>
+                            </div>
+                        </div>
+                    `,
+                    controller: 'UpgradesController'
+                })
+                .when('/stats', {
+                    template: `
+                        <div class="stats-card">
+                            <h2><i class="fas fa-chart-pie me-2"></i>Статистика</h2>
+                            <p>Здесь вы можете увидеть свой прогресс в игре</p>
+                        </div>
+                        
+                        <div class="stats-card">
+                            <h4><i class="fas fa-coins me-2"></i>Общая статистика</h4>
+                            <p>Всего монет: <strong>{{gameState.coins}}</strong></p>
+                            <p>Монет за клик: <strong>{{gameState.coinsPerClick}}</strong></p>
+                            <p>Монет в секунду: <strong>{{gameState.coinsPerSecond}}</strong></p>
+                            <p>Всего улучшений: <strong>{{getTotalUpgrades()}}</strong></p>
+                        </div>
+                        
+                        <div class="stats-card">
+                            <h4><i class="fas fa-trophy me-2"></i>Достижения</h4>
+                            <p>Первые шаги: {{gameState.coins >= 10 ? '✔️' : '❌'}} 10 монет</p>
+                            <p>Начинающий кликер: {{gameState.coins >= 100 ? '✔️' : '❌'}} 100 монет</p>
+                            <p>Профессионал: {{gameState.coins >= 1000 ? '✔️' : '❌'}} 1000 монет</p>
+                            <p>Властелин кликов: {{gameState.coins >= 10000 ? '✔️' : '❌'}} 10,000 монет</p>
+                        </div>
+                        
+                        <div class="stats-card text-center">
+                            <button class="btn btn-danger" ng-click="stats.resetGame()">
+                                <i class="fas fa-trash me-2"></i>Сбросить игру
+                            </button>
+                        </div>
+                    `,
+                    controller: 'StatsController'
+                })
+                .otherwise({
+                    redirectTo: '/'
+                });
+        });
+        
+        // Сервис для управления игровым состоянием
+        app.factory('GameService', function() {
+            var gameState = {
+                coins: 100,
+                coinsPerClick: 1,
+                coinsPerSecond: 0,
+                upgrades: [
+                    { id: 1, name: "Улучшенный клик", cost: 10, increase: 1, type: "click", purchased: 0 },
+                    { id: 2, name: "Автокликер", cost: 50, increase: 1, type: "auto", purchased: 0 },
+                    { id: 3, name: "Двойной клик", cost: 200, increase: 2, type: "click", purchased: 0 },
+                    { id: 4, name: "Супер автокликер", cost: 500, increase: 5, type: "auto", purchased: 0 }
+                ]
+            };
+            
+            // Загрузка состояния из localStorage
+            var loadGame = function() {
+                var savedGame = localStorage.getItem('telegramClickerGame');
+                if (savedGame) {
+                    gameState = JSON.parse(savedGame);
+                }
+            };
+            
+            // Сохранение состояния в localStorage
+            var saveGame = function() {
+                localStorage.setItem('telegramClickerGame', JSON.stringify(gameState));
+            };
+            
+            // Инициализация игры
+            loadGame();
+            
+            return {
+                getState: function() {
+                    return gameState;
+                },
+                
+                addCoins: function(amount) {
+                    gameState.coins += amount;
+                    saveGame();
+                },
+                
+                purchaseUpgrade: function(upgradeId) {
+                    var upgrade = gameState.upgrades.find(u => u.id === upgradeId);
                     
-                    <div className="note">
-                        Примечание: Для работы скрипта может потребоваться разрешить CORS Anywhere. 
-                        Перейдите по <a href="https://cors-anywhere.herokuapp.com/corsdemo" target="_blank" rel="noopener noreferrer">этой ссылке</a> 
-                        и нажмите "Request temporary access to the demo server".<br />
-                        Данные обновляются автоматически каждые 5 минут.
-                    </div>
-                </div>
-            </>
-        );
-    }
-
-    const root = ReactDOM.createRoot(document.getElementById('root'));
-    root.render(<VKTopUsers />);
-</script>
+                    if (gameState.coins >= upgrade.cost) {
+                        gameState.coins -= upgrade.cost;
+                        
+                        if (upgrade.type === "click") {
+                            gameState.coinsPerClick += upgrade.increase;
+                        } else if (upgrade.type === "auto") {
+                            gameState.coinsPerSecond += upgrade.increase;
+                        }
+                        
+                        upgrade.purchased++;
+                        upgrade.cost = Math.floor(upgrade.cost * 1.5);
+                        
+                        saveGame();
+                        return true;
+                    }
+                    
+                    return false;
+                },
+                
+                resetGame: function() {
+                    gameState = {
+                        coins: 0,
+                        coinsPerClick: 1,
+                        coinsPerSecond: 0,
+                        upgrades: [
+                            { id: 1, name: "Улучшенный клик", cost: 10, increase: 1, type: "click", purchased: 0 },
+                            { id: 2, name: "Автокликер", cost: 50, increase: 1, type: "auto", purchased: 0 },
+                            { id: 3, name: "Двойной клик", cost: 200, increase: 2, type: "click", purchased: 0 },
+                            { id: 4, name: "Супер автокликер", cost: 500, increase: 5, type: "auto", purchased: 0 }
+                        ]
+                    };
+                    
+                    saveGame();
+                }
+            };
+        });
+        
+        // Главный контроллер
+        app.controller('MainController', function($scope, GameService) {
+            var vm = this;
+            vm.gameState = GameService.getState();
+            
+            // Автоматическое начисление монет
+            setInterval(function() {
+                if (vm.gameState.coinsPerSecond > 0) {
+                    GameService.addCoins(vm.gameState.coinsPerSecond / 10);
+                    $scope.$apply();
+                }
+            }, 100);
+            
+            // Обработка нажатия пробела для клика
+            document.addEventListener('keydown', function(event) {
+                if (event.code === 'Space') {
+                    event.preventDefault();
+                    GameService.addCoins(vm.gameState.coinsPerClick);
+                    $scope.$apply();
+                }
+            });
+        });
+        
+        // Контроллер игры
+        app.controller('GameController', function($scope, GameService) {
+            var vm = this;
+            vm.gameState = GameService.getState();
+            
+            vm.handleClick = function() {
+                GameService.addCoins(vm.gameState.coinsPerClick);
+                vm.clickAnimation = true;
+                
+                setTimeout(function() {
+                    vm.clickAnimation = false;
+                    $scope.$apply();
+                }, 300);
+            };
+            
+            // Анимация монет каждую секунду, если есть авто-клики
+            setInterval(function() {
+                vm.coinAnimation = true;
+                setTimeout(function() {
+                    vm.coinAnimation = false;
+                    $scope.$apply();
+                }, 300);
+            }, 1000);
+        });
+        
+        // Контроллер улучшений
+        app.controller('UpgradesController', function($scope, GameService) {
+            var vm = this;
+            vm.gameState = GameService.getState();
+            
+            vm.purchaseUpgrade = function(upgradeId) {
+                var success = GameService.purchaseUpgrade(upgradeId);
+                
+                if (success) {
+                    vm.purchaseAnimation = upgradeId;
+                    
+                    setTimeout(function() {
+                        vm.purchaseAnimation = null;
+                        $scope.$apply();
+                    }, 1000);
+                }
+            };
+        });
+        
+        // Контроллер статистики
+        app.controller('StatsController', function($scope, GameService) {
+            var vm = this;
+            vm.gameState = GameService.getState();
+            
+            vm.getTotalUpgrades = function() {
+                return vm.gameState.upgrades.reduce(function(total, upgrade) {
+                    return total + upgrade.purchased;
+                }, 0);
+            };
+            
+            vm.resetGame = function() {
+                if (confirm("Вы уверены, что хотите сбросить весь прогресс?")) {
+                    GameService.resetGame();
+                    vm.gameState = GameService.getState();
+                }
+            };
+        });
+        
+        // Инициализация Telegram Web App
+        app.run(function(GameService) {
+            // Проверяем, запущено ли приложение в Telegram
+            if (window.Telegram && Telegram.WebApp) {
+                // Расширяем приложение на весь экран
+                Telegram.WebApp.expand();
+                
+                // Настройка основной кнопки
+                Telegram.WebApp.MainButton.setText("Поделиться результатом");
+                Telegram.WebApp.MainButton.show();
+                
+                // Обработчик нажатия на основную кнопку
+                Telegram.WebApp.MainButton.onClick(function() {
+                    var gameState = GameService.getState();
+                    var shareText = `Я заработал ${gameState.coins} монет в Telegram Clicker!`;
+                    
+                    Telegram.WebApp.sendData(shareText);
+                });
+                
+                // Получаем данные пользователя
+                var user = Telegram.WebApp.initDataUnsafe.user;
+                if (user) {
+                    console.log("User:", user);
+                    // Можно сохранить информацию о пользователе для персонализации
+                }
+            }
+        });
+    </script>
 </body>
 </html>
