@@ -1,532 +1,491 @@
 <!DOCTYPE html>
-<html lang="ru" ng-app="clickerApp">
+<html lang="ru" ng-app="telegramApp">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Telegram Clicker Game</title>
+    <title>Telegram User Info</title>
     
     <!-- Angular CDN -->
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular-route.min.js"></script>
     
-    <!-- Bootstrap для стилей -->
+    <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     
-    <!-- Font Awesome для иконок -->
+    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
         :root {
             --primary: #6f42c1;
+            --primary-gradient: linear-gradient(135deg, #6f42c1, #8b5ceb);
             --secondary: #20c997;
             --dark: #2d3748;
             --light: #f8f9fa;
             --background: #f5f7ff;
             --card-bg: #ffffff;
+            --menu-bg: rgba(255, 255, 255, 0.95);
+            --text-primary: #2d3748;
+            --text-secondary: #718096;
         }
         
-        body {
-            background-color: var(--background);
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            color: var(--dark);
-            padding-top: 20px;
-            min-height: 100vh;
-        }
-        
-        .container {
-            max-width: 800px;
-        }
-        
-        .navbar {
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-            margin-bottom: 20px;
-        }
-        
-        .click-area {
-            background: var(--card-bg);
-            border-radius: 16px;
-            padding: 30px;
-            text-align: center;
-            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
-            margin-bottom: 20px;
-            transition: transform 0.2s;
-            border: 1px solid rgba(111, 66, 193, 0.1);
-        }
-        
-        .click-area:active {
-            transform: scale(0.98);
-        }
-        
-        .click-button {
-            background: linear-gradient(135deg, var(--primary), #8b5ceb);
-            border: none;
-            border-radius: 50%;
-            width: 160px;
-            height: 160px;
-            color: white;
-            font-size: 22px;
-            font-weight: bold;
-            cursor: pointer;
-            box-shadow: 0 8px 20px rgba(111, 66, 193, 0.3);
-            transition: all 0.2s;
-            margin: 20px 0;
-        }
-        
-        .click-button:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 12px 25px rgba(111, 66, 193, 0.4);
-        }
-        
-        .click-button:active {
-            transform: scale(0.95);
-        }
-        
-        .stats-card {
-            background: var(--card-bg);
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-            border: 1px solid rgba(0, 0, 0, 0.05);
-        }
-        
-        .upgrade-item {
-            background: var(--card-bg);
-            border-radius: 12px;
-            padding: 15px;
-            margin-bottom: 15px;
-            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.06);
-            transition: transform 0.2s;
-            border-left: 4px solid var(--primary);
-        }
-        
-        .upgrade-item:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-        }
-        
-        .btn-upgrade {
-            background: var(--secondary);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            padding: 8px 16px;
-            font-weight: 600;
-            transition: all 0.2s;
-        }
-        
-        .btn-upgrade:hover {
-            background: #198764;
-            transform: translateY(-2px);
-        }
-        
-        .btn-upgrade:disabled {
-            background: #ccc;
-            cursor: not-allowed;
-            transform: none;
-        }
-        
-        .nav-link {
-            font-weight: 600;
-            color: var(--dark);
-            border-radius: 8px;
-            margin: 0 5px;
-            transition: all 0.2s;
-        }
-        
-        .nav-link.active {
-            background: rgba(111, 66, 193, 0.15);
-            color: var(--primary);
-        }
-        
-        .nav-link:hover {
-            background: rgba(111, 66, 193, 0.1);
-        }
-        
-        .coin-count {
-            font-size: 28px;
-            font-weight: 800;
-            color: var(--primary);
-        }
-        
-        .pulse {
-            animation: pulse 0.5s;
-        }
-        
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
-        }
-        
-        @keyframes coinBounce {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
-        }
-        
-        .coin-animation {
-            animation: coinBounce 0.3s;
-        }
-        
-        /* Адаптивность */
-        @media (max-width: 768px) {
-            .click-button {
-                width: 130px;
-                height: 130px;
-                font-size: 18px;
-            }
-            
-            .container {
-                padding: 0 15px;
-            }
-            
-            .coin-count {
-                font-size: 24px;
-            }
-        }
-        
-        /* Темная тема */
         @media (prefers-color-scheme: dark) {
             :root {
                 --background: #1a202c;
                 --card-bg: #2d3748;
-                --dark: #e2e8f0;
-                --light: #4a5568;
+                --text-primary: #e2e8f0;
+                --text-secondary: #a0aec0;
+                --menu-bg: rgba(45, 55, 72, 0.98);
+            }
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--background);
+            color: var(--text-primary);
+            padding: 0;
+            margin: 0;
+            min-height: 100vh;
+            padding-bottom: 80px; /* Space for bottom menu */
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            color: var(--text-secondary);
+            font-size: 18px;
+        }
+        
+        .profile-card {
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        
+        .profile-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+        }
+        
+        .avatar-container {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            overflow: hidden;
+            margin: 0 auto 20px;
+            border: 4px solid var(--primary);
+            box-shadow: 0 5px 15px rgba(111, 66, 193, 0.3);
+        }
+        
+        .avatar {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .default-avatar {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--primary-gradient);
+            color: white;
+            font-size: 48px;
+        }
+        
+        .user-info {
+            margin-bottom: 20px;
+        }
+        
+        .user-name {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 5px;
+            color: var(--text-primary);
+        }
+        
+        .user-id {
+            font-size: 18px;
+            color: var(--text-secondary);
+            margin-bottom: 15px;
+        }
+        
+        .user-data-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        }
+        
+        .user-data-item:last-child {
+            border-bottom: none;
+        }
+        
+        .data-label {
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+        
+        .data-value {
+            color: var(--text-primary);
+        }
+        
+        /* Bottom Navigation */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--menu-bg);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            padding: 10px 0;
+        }
+        
+        .nav-items {
+            display: flex;
+            justify-content: space-around;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-decoration: none;
+            padding: 10px 15px;
+            border-radius: 15px;
+            transition: all 0.3s;
+        }
+        
+        .nav-item.active {
+            background: rgba(111, 66, 193, 0.15);
+        }
+        
+        .nav-icon {
+            font-size: 20px;
+            margin-bottom: 5px;
+            color: var(--primary);
+        }
+        
+        .nav-item.active .nav-icon {
+            color: var(--primary);
+        }
+        
+        .nav-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+        
+        .nav-item.active .nav-label {
+            color: var(--primary);
+        }
+        
+        /* Additional Sections */
+        .section {
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+        }
+        
+        .section-title {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 15px;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+        }
+        
+        .section-title i {
+            margin-right: 10px;
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
             }
             
-            body {
-                background-color: var(--background);
-                color: var(--dark);
+            .profile-card {
+                padding: 20px;
             }
+            
+            .avatar-container {
+                width: 100px;
+                height: 100px;
+            }
+            
+            .user-name {
+                font-size: 22px;
+            }
+            
+            .section {
+                padding: 20px;
+            }
+            
+            .nav-label {
+                font-size: 11px;
+            }
+            
+            .nav-item {
+                padding: 8px 10px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .header h1 {
+                font-size: 24px;
+            }
+            
+            .header p {
+                font-size: 16px;
+            }
+            
+            .user-name {
+                font-size: 20px;
+            }
+            
+            .user-id {
+                font-size: 16px;
+            }
+            
+            .nav-items {
+                justify-content: space-between;
+                padding: 0 10px;
+            }
+            
+            .nav-item {
+                padding: 8px;
+            }
+            
+            .nav-label {
+                font-size: 10px;
+            }
+        }
+        
+        /* Animation */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .animate-fade-in {
+            animation: fadeIn 0.6s ease-out forwards;
+        }
+        
+        /* Telegram WebApp Compatibility */
+        .tg-background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: -1;
+            opacity: 0.03;
+            background: var(--primary);
         }
     </style>
 </head>
 <body>
+    <div class="tg-background"></div>
+    
     <div class="container" ng-controller="MainController as main">
-        <!-- Навигация -->
-        <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-            <div class="container-fluid">
-                <a class="navbar-brand" href="#">
-                    <i class="fas fa-hand-pointer me-2"></i>Telegram Clicker
-                </a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="collapse navbar-collapse" id="navbarNav">
-                    <ul class="navbar-nav">
-                        <li class="nav-item">
-                            <a class="nav-link" href="#!/" ng-class="{ active: $route.current.originalPath === '/' }">Игра</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="#!/upgrades" ng-class="{ active: $route.current.originalPath === '/upgrades' }">Улучшения</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="#!/stats" ng-class="{ active: $route.current.originalPath === '/stats' }">Статистика</a>
-                        </li>
-                    </ul>
+        <!-- Header -->
+        <div class="header animate-fade-in">
+            <h1><i class="fas fa-user-circle"></i> Профиль Telegram</h1>
+            <p>Ваша информация в Telegram</p>
+        </div>
+        
+        <!-- Profile Card -->
+        <div class="profile-card animate-fade-in">
+            <div class="avatar-container">
+                <div ng-if="!userData.photo_url" class="default-avatar">
+                    <i class="fas fa-user"></i>
+                </div>
+                <img ng-if="userData.photo_url" ng-src="{{userData.photo_url}}" class="avatar" alt="User Avatar">
+            </div>
+            
+            <div class="user-info">
+                <h2 class="user-name">{{userData.first_name}} {{userData.last_name}}</h2>
+                <p class="user-id">ID: {{userData.id}}</p>
+            </div>
+            
+            <div class="user-data">
+                <div class="user-data-item">
+                    <span class="data-label">Имя пользователя:</span>
+                    <span class="data-value">@{{userData.username || 'не указан'}}</span>
+                </div>
+                <div class="user-data-item">
+                    <span class="data-label">Язык:</span>
+                    <span class="data-value">{{userData.language_code || 'не указан'}}</span>
+                </div>
+                <div class="user-data-item">
+                    <span class="data-label">Платформа:</span>
+                    <span class="data-value">{{platform}}</span>
+                </div>
+                <div class="user-data-item">
+                    <span class="data-label">Версия Telegram:</span>
+                    <span class="data-value">{{version}}</span>
                 </div>
             </div>
-        </nav>
-
-        <!-- Контент с маршрутизацией -->
-        <div ng-view></div>
+        </div>
+        
+        <!-- Additional Sections -->
+        <div class="section animate-fade-in">
+            <h3 class="section-title"><i class="fas fa-info-circle"></i> О приложении</h3>
+            <p>Это приложение показывает информацию вашего аккаунта Telegram с использованием Telegram WebApp API.</p>
+        </div>
+        
+        <div class="section animate-fade-in">
+            <h3 class="section-title"><i class="fas fa-shield-alt"></i> Безопасность</h3>
+            <p>Ваши данные загружаются непосредственно из Telegram и не сохраняются на наших серверах.</p>
+        </div>
     </div>
+    
+    <!-- Bottom Navigation Menu -->
+    <nav class="bottom-nav">
+        <div class="nav-items">
+            <a href="#" class="nav-item active">
+                <div class="nav-icon">
+                    <i class="fas fa-user"></i>
+                </div>
+                <span class="nav-label">Профиль</span>
+            </a>
+            <a href="#" class="nav-item">
+                <div class="nav-icon">
+                    <i class="fas fa-cog"></i>
+                </div>
+                <span class="nav-label">Настройки</span>
+            </a>
+            <a href="#" class="nav-item">
+                <div class="nav-icon">
+                    <i class="fas fa-share-alt"></i>
+                </div>
+                <span class="nav-label">Поделиться</span>
+            </a>
+            <a href="#" class="nav-item">
+                <div class="nav-icon">
+                    <i class="fas fa-info-circle"></i>
+                </div>
+                <span class="nav-label">О нас</span>
+            </a>
+        </div>
+    </nav>
 
-    <!-- Bootstrap JS -->
+    <!-- Angular and Bootstrap JS -->
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
-        // Создаем Angular приложение
-        var app = angular.module('clickerApp', ['ngRoute']);
+        // Create Angular application
+        var app = angular.module('telegramApp', []);
         
-        // Конфигурация маршрутов
-        app.config(function($routeProvider) {
-            $routeProvider
-                .when('/', {
-                    template: `
-                        <div class="click-area" ng-class="{'pulse': game.clickAnimation}">
-                            <h2>Ваши монеты: <span class="coin-count" ng-class="{'coin-animation': game.coinAnimation}">{{gameState.coins}}</span></h2>
-                            <p>Доход в секунду: {{gameState.coinsPerSecond}}</p>
-                            
-                            <button class="click-button" ng-click="game.handleClick()">
-                                <i class="fas fa-coins fa-2x"></i><br>
-                                Клик!<br>
-                                +{{gameState.coinsPerClick}}
-                            </button>
-                            
-                            <div class="mt-3">
-                                <small class="text-muted">Нажимайте на кнопку или используйте пробел</small>
-                            </div>
-                        </div>
-                        
-                        <div class="stats-card">
-                            <h4><i class="fas fa-chart-line me-2"></i>Быстрые улучшения</h4>
-                            <div class="row">
-                                <div class="col-md-6" ng-repeat="upgrade in gameState.upgrades | limitTo:2">
-                                    <div class="upgrade-item">
-                                        <h5>{{upgrade.name}}</h5>
-                                        <p>Стоимость: {{upgrade.cost}} монет</p>
-                                        <button class="btn-upgrade" ng-click="upgrades.purchaseUpgrade(upgrade.id)" ng-disabled="gameState.coins < upgrade.cost">
-                                            Купить ({{upgrade.purchased}})
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    `,
-                    controller: 'GameController'
-                })
-                .when('/upgrades', {
-                    template: `
-                        <div class="stats-card">
-                            <h2><i class="fas fa-arrow-up me-2"></i>Улучшения</h2>
-                            <p>Увеличивайте свою мощь и зарабатывайте больше монет!</p>
-                        </div>
-                        
-                        <div class="upgrade-item" ng-repeat="upgrade in gameState.upgrades" ng-class="{'pulse': upgrades.purchaseAnimation === upgrade.id}">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div>
-                                    <h5>{{upgrade.name}}</h5>
-                                    <p class="mb-1">+{{upgrade.increase}} {{upgrade.type == 'click' ? 'за клик' : 'в секунду'}}</p>
-                                    <p class="mb-0">Стоимость: {{upgrade.cost}} монет</p>
-                                </div>
-                                <button class="btn-upgrade" ng-click="upgrades.purchaseUpgrade(upgrade.id)" ng-disabled="gameState.coins < upgrade.cost">
-                                    Купить ({{upgrade.purchased}})
-                                </button>
-                            </div>
-                        </div>
-                    `,
-                    controller: 'UpgradesController'
-                })
-                .when('/stats', {
-                    template: `
-                        <div class="stats-card">
-                            <h2><i class="fas fa-chart-pie me-2"></i>Статистика</h2>
-                            <p>Здесь вы можете увидеть свой прогресс в игре</p>
-                        </div>
-                        
-                        <div class="stats-card">
-                            <h4><i class="fas fa-coins me-2"></i>Общая статистика</h4>
-                            <p>Всего монет: <strong>{{gameState.coins}}</strong></p>
-                            <p>Монет за клик: <strong>{{gameState.coinsPerClick}}</strong></p>
-                            <p>Монет в секунду: <strong>{{gameState.coinsPerSecond}}</strong></p>
-                            <p>Всего улучшений: <strong>{{getTotalUpgrades()}}</strong></p>
-                        </div>
-                        
-                        <div class="stats-card">
-                            <h4><i class="fas fa-trophy me-2"></i>Достижения</h4>
-                            <p>Первые шаги: {{gameState.coins >= 10 ? '✔️' : '❌'}} 10 монет</p>
-                            <p>Начинающий кликер: {{gameState.coins >= 100 ? '✔️' : '❌'}} 100 монет</p>
-                            <p>Профессионал: {{gameState.coins >= 1000 ? '✔️' : '❌'}} 1000 монет</p>
-                            <p>Властелин кликов: {{gameState.coins >= 10000 ? '✔️' : '❌'}} 10,000 монет</p>
-                        </div>
-                        
-                        <div class="stats-card text-center">
-                            <button class="btn btn-danger" ng-click="stats.resetGame()">
-                                <i class="fas fa-trash me-2"></i>Сбросить игру
-                            </button>
-                        </div>
-                    `,
-                    controller: 'StatsController'
-                })
-                .otherwise({
-                    redirectTo: '/'
-                });
-        });
-        
-        // Сервис для управления игровым состоянием
-        app.factory('GameService', function() {
-            var gameState = {
-                coins: 100,
-                coinsPerClick: 1,
-                coinsPerSecond: 0,
-                upgrades: [
-                    { id: 1, name: "Улучшенный клик", cost: 10, increase: 1, type: "click", purchased: 0 },
-                    { id: 2, name: "Автокликер", cost: 50, increase: 1, type: "auto", purchased: 0 },
-                    { id: 3, name: "Двойной клик", cost: 200, increase: 2, type: "click", purchased: 0 },
-                    { id: 4, name: "Супер автокликер", cost: 500, increase: 5, type: "auto", purchased: 0 }
-                ]
+        // Main controller
+        app.controller('MainController', function($scope) {
+            // Default user data
+            $scope.userData = {
+                id: 123456789,
+                first_name: "Иван",
+                last_name: "Иванов",
+                username: "ivanov",
+                language_code: "ru",
+                photo_url: "" // Empty for default avatar
             };
             
-            // Загрузка состояния из localStorage
-            var loadGame = function() {
-                var savedGame = localStorage.getItem('telegramClickerGame');
-                if (savedGame) {
-                    gameState = JSON.parse(savedGame);
-                }
-            };
+            $scope.platform = "Web";
+            $scope.version = "7.5";
             
-            // Сохранение состояния в localStorage
-            var saveGame = function() {
-                localStorage.setItem('telegramClickerGame', JSON.stringify(gameState));
-            };
-            
-            // Инициализация игры
-            loadGame();
-            
-            return {
-                getState: function() {
-                    return gameState;
-                },
+            // Check if we're in Telegram WebApp
+            if (typeof Telegram !== 'undefined' && Telegram.WebApp) {
+                // Initialize with Telegram WebApp data[citation:5][citation:6]
+                const tg = Telegram.WebApp;
                 
-                addCoins: function(amount) {
-                    gameState.coins += amount;
-                    saveGame();
-                },
+                // Expand to full screen[citation:6]
+                tg.expand();
                 
-                purchaseUpgrade: function(upgradeId) {
-                    var upgrade = gameState.upgrades.find(u => u.id === upgradeId);
-                    
-                    if (gameState.coins >= upgrade.cost) {
-                        gameState.coins -= upgrade.cost;
-                        
-                        if (upgrade.type === "click") {
-                            gameState.coinsPerClick += upgrade.increase;
-                        } else if (upgrade.type === "auto") {
-                            gameState.coinsPerSecond += upgrade.increase;
-                        }
-                        
-                        upgrade.purchased++;
-                        upgrade.cost = Math.floor(upgrade.cost * 1.5);
-                        
-                        saveGame();
-                        return true;
-                    }
-                    
-                    return false;
-                },
+                // Get user data
+                $scope.userData = tg.initDataUnsafe.user || $scope.userData;
+                $scope.platform = tg.platform;
+                $scope.version = tg.version;
                 
-                resetGame: function() {
-                    gameState = {
-                        coins: 0,
-                        coinsPerClick: 1,
-                        coinsPerSecond: 0,
-                        upgrades: [
-                            { id: 1, name: "Улучшенный клик", cost: 10, increase: 1, type: "click", purchased: 0 },
-                            { id: 2, name: "Автокликер", cost: 50, increase: 1, type: "auto", purchased: 0 },
-                            { id: 3, name: "Двойной клик", cost: 200, increase: 2, type: "click", purchased: 0 },
-                            { id: 4, name: "Супер автокликер", cost: 500, increase: 5, type: "auto", purchased: 0 }
-                        ]
-                    };
-                    
-                    saveGame();
-                }
-            };
-        });
-        
-        // Главный контроллер
-        app.controller('MainController', function($scope, GameService) {
-            var vm = this;
-            vm.gameState = GameService.getState();
-            
-            // Автоматическое начисление монет
-            setInterval(function() {
-                if (vm.gameState.coinsPerSecond > 0) {
-                    GameService.addCoins(vm.gameState.coinsPerSecond / 10);
-                    $scope.$apply();
-                }
-            }, 100);
-            
-            // Обработка нажатия пробела для клика
-            document.addEventListener('keydown', function(event) {
-                if (event.code === 'Space') {
-                    event.preventDefault();
-                    GameService.addCoins(vm.gameState.coinsPerClick);
-                    $scope.$apply();
-                }
-            });
-        });
-        
-        // Контроллер игры
-        app.controller('GameController', function($scope, GameService) {
-            var vm = this;
-            vm.gameState = GameService.getState();
-            
-            vm.handleClick = function() {
-                GameService.addCoins(vm.gameState.coinsPerClick);
-                vm.clickAnimation = true;
+                // Apply changes
+                $scope.$apply();
                 
-                setTimeout(function() {
-                    vm.clickAnimation = false;
-                    $scope.$apply();
-                }, 300);
-            };
-            
-            // Анимация монет каждую секунду, если есть авто-клики
-            setInterval(function() {
-                vm.coinAnimation = true;
-                setTimeout(function() {
-                    vm.coinAnimation = false;
-                    $scope.$apply();
-                }, 300);
-            }, 1000);
-        });
-        
-        // Контроллер улучшений
-        app.controller('UpgradesController', function($scope, GameService) {
-            var vm = this;
-            vm.gameState = GameService.getState();
-            
-            vm.purchaseUpgrade = function(upgradeId) {
-                var success = GameService.purchaseUpgrade(upgradeId);
-                
-                if (success) {
-                    vm.purchaseAnimation = upgradeId;
-                    
-                    setTimeout(function() {
-                        vm.purchaseAnimation = null;
-                        $scope.$apply();
-                    }, 1000);
-                }
-            };
-        });
-        
-        // Контроллер статистики
-        app.controller('StatsController', function($scope, GameService) {
-            var vm = this;
-            vm.gameState = GameService.getState();
-            
-            vm.getTotalUpgrades = function() {
-                return vm.gameState.upgrades.reduce(function(total, upgrade) {
-                    return total + upgrade.purchased;
-                }, 0);
-            };
-            
-            vm.resetGame = function() {
-                if (confirm("Вы уверены, что хотите сбросить весь прогресс?")) {
-                    GameService.resetGame();
-                    vm.gameState = GameService.getState();
-                }
-            };
-        });
-        
-        // Инициализация Telegram Web App
-        app.run(function(GameService) {
-            // Проверяем, запущено ли приложение в Telegram
-            if (window.Telegram && Telegram.WebApp) {
-                // Расширяем приложение на весь экран
-                Telegram.WebApp.expand();
-                
-                // Настройка основной кнопки
-                Telegram.WebApp.MainButton.setText("Поделиться результатом");
-                Telegram.WebApp.MainButton.show();
-                
-                // Обработчик нажатия на основную кнопку
-                Telegram.WebApp.MainButton.onClick(function() {
-                    var gameState = GameService.getState();
-                    var shareText = `Я заработал ${gameState.coins} монет в Telegram Clicker!`;
-                    
-                    Telegram.WebApp.sendData(shareText);
-                });
-                
-                // Получаем данные пользователя
-                var user = Telegram.WebApp.initDataUnsafe.user;
-                if (user) {
-                    console.log("User:", user);
-                    // Можно сохранить информацию о пользователе для персонализации
-                }
+                // Enable closing confirmation[citation:8]
+                tg.enableClosingConfirmation();
             }
+            
+            // Function to share profile
+            $scope.shareProfile = function() {
+                if (typeof Telegram !== 'undefined' && Telegram.WebApp) {
+                    const shareText = `Мой Telegram ID: ${$scope.userData.id}`;
+                    Telegram.WebApp.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(shareText)}`);
+                } else {
+                    alert(`Мой Telegram ID: ${$scope.userData.id}`);
+                }
+            };
+        });
+        
+        // Add animation on scroll
+        document.addEventListener('DOMContentLoaded', function() {
+            const animatedElements = document.querySelectorAll('.animate-fade-in');
+            
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.opacity = 1;
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, { threshold: 0.1 });
+            
+            animatedElements.forEach(element => {
+                element.style.opacity = 0;
+                element.style.transition = 'opacity 0.6s ease-out, transform 0.6s ease-out';
+                observer.observe(element);
+            });
+            
+            // Add active class to nav items on click
+            const navItems = document.querySelectorAll('.nav-item');
+            navItems.forEach(item => {
+                item.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    navItems.forEach(i => i.classList.remove('active'));
+                    this.classList.add('active');
+                });
+            });
         });
     </script>
 </body>
