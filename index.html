@@ -1,0 +1,2603 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Energy System</title>
+    
+    <!-- Подключаем Vue 3 через CDN -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    
+    <!-- Подключаем Material Icons -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    
+    <!-- Подключаем современные шрифты -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- VK Bridge -->
+    <script src="https://unpkg.com/@vkontakte/vk-bridge/dist/browser.min.js"></script>
+    
+    <style>
+        :root {
+            --primary: #6366F1;
+            --primary-light: #E0E7FF;
+            --primary-gradient: linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%);
+            --secondary: #EC4899;
+            --accent: #10B981;
+            --success: #22C55E;
+            --warning: #F59E0B;
+            --error: #EF4444;
+            --dark: #1F2937;
+            --light: #FFFFFF;
+            --gray-50: #F9FAFB;
+            --gray-100: #F3F4F6;
+            --gray-200: #E5E7EB;
+            --gray-300: #D1D5DB;
+            --gray-400: #9CA3AF;
+            --gray-500: #6B7280;
+            --energy-color: #F59E0B;
+            --radius-sm: 8px;
+            --radius: 12px;
+            --radius-lg: 16px;
+            --radius-xl: 20px;
+            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 10px 15px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .dark-theme {
+            --primary: #818CF8;
+            --primary-light: #4B5563;
+            --primary-gradient: linear-gradient(135deg, #818CF8 0%, #A78BFA 100%);
+            --secondary: #F472B6;
+            --accent: #34D399;
+            --success: #4ADE80;
+            --warning: #FBBF24;
+            --error: #F87171;
+            --dark: #F9FAFB;
+            --light: #1F2937;
+            --gray-50: #111827;
+            --gray-100: #1F2937;
+            --gray-200: #374151;
+            --gray-300: #4B5563;
+            --gray-400: #6B7280;
+            --gray-500: #9CA3AF;
+            --energy-color: #FBBF24;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+            font-family: 'Inter', sans-serif;
+        }
+        
+        body {
+            background: var(--gray-100);
+            color: var(--dark);
+            overflow-x: hidden;
+            transition: background-color 0.3s ease;
+        }
+        
+        #app {
+            max-width: 100%;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background: var(--light);
+            position: relative;
+            margin: 0 auto;
+            transition: background-color 0.3s ease;
+        }
+        
+        /* Header */
+        .app-header {
+            background: var(--primary-gradient);
+            color: white;
+            padding: 16px 20px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: var(--shadow);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .header-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .logo-icon {
+            font-size: 24px;
+        }
+        
+        .app-header h1 {
+            font-size: 20px;
+            font-weight: 600;
+        }
+        
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .energy-balance {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 8px 12px;
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            font-weight: 500;
+            color: var(--energy-color);
+        }
+        
+        .settings-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            border-radius: 50%;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            backdrop-filter: blur(10px);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        
+        .settings-btn:active {
+            transform: scale(0.9);
+        }
+        
+        /* Main Content */
+        .app-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0 0 80px;
+        }
+        
+        .section {
+            padding: 20px;
+            display: none;
+        }
+        
+        .section.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        .section-title {
+            font-size: 22px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: var(--dark);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .back-button {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--gray-100);
+            border: none;
+            border-radius: var(--radius);
+            padding: 10px 16px;
+            color: var(--dark);
+            font-weight: 500;
+            margin-bottom: 20px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        
+        .back-button:active {
+            transform: scale(0.98);
+        }
+        
+        /* Карточки */
+        .card {
+            background: var(--light);
+            border-radius: var(--radius-lg);
+            padding: 20px;
+            margin-bottom: 16px;
+            box-shadow: var(--shadow-sm);
+            transition: var(--transition);
+            border: 1px solid var(--gray-200);
+        }
+        
+        .card:active {
+            transform: scale(0.98);
+        }
+        
+        /* Нижняя навигация */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--light);
+            display: flex;
+            justify-content: space-around;
+            padding: 14px 0;
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+            z-index: 100;
+            border-top: 1px solid var(--gray-200);
+        }
+        
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            color: var(--gray-400);
+            font-size: 12px;
+            transition: var(--transition);
+            cursor: pointer;
+        }
+        
+        .nav-item.active {
+            color: var(--primary);
+        }
+        
+        .nav-icon {
+            font-size: 24px;
+        }
+        
+        /* Профиль */
+        .profile-header {
+            background: var(--primary-gradient);
+            color: white;
+            padding: 24px 20px;
+            border-radius: 0 0 var(--radius-xl) var(--radius-xl);
+            margin: -20px -20px 20px;
+        }
+        
+        .profile-info {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+        
+        .profile-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            overflow: hidden;
+        }
+        
+        .profile-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .profile-details {
+            flex: 1;
+        }
+        
+        .profile-name {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        
+        .profile-energy {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 18px;
+            color: var(--energy-color);
+            margin-top: 8px;
+        }
+        
+        /* Вкладки профиля */
+        .profile-tabs {
+            display: flex;
+            background: var(--gray-100);
+            border-radius: var(--radius);
+            padding: 4px;
+            margin-bottom: 20px;
+        }
+        
+        .profile-tab {
+            flex: 1;
+            text-align: center;
+            padding: 10px;
+            border-radius: var(--radius-sm);
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        
+        .profile-tab.active {
+            background: var(--light);
+            box-shadow: var(--shadow-sm);
+        }
+        
+        /* Задания */
+        .tasks-list {
+            margin-top: 20px;
+        }
+        
+        .task-item {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 16px;
+            border-radius: var(--radius);
+            background: var(--light);
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: var(--transition);
+            border: 1px solid var(--gray-200);
+        }
+        
+        .task-item:active {
+            transform: scale(0.98);
+        }
+        
+        .task-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            background: var(--primary-light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary);
+            flex-shrink: 0;
+            font-size: 24px;
+        }
+        
+        .task-info {
+            flex: 1;
+        }
+        
+        .task-name {
+            font-weight: 500;
+            color: var(--dark);
+            margin-bottom: 4px;
+        }
+        
+        .task-description {
+            font-size: 14px;
+            color: var(--gray-500);
+        }
+        
+        .task-reward {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            color: var(--energy-color);
+            font-weight: 600;
+        }
+        
+        /* Реферальная система */
+        .referral-card {
+            background: var(--light);
+            border-radius: var(--radius-lg);
+            padding: 20px;
+            margin-bottom: 24px;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--gray-200);
+        }
+        
+        .referral-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: var(--dark);
+        }
+        
+        .referral-link-container {
+            display: flex;
+            align-items: center;
+            background: var(--gray-100);
+            border-radius: var(--radius);
+            padding: 12px 16px;
+            margin-bottom: 16px;
+        }
+        
+        .referral-link {
+            flex: 1;
+            font-size: 14px;
+            color: var(--dark);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        
+        .copy-icon-btn {
+            background: none;
+            border: none;
+            color: var(--primary);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 4px;
+            border-radius: 4px;
+            transition: var(--transition);
+        }
+        
+        .copy-icon-btn:active {
+            background: var(--gray-200);
+            transform: scale(0.9);
+        }
+        
+        .referral-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        
+        .stat-item {
+            background: var(--gray-100);
+            border-radius: var(--radius);
+            padding: 16px;
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 4px;
+        }
+        
+        .stat-label {
+            font-size: 14px;
+            color: var(--gray-500);
+        }
+        
+        .referral-list {
+            margin-top: 20px;
+        }
+        
+        .referral-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--gray-200);
+        }
+        
+        .referral-item:last-child {
+            border-bottom: none;
+        }
+        
+        .referral-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--gray-200);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        
+        .referral-details {
+            flex: 1;
+        }
+        
+        .referral-name {
+            font-weight: 500;
+            color: var(--dark);
+            margin-bottom: 2px;
+        }
+        
+        .referral-date {
+            font-size: 12px;
+            color: var(--gray-500);
+        }
+        
+        .referral-bonus {
+            color: var(--success);
+            font-weight: 600;
+        }
+        
+        /* Магазин */
+        .shop-items {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+        }
+        
+        .shop-item {
+            background: var(--light);
+            border-radius: var(--radius-lg);
+            padding: 20px;
+            text-align: center;
+            box-shadow: var(--shadow-sm);
+            transition: var(--transition);
+            border: 1px solid var(--gray-200);
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .shop-item:active {
+            transform: scale(0.98);
+        }
+        
+        .item-icon {
+            font-size: 40px;
+            margin-bottom: 12px;
+            color: var(--primary);
+        }
+        
+        .item-name {
+            font-weight: 500;
+            margin-bottom: 8px;
+            font-size: 16px;
+            color: var(--dark);
+            flex: 1;
+        }
+        
+        .item-price {
+            color: var(--secondary);
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            margin-bottom: 12px;
+        }
+        
+        .buy-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: var(--radius);
+            padding: 10px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        
+        .buy-btn:active {
+            transform: scale(0.95);
+        }
+        
+        .buy-btn:disabled {
+            background: var(--gray-300);
+            cursor: not-allowed;
+        }
+        
+        /* Настройки */
+        .settings-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 0;
+            border-bottom: 1px solid var(--gray-200);
+        }
+        
+        .settings-label {
+            font-weight: 500;
+            color: var(--dark);
+        }
+        
+        .theme-switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+        
+        .theme-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: var(--gray-300);
+            transition: .4s;
+            border-radius: 24px;
+        }
+        
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        
+        input:checked + .slider {
+            background-color: var(--primary);
+        }
+        
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+        
+        .settings-link {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 0;
+            border-bottom: 1px solid var(--gray-200);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        
+        .settings-link:active {
+            transform: scale(0.98);
+        }
+        
+        .settings-link:last-child {
+            border-bottom: none;
+        }
+        
+        .link-content {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .link-icon {
+            color: var(--primary);
+        }
+        
+        .link-text {
+            font-weight: 500;
+            color: var(--dark);
+        }
+        
+        .link-arrow {
+            color: var(--gray-400);
+        }
+        
+        /* Модальное окно задания */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+        
+        .modal-content {
+            background: var(--light);
+            border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+            padding: 24px;
+            width: 100%;
+            max-width: 500px;
+            transform: translateY(100%);
+            transition: transform 0.3s ease;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        
+        .modal-overlay.active .modal-content {
+            transform: translateY(0);
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .modal-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--dark);
+        }
+        
+        .close-modal {
+            background: var(--gray-100);
+            border: none;
+            border-radius: 50%;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--dark);
+            cursor: pointer;
+        }
+        
+        .task-details {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+        
+        .task-image {
+            width: 100%;
+            height: 160px;
+            border-radius: var(--radius);
+            object-fit: cover;
+            margin-bottom: 16px;
+        }
+        
+        .task-icon {
+            font-size: 48px;
+            color: var(--primary);
+            margin-bottom: 16px;
+        }
+        
+        .task-name {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--dark);
+        }
+        
+        .task-description {
+            color: var(--gray-500);
+            margin-bottom: 16px;
+            line-height: 1.5;
+        }
+        
+        .task-reward {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            color: var(--energy-color);
+            font-weight: 600;
+            font-size: 18px;
+        }
+        
+        .task-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+        
+        .task-btn {
+            padding: 16px;
+            border: none;
+            border-radius: var(--radius);
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .task-btn:active {
+            transform: scale(0.95);
+        }
+        
+        .check-btn {
+            background: var(--success);
+            color: white;
+        }
+        
+        .go-btn {
+            background: var(--primary);
+            color: white;
+        }
+        
+        /* Игра поиска кодов - полностраничная версия */
+        .game-section {
+            padding: 0;
+            background: var(--light);
+            min-height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 1000;
+            overflow-y: auto;
+        }
+        
+        .game-header {
+            background: var(--primary-gradient);
+            color: white;
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: var(--shadow);
+        }
+        
+        .game-back-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            backdrop-filter: blur(10px);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        
+        .game-back-btn:active {
+            transform: scale(0.9);
+        }
+        
+        .game-title {
+            font-size: 20px;
+            font-weight: 600;
+        }
+        
+        .game-content {
+            padding: 20px;
+        }
+        
+        .game-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            background: var(--gray-100);
+            border-radius: var(--radius);
+            padding: 16px;
+        }
+        
+        .game-cost {
+            text-align: center;
+        }
+        
+        .cost-label {
+            font-size: 14px;
+            color: var(--gray-500);
+            margin-bottom: 4px;
+        }
+        
+        .cost-value {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--primary);
+        }
+        
+        .code-preview {
+            background: var(--gray-100);
+            border-radius: var(--radius);
+            padding: 16px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-family: monospace;
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--primary);
+            border: 2px solid var(--primary-light);
+        }
+        
+        .game-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        
+        .game-cell {
+            aspect-ratio: 1;
+            background: var(--primary-light);
+            border-radius: var(--radius);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 16px;
+            color: var(--primary);
+            cursor: pointer;
+            transition: var(--transition);
+            border: 2px solid transparent;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .game-cell::before {
+            content: '?';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--primary);
+            color: white;
+            font-size: 24px;
+            transition: transform 0.3s ease;
+        }
+        
+        .game-cell.opened::before {
+            transform: scale(0);
+        }
+        
+        .game-cell:hover:not(.opened):not(.failed):not(.success) {
+            transform: scale(1.05);
+        }
+        
+        .game-cell.success {
+            background: var(--success);
+            color: white;
+            cursor: default;
+            border-color: var(--success);
+        }
+        
+        .game-cell.failed {
+            background: var(--error);
+            color: white;
+            cursor: default;
+            border-color: var(--error);
+        }
+        
+        .game-cell.selected {
+            border-color: var(--primary);
+        }
+        
+        .game-stats {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 16px;
+            font-size: 14px;
+            color: var(--gray-500);
+        }
+        
+        .probability {
+            color: var(--warning);
+            font-weight: 600;
+        }
+        
+        .game-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        
+        .game-btn {
+            padding: 12px;
+            border: none;
+            border-radius: var(--radius);
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .game-btn:active {
+            transform: scale(0.95);
+        }
+        
+        .open-btn {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .open-btn:disabled {
+            background: var(--gray-300);
+            cursor: not-allowed;
+        }
+        
+        .claim-btn {
+            background: var(--success);
+            color: white;
+        }
+        
+        .claim-btn:disabled {
+            background: var(--gray-300);
+            cursor: not-allowed;
+        }
+        
+        .cancel-btn {
+            background: var(--gray-300);
+            color: var(--dark);
+        }
+        
+        .new-game-btn {
+            background: var(--primary);
+            color: white;
+            width: 100%;
+        }
+        
+        .game-result {
+            text-align: center;
+            padding: 20px;
+            border-radius: var(--radius);
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+        
+        .game-success {
+            background: var(--success);
+            color: white;
+        }
+        
+        .game-failure {
+            background: var(--error);
+            color: white;
+        }
+        
+        .opened-cells-info {
+            text-align: center;
+            margin-bottom: 16px;
+            font-size: 16px;
+            color: var(--gray-500);
+        }
+        
+        .opened-cells-count {
+            font-weight: 600;
+            color: var(--primary);
+        }
+        
+        /* Коды в разделе */
+        .codes-section {
+            margin-top: 20px;
+        }
+        
+        .search-code-card {
+            background: var(--light);
+            border-radius: var(--radius-lg);
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--gray-200);
+            text-align: center;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        
+        .search-code-card:active {
+            transform: scale(0.98);
+        }
+        
+        .search-icon {
+            font-size: 48px;
+            color: var(--primary);
+            margin-bottom: 16px;
+        }
+        
+        .search-text {
+            font-weight: 500;
+            color: var(--dark);
+            margin-bottom: 8px;
+        }
+        
+        .search-subtext {
+            font-size: 14px;
+            color: var(--gray-500);
+        }
+        
+        .codes-list {
+            margin-top: 20px;
+        }
+        
+        .code-list-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px;
+            border-radius: var(--radius);
+            background: var(--light);
+            margin-bottom: 12px;
+            border: 1px solid var(--gray-200);
+        }
+        
+        .code-info {
+            flex: 1;
+        }
+        
+        .code-value-large {
+            font-family: monospace;
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 4px;
+        }
+        
+        .code-expiry-large {
+            font-size: 12px;
+            color: var(--gray-500);
+        }
+        
+        .code-copy-btn {
+            background: var(--gray-200);
+            border: none;
+            border-radius: var(--radius);
+            padding: 8px 12px;
+            color: var(--dark);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        /* Магазин энергии */
+        .energy-shop {
+            margin-top: 24px;
+        }
+        
+        .energy-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px;
+            border-radius: var(--radius);
+            background: var(--light);
+            margin-bottom: 12px;
+            border: 1px solid var(--gray-200);
+        }
+        
+        .energy-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .energy-icon {
+            color: var(--energy-color);
+            font-size: 24px;
+        }
+        
+        .energy-amount {
+            font-weight: 600;
+            color: var(--energy-color);
+        }
+        
+        .energy-price {
+            color: var(--success);
+            font-weight: 600;
+        }
+        
+        .buy-energy-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: var(--radius);
+            padding: 8px 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        
+        .buy-energy-btn:active {
+            transform: scale(0.95);
+        }
+        
+        .buy-energy-btn:disabled {
+            background: var(--gray-300);
+            cursor: not-allowed;
+        }
+        
+        /* Модальное окно оплаты */
+        .payment-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        
+        .payment-modal.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+        
+        .payment-content {
+            background: var(--light);
+            border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+            padding: 24px;
+            width: 100%;
+            max-width: 500px;
+            transform: translateY(100%);
+            transition: transform 0.3s ease;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        
+        .payment-modal.active .payment-content {
+            transform: translateY(0);
+        }
+        
+        .payment-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .payment-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--dark);
+        }
+        
+        .payment-details {
+            margin-bottom: 20px;
+        }
+        
+        .payment-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+        
+        .payment-icon {
+            font-size: 36px;
+            color: var(--primary);
+        }
+        
+        .payment-info {
+            flex: 1;
+        }
+        
+        .payment-name {
+            font-weight: 500;
+            color: var(--dark);
+            margin-bottom: 4px;
+        }
+        
+        .payment-price {
+            color: var(--secondary);
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        .payment-methods {
+            margin-top: 20px;
+        }
+        
+        .payment-method {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            border: 1px solid var(--gray-300);
+            border-radius: var(--radius);
+            margin-bottom: 12px;
+            cursor: pointer;
+        }
+        
+        .payment-method.active {
+            border-color: var(--primary);
+            background: var(--primary-light);
+        }
+        
+        .payment-method-icon {
+            font-size: 24px;
+            color: var(--primary);
+        }
+        
+        .payment-method-name {
+            font-weight: 500;
+            color: var(--dark);
+        }
+        
+        .payment-actions {
+            margin-top: 20px;
+        }
+        
+        .pay-btn {
+            background: var(--success);
+            color: white;
+            border: none;
+            border-radius: var(--radius);
+            padding: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            width: 100%;
+        }
+        
+        /* Уведомления */
+        .notification {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 95%;
+            background: var(--success);
+            color: white;
+            padding: 12px 20px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-weight: 500;
+            text-align: center;
+        }
+        
+        .notification.show {
+            opacity: 1;
+        }
+        
+        .notification.error {
+            background: var(--error);
+        }
+        
+        /* Анимации */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+        
+        /* Адаптивность */
+        @media (max-width: 340px) {
+            .app-header {
+                padding: 12px 16px;
+            }
+            
+            .section {
+                padding: 16px;
+            }
+            
+            .profile-avatar {
+                width: 70px;
+                height: 70px;
+                font-size: 28px;
+            }
+            
+            .shop-items {
+                grid-template-columns: 1fr;
+            }
+            
+            .game-grid {
+                gap: 8px;
+            }
+        }
+        
+        /* Скрытие scrollbar */
+        .app-content::-webkit-scrollbar {
+            display: none;
+        }
+        
+        .app-content {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        
+        /* Промокод */
+        .promo-section {
+            margin-top: 24px;
+        }
+        
+        .promo-input {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+        
+        .promo-field {
+            flex: 1;
+            padding: 12px 16px;
+            border: 1px solid var(--gray-300);
+            border-radius: var(--radius);
+            font-size: 16px;
+            background: var(--light);
+            color: var(--dark);
+        }
+        
+        .apply-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: var(--radius);
+            padding: 12px 16px;
+            font-weight: 500;
+            cursor: pointer;
+        }
+        
+        .no-items {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--gray-500);
+        }
+        
+        .no-items-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+            color: var(--gray-300);
+        }
+        
+        /* Новые стили для бонусов */
+        .bonus-section {
+            margin-top: 24px;
+        }
+        
+        .bonus-card {
+            background: var(--light);
+            border-radius: var(--radius-lg);
+            padding: 20px;
+            margin-bottom: 16px;
+            box-shadow: var(--shadow-sm);
+            transition: var(--transition);
+            border: 1px solid var(--gray-200);
+            text-align: center;
+        }
+        
+        .bonus-progress {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+        
+        .bonus-icon {
+            font-size: 36px;
+            color: var(--warning);
+        }
+        
+        .bonus-info {
+            flex: 1;
+            margin-left: 16px;
+            text-align: left;
+        }
+        
+        .bonus-title {
+            font-weight: 600;
+            color: var(--dark);
+            margin-bottom: 4px;
+        }
+        
+        .bonus-description {
+            font-size: 14px;
+            color: var(--gray-500);
+        }
+        
+        .bonus-amount {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--warning);
+        }
+        
+        .progress-bar {
+            height: 8px;
+            background: var(--gray-200);
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 12px 0;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: var(--warning);
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+        
+        .bonus-action {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .claim-bonus-btn {
+            flex: 1;
+            background: var(--warning);
+            color: white;
+            border: none;
+            border-radius: var(--radius);
+            padding: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition;
+        }
+        
+        .claim-bonus-btn:active {
+            transform: scale(0.95);
+        }
+        
+        .claim-bonus-btn:disabled {
+            background: var(--gray-300);
+            cursor: not-allowed;
+        }
+        
+        .watch-ad-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: var(--radius);
+            padding: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        
+        .watch-ad-btn:active {
+            transform: scale(0.95);
+        }
+        
+        /* Стили для статуса кода */
+        .code-status {
+            font-size: 12px;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-weight: 500;
+        }
+        
+        .status-available {
+            background: var(--success);
+            color: white;
+        }
+        
+        .status-used {
+            background: var(--gray-300);
+            color: var(--dark);
+        }
+        
+        .status-expired {
+            background: var(--error);
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <header class="app-header">
+            <div class="header-content">
+                <div class="logo">
+                    <i class="material-icons logo-icon">bolt</i>
+                    <h1>{{ getHeaderTitle() }}</h1>
+                </div>
+                <div class="header-actions">
+                    <div class="energy-balance">
+                        <span>{{ formatNumber(user.energy) }}</span>
+                        <i class="material-icons" style="font-size:18px;">bolt</i>
+                    </div>
+                </div>
+            </div>
+        </header>
+        
+        <main class="app-content">
+            <!-- Профиль -->
+            <div class="section" :class="{ active: activeSection === 'profile' }">
+                <div class="profile-header">
+                    <div class="profile-info">
+                        <div class="profile-avatar">
+                            <img v-if="user.avatar" :src="user.avatar" alt="Avatar">
+                            <i v-else class="material-icons">person</i>
+                        </div>
+                        <div class="profile-details">
+                            <div class="profile-name">{{ user.name }}</div>
+                            <div class="profile-energy">
+                                <span>{{ formatNumber(user.energy) }}</span>
+                                <i class="material-icons" style="font-size:18px;">bolt</i>
+                                энергии
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="profile-tabs">
+                    <div class="profile-tab" :class="{ active: activeProfileTab === 'tasks' }" @click="activeProfileTab = 'tasks'">Задания</div>
+                    <div class="profile-tab" :class="{ active: activeProfileTab === 'referral' }" @click="activeProfileTab = 'referral'">Рефералы</div>
+                </div>
+                
+                <!-- Вкладка заданий -->
+                <div v-if="activeProfileTab === 'tasks'">
+                    <div class="tasks-list">
+                        <div v-if="availableTasks.length > 0">
+                            <div class="task-item" v-for="(task, index) in availableTasks" :key="index" @click="openTaskModal(task)">
+                                <div class="task-icon">
+                                    <i class="material-icons">{{ task.icon }}</i>
+                                </div>
+                                <div class="task-info">
+                                    <div class="task-name">{{ task.name }}</div>
+                                    <div class="task-description">{{ task.action }}</div>
+                                </div>
+                                <div class="task-reward">
+                                    <span>+{{ task.reward }}⚡</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="no-items" v-else>
+                            <i class="material-icons no-items-icon">assignment</i>
+                            <p>Задания не найдены</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Вкладка рефералов -->
+                <div v-if="activeProfileTab === 'referral'">
+                    <div class="referral-card">
+                        <div class="referral-title">Приглашайте друзей и получайте энергию</div>
+                        
+                        <div class="referral-link-container">
+                            <div class="referral-link">
+                                {{ referralLink }}
+                            </div>
+                            <button class="copy-icon-btn" @click="copyReferralLink">
+                                <i class="material-icons">content_copy</i>
+                            </button>
+                        </div>
+                        
+                        <div class="referral-stats">
+                            <div class="stat-item">
+                                <div class="stat-value">{{ user.referrals }}</div>
+                                <div class="stat-label">Рефералов</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value">+{{ user.referralEarnings }}⚡</div>
+                                <div class="stat-label">Получено энергии</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="referral-list" v-if="referralsList.length > 0">
+                        <h3 class="section-title">Ваши рефералы</h3>
+                        
+                        <div class="referral-item" v-for="(ref, index) in referralsList" :key="index">
+                            <div class="referral-avatar">
+                                <i class="material-icons">person</i>
+                            </div>
+                            <div class="referral-details">
+                                <div class="referral-name">{{ ref.name }}</div>
+                                <div class="referral-date">Присоединился {{ formatDate(ref.date) }}</div>
+                            </div>
+                            <div class="referral-bonus">+{{ ref.bonus }}⚡</div>
+                        </div>
+                    </div>
+                    <div class="no-items" v-else>
+                        <i class="material-icons no-items-icon">group</i>
+                        <p>У вас пока нет рефералов</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Магазин -->
+            <div class="section" :class="{ active: activeSection === 'shop' }">
+                <h2 class="section-title">Магазин</h2>
+                
+                <!-- Бонус за рекламу -->
+                <div class="bonus-section">
+                    <div class="bonus-card">
+                        <div class="bonus-progress">
+                            <i class="material-icons bonus-icon">card_giftcard</i>
+                            <div class="bonus-info">
+                                <div class="bonus-title">Ежедневный бонус</div>
+                                <div class="bonus-description">Смотрите рекламу и получайте энергию</div>
+                            </div>
+                            <div class="bonus-amount">{{ dailyBonus.amount }}⚡</div>
+                        </div>
+                        
+                        <div class="progress-bar">
+                            <div class="progress-fill" :style="{ width: dailyBonus.progress + '%' }"></div>
+                        </div>
+                        
+                        <div class="bonus-action">
+                            <button class="claim-bonus-btn" @click="claimDailyBonus" :disabled="!dailyBonus.available">
+                                Забрать {{ dailyBonus.amount }}⚡
+                            </button>
+                            <button class="watch-ad-btn" @click="watchAdForBonus" v-if="!dailyBonus.available">
+                                Смотреть рекламу
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Энергия -->
+                <h3 class="section-title">Энергия</h3>
+                <div class="energy-shop">
+                    <div class="energy-item" v-for="(item, index) in energyShopItems" :key="index">
+                        <div class="energy-info">
+                            <i class="material-icons energy-icon">bolt</i>
+                            <div class="energy-amount">+{{ formatNumber(item.amount) }}⚡</div>
+                        </div>
+                        <div class="energy-price">{{ item.price }} ₽</div>
+                        <button class="buy-energy-btn" @click="openPaymentModal(item)">Купить</button>
+                    </div>
+                </div>
+                
+                <!-- Бустеры -->
+                <h3 class="section-title">Бустеры</h3>
+                <div class="shop-items">
+                    <div class="shop-item" v-for="(booster, index) in boosters" :key="index">
+                        <i class="material-icons item-icon">{{ booster.icon }}</i>
+                        <div class="item-name">{{ booster.name }}</div>
+                        <div class="item-description">{{ booster.description }}</div>
+                        <div class="item-price">{{ booster.price }} ₽</div>
+                        <button class="buy-btn" @click="buyBooster(booster)" :disabled="user.energy < booster.price">
+                            Купить
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Коды -->
+            <div class="section" :class="{ active: activeSection === 'codes' }">
+                <h2 class="section-title">Коды</h2>
+                
+                <div class="search-code-card" @click="startGame">
+                    <i class="material-icons search-icon">search</i>
+                    <div class="search-text">Поиск кодов</div>
+                    <div class="search-subtext">Найдите коды для получения энергии</div>
+                </div>                                
+                
+                <div class="codes-section">
+                    <h3 class="section-title">Мои коды</h3>
+                    
+                    <div class="codes-list" v-if="user.codes.length > 0">
+                        <div class="code-list-item" v-for="(code, index) in user.codes" :key="index">
+                            <div class="code-info">
+                                <div class="code-value-large">{{ code.value }}</div>
+                                <div class="code-expiry-large">
+                                    <span class="code-status" :class="getCodeStatusClass(code)">
+                                        {{ getCodeStatusText(code) }}
+                                    </span>
+                                </div>
+                            </div>
+                            <button class="code-copy-btn" @click="copyCode(code.value)" v-if="code.status === 'available'">
+                                <i class="material-icons">content_copy</i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="no-items" v-else>
+                        <i class="material-icons no-items-icon">code</i>
+                        <p>У вас пока нет кодов</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Игра поиска кодов - полностраничная версия -->
+            <div class="section game-section" :class="{ active: activeSection === 'game' }">
+                <div class="game-header">
+                    <button class="game-back-btn" @click="activeSection = 'codes'">
+                        <i class="material-icons">arrow_back</i>
+                    </button>
+                    <h2 class="game-title">Поиск кодов</h2>
+                    <div class="energy-balance">
+                        <span>{{ formatNumber(user.energy) }}</span>
+                        <i class="material-icons" style="font-size:18px;">bolt</i>
+                    </div>
+                </div>
+                
+                <div class="game-content">
+                    <div class="game-info">
+                        <div class="game-cost">
+                            <div class="cost-label">Стоимость открытия</div>
+                            <div class="cost-value">{{ hasFreeOpens ? 'БЕСПЛАТНО' : currentCost + '⚡' }}</div>
+                        </div>
+                        <div class="game-cost">
+                            <div class="cost-label">Открыто ячеек</div>
+                            <div class="cost-value">{{ openedCells }}/3</div>
+                        </div>
+                        <div class="game-cost">
+                            <div class="cost-label">Найдено кодов</div>
+                            <div class="cost-value">{{ user.codes.length }}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="code-preview">
+                        VK-{{ codeParts[0] || '????' }}-{{ codeParts[1] || '????' }}-{{ codeParts[2] || '????' }}
+                    </div>
+                    
+                    <div class="opened-cells-info">
+                        Открыто: <span class="opened-cells-count">{{ openedCells }}/3</span> ячеек
+                    </div>
+                    
+                    <div class="game-grid">
+                        <div 
+                            v-for="(cell, index) in gameCells" 
+                            :key="index" 
+                            class="game-cell"
+                            :class="{ 
+                                opened: cell.opened, 
+                                failed: cell.failed,
+                                success: cell.success,
+                                selected: selectedCell === index && !cell.opened
+                            }"
+                            @click="selectCell(index)"
+                        >
+                            {{ cell.opened ? cell.value : '' }}
+                        </div>
+                    </div>
+                    
+                    <div class="game-stats">
+                        <div>Вероятность успеха: <span class="probability">{{ winProbability }}%</span></div>
+                        <div>Попыток: {{ user.gamesPlayed }}</div>
+                    </div>
+                    
+                    <div v-if="gameStatus === 'playing'">
+                        <div class="game-actions">
+                            <button class="cancel-btn game-btn" @click="activeSection = 'codes'">
+                                <i class="material-icons">close</i>
+                                Выйти
+                            </button>
+                            <button class="open-btn game-btn" @click="openCell" :disabled="!canOpenCell || openedCells >= 3">
+                                <i class="material-icons">search</i>
+                                {{ hasFreeOpens ? 'Открыть ячейку (БЕСПЛАТНО)' : `Открыть ячейку (-${currentCost}⚡)` }}
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div v-else-if="gameStatus === 'success'">
+                        <div class="game-result game-success">
+                            <i class="material-icons" style="font-size: 48px; margin-bottom: 10px;">celebration</i>
+                            <h3>Поздравляем! Вы нашли код!</h3>
+                            <p>Код: VK-{{ codeParts[0] }}-{{ codeParts[1] }}-{{ codeParts[2] }}</p>
+                        </div>
+                        <button class="claim-btn game-btn new-game-btn" @click="claimCode">
+                            <i class="material-icons">card_giftcard</i>
+                            Забрать код
+                        </button>
+                    </div>
+                    
+                    <div v-else-if="gameStatus === 'failure'">
+                        <div class="game-result game-failure">
+                            <i class="material-icons" style="font-size: 48px; margin-bottom: 10px;">mood_bad</i>
+                            <h3>Увы! Вы нашли ловушку!</h3>
+                            <p>Попробуйте еще раз</p>
+                        </div>
+                        <button class="new-game-btn game-btn" @click="startNewGame">
+                            <i class="material-icons">refresh</i>
+                            Новая игра
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Настройки -->
+            <div class="section" :class="{ active: activeSection === 'settings' }">
+                <h2 class="section-title">Настройки</h2>
+                
+                <div class="card">
+                    <div class="settings-item">
+                        <span class="settings-label">Темная тема</span>
+                        <label class="theme-switch">
+                            <input type="checkbox" v-model="darkTheme">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="settings-link" @click="openRules">
+                        <div class="link-content">
+                            <i class="material-icons link-icon">rule</i>
+                            <span class="link-text">Правила и Условия</span>
+                        </div>
+                        <i class="material-icons link-arrow">chevron_right</i>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="settings-link" @click="openHelp">
+                        <div class="link-content">
+                            <i class="material-icons link-icon">help</i>
+                            <span class="link-text">Помощь</span>
+                        </div>
+                        <i class="material-icons link-arrow">chevron_right</i>
+                    </div>
+                </div>
+            </div>
+        
+            <!-- Нижняя навигация -->
+            <nav class="bottom-nav">
+                <div class="nav-item" :class="{ active: activeSection === 'profile' }" @click="activeSection = 'profile'">
+                    <i class="material-icons nav-icon">person</i>
+                    <span>Профиль</span>
+                </div>
+                <div class="nav-item" :class="{ active: activeSection === 'shop' }" @click="activeSection = 'shop'">
+                    <i class="material-icons nav-icon">shopping_cart</i>
+                    <span>Магазин</span>
+                </div>
+                <div class="nav-item" :class="{ active: activeSection === 'codes' }" @click="activeSection = 'codes'">
+                    <i class="material-icons nav-icon">vpn_key</i>
+                    <span>Коды</span>
+                </div>
+                <div class="nav-item" :class="{ active: activeSection === 'settings' }" @click="activeSection = 'settings'">
+                    <i class="material-icons nav-icon">settings</i>
+                    <span>Настройки</span>
+                </div>
+            </nav>
+            
+            <!-- Модальное окно задания -->
+            <div class="modal-overlay" :class="{ active: showTaskModal }" @click="closeTaskModal">
+                <div class="modal-content" @click.stop>
+                    <div class="modal-header">
+                        <h3 class="modal-title">Задание</h3>
+                        <button class="close-modal" @click="closeTaskModal">
+                            <i class="material-icons">close</i>
+                        </button>
+                    </div>
+                    
+                    <div class="task-details" v-if="selectedTask">
+                        <img :src="selectedTask.image" class="task-image" alt="Task Image">
+                        <h4 class="task-name">{{ selectedTask.name }}</h4>
+                        <p class="task-description">{{ selectedTask.description }}</p>
+                        <div class="task-reward">
+                            <span>+{{ selectedTask.reward }}⚡</span>
+                        </div>
+                    </div>
+                    
+                    <div class="task-actions">
+                        <button class="task-btn check-btn" @click="completeTask">
+                            <i class="material-icons">check_circle</i>
+                            Проверить
+                        </button>
+                        <button class="task-btn go-btn">
+                            <i class="material-icons">open_in_new</i>
+                            Перейти
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Модальное окно оплаты -->
+            <div class="payment-modal" :class="{ active: showPaymentModal }" @click="closePaymentModal">
+                <div class="payment-content" @click.stop>
+                    <div class="payment-header">
+                        <h3 class="payment-title">Оплата</h3>
+                        <button class="close-modal" @click="closePaymentModal">
+                            <i class="material-icons">close</i>
+                        </button>
+                    </div>
+                    
+                    <div class="payment-details" v-if="selectedEnergyItem">
+                        <div class="payment-item">
+                            <i class="material-icons payment-icon">bolt</i>
+                            <div class="payment-info">
+                                <div class="payment-name">{{ selectedEnergyItem.amount }} энергии</div>
+                                <div class="payment-price">{{ selectedEnergyItem.price }} ₽</div>
+                            </div>
+                        </div>
+                        
+                        <div class="payment-methods">
+                            <h4 style="margin-bottom: 12px; color: var(--dark);">Способ оплаты</h4>
+                            
+                            <div class="payment-method" :class="{ active: selectedPaymentMethod === 'yookassa' }" @click="selectedPaymentMethod = 'yookassa'">
+                                <i class="material-icons payment-method-icon">credit_card</i>
+                                <div class="payment-method-name">ЮKassa (банковская карта)</div>
+                            </div>                                    
+                        </div>
+                        
+                        <div class="payment-actions">
+                            <button class="pay-btn" @click="processPayment">Оплатить {{ selectedEnergyItem.price }} ₽</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Уведомление -->
+            <div class="notification" :class="{ show: showNotification, error: notificationError }">
+                <i class="material-icons">{{ notificationError ? 'error' : 'check_circle' }}</i>
+                <span>{{ notificationMessage }}</span>
+            </div>
+        </div>
+
+        <script>
+            const { createApp, ref, computed, watch, onMounted } = Vue;
+            
+            createApp({
+                setup() {
+                    // Состояние приложения
+                    const activeSection = ref('profile');
+                    const activeProfileTab = ref('tasks');
+                    const darkTheme = ref(false);
+                    const showTaskModal = ref(false);
+                    const showPaymentModal = ref(false);
+                    const showNotification = ref(false);
+                    const notificationMessage = ref('');
+                    const notificationError = ref(false);
+                    const promoCode = ref('');
+                    const selectedTask = ref(null);
+                    const selectedEnergyItem = ref(null);
+                    const selectedPaymentMethod = ref('yookassa');
+                    
+                    // Игра поиска кодов
+                    const gameCells = ref([]);
+                    const selectedCell = ref(null);
+                    const openedCells = ref(0);
+                    const codeParts = ref(['', '', '']);
+                    const currentCost = ref(5); // Базовая стоимость увеличена для баланса
+                    const winProbability = ref(25);
+                    const gameStatus = ref('playing');
+                    
+                    // Ежедневный бонус
+                    const dailyBonus = ref({
+                        amount: 10,
+                        available: false,
+                        progress: 0,
+                        lastClaimed: null
+                    });
+                    
+                    // Бустеры
+                    const activeBoosters = ref([]);
+                    
+                    // Данные пользователя
+                    const user = ref({
+                        name: 'Загрузка...',
+                        avatar: '',
+                        energy: 50, // Начальная энергия увеличена
+                        referrals: 0,
+                        referralEarnings: 0,
+                        codes: [],
+                        completedTasks: [],
+                        gamesPlayed: 0,
+                        freeOpens: 0, // Бесплатные открытия от бустеров
+                        lastBonusDate: null
+                    });
+                    
+                    // Ссылка для рефералов
+                    const referralLink = ref('https://vk.com/app123456#ref=');
+                    
+                    // Список рефералов
+                    const referralsList = ref([]);
+                    
+                    // Все задания
+                    const allTasks = ref([
+                        { 
+                            id: 1,
+                            name: 'Подписка на группу', 
+                            icon: 'groups', 
+                            action: 'Подпишитесь на наш канал', 
+                            reward: 25, // Увеличенная награда
+                            description: 'Подпишитесь на наш Telegram канал и получите награду в виде энергии',
+                            image: 'https://via.placeholder.com/300x160?text=Telegram+Channel'
+                        },
+                        { 
+                            id: 2,
+                            name: 'Пригласите друга', 
+                            icon: 'person_add', 
+                            action: 'Пригласите друга по реферальной ссылке', 
+                            reward: 50,
+                            description: 'Пригласите друга и получите бонусную энергию',
+                            image: 'https://via.placeholder.com/300x160?text=Referral'
+                        }
+                    ]);
+                    
+                    // Энергия для покупки (обновленные цены)
+                    const energyShopItems = ref([
+                        { amount: 100, price: 49 },
+                        { amount: 250, price: 99 },
+                        { amount: 500, price: 179 },
+                        { amount: 1000, price: 299 },
+                        { amount: 2500, price: 699 },
+                        { amount: 5000, price: 1299 }
+                    ]);
+                    
+                    // Бустеры в магазине
+                    const boosters = ref([
+                        {
+                            id: 1,
+                            name: 'Энергетик (1 день)',
+                            icon: 'local_drink',
+                            description: 'Бесплатные открытия ячеек на 24 часа',
+                            price: 100, // В энергии
+                            duration: 24 * 60 * 60 * 1000, // 24 часа в миллисекундах
+                            effect: 'free_opens'
+                        },
+                        {
+                            id: 2,
+                            name: 'Удача х2',
+                            icon: 'casino',
+                            description: 'Удваивает шанс найти код на 10 игр',
+                            price: 200,
+                            duration: 10, // 10 игр
+                            effect: 'double_luck'
+                        },
+                        {
+                            id: 3,
+                            name: 'Энергетик PRO (7 дней)',
+                            icon: 'energy_savings_leaf',
+                            description: 'Бесплатные открытия на 7 дней',
+                            price: 500,
+                            duration: 7 * 24 * 60 * 60 * 1000,
+                            effect: 'free_opens_pro'
+                        }
+                    ]);
+                    
+                    // Доступные задания (не выполненные)
+                    const availableTasks = computed(() => {
+                        return allTasks.value.filter(task => !user.value.completedTasks.includes(task.id));
+                    });
+                    
+                    // Есть ли бесплатные открытия
+                    const hasFreeOpens = computed(() => {
+                        return user.value.freeOpens > 0 || activeBoosters.value.some(booster => booster.effect === 'free_opens' || booster.effect === 'free_opens_pro');
+                    });
+                    
+                    // Можно ли открыть ячейку
+                    const canOpenCell = computed(() => {
+                        return selectedCell.value !== null && !gameCells.value[selectedCell.value].opened;
+                    });
+                    
+                    // Заголовок в зависимости от активного раздела
+                    const getHeaderTitle = () => {
+                        switch(activeSection.value) {
+                            case 'profile': return 'Профиль';
+                            case 'shop': return 'Магазин';
+                            case 'codes': return 'Коды';
+                            case 'game': return 'Поиск кодов';
+                            case 'settings': return 'Настройки';
+                            default: return 'Energy System';
+                        }
+                    };
+                    
+                    // Получить статус кода
+                    const getCodeStatusText = (code) => {
+                        const now = new Date();
+                        const expiry = new Date(code.expiry);
+                        
+                        if (code.status === 'used') return 'Использован';
+                        if (now > expiry) return 'Просрочен';
+                        return 'Доступен';
+                    };
+                    
+                    // Получить класс статуса кода
+                    const getCodeStatusClass = (code) => {
+                        const now = new Date();
+                        const expiry = new Date(code.expiry);
+                        
+                        if (code.status === 'used') return 'status-used';
+                        if (now > expiry) return 'status-expired';
+                        return 'status-available';
+                    };
+                    
+                    // Форматирование чисел
+                    const formatNumber = (num) => {
+                        return new Intl.NumberFormat('ru-RU').format(num);
+                    };
+                    
+                    // Форматирование даты
+                    const formatDate = (date) => {
+                        return new Intl.DateTimeFormat('ru-RU', {
+                            day: '2-digit',
+                            month: '2-digit',
+                            year: 'numeric'
+                        }).format(new Date(date));
+                    };
+                    
+                    // Показать уведомление
+                    const showNotify = (message, isError = false) => {
+                        notificationMessage.value = message;
+                        notificationError.value = isError;
+                        showNotification.value = true;
+                        
+                        setTimeout(() => {
+                            showNotification.value = false;
+                        }, 3000);
+                    };
+                    
+                    // Инициализация VK Bridge
+                    const initVKBridge = async () => {
+                        try {
+                            // Инициализация VK Bridge
+                            await vkBridge.send('VKWebAppInit');
+                            
+                            // Получение данных пользователя
+                            const userData = await vkBridge.send('VKWebAppGetUserInfo');
+                            user.value.name = `${userData.first_name} ${userData.last_name}`;
+                            user.value.avatar = userData.photo_100;
+                            
+                            // Получение реферальных данных
+                            const launchParams = new URLSearchParams(window.location.search);
+                            const refParam = launchParams.get('ref');
+                            if (refParam) {
+                                referralLink.value = `https://vk.com/app123456#ref=${refParam}`;
+                                // Обработка реферала
+                                processReferral(refParam);
+                            }
+                            
+                        } catch (error) {
+                            console.error('VK Bridge error:', error);
+                            // Запасные данные если VK Bridge не доступен
+                            user.value.name = 'Алексей Петров';
+                        }
+                    };
+                    
+                    // Обработка реферала
+                    const processReferral = (refId) => {
+                        // Здесь должна быть логика обработки реферала
+                        showNotify('Реферал засчитан! +50 энергии');
+                        user.value.energy += 50;
+                    };
+                    
+                    // Обновление ежедневного бонуса
+                    const updateDailyBonus = () => {
+                        const now = new Date();
+                        const lastClaimed = dailyBonus.value.lastClaimed ? new Date(dailyBonus.value.lastClaimed) : null;
+                        
+                        if (!lastClaimed || now.toDateString() !== lastClaimed.toDateString()) {
+                            dailyBonus.value.available = true;
+                            dailyBonus.value.progress = 100;
+                        } else {
+                            dailyBonus.value.available = false;
+                            dailyBonus.value.progress = 0;
+                        }
+                    };
+                    
+                    // Забрать ежедневный бонус
+                    const claimDailyBonus = () => {
+                        if (!dailyBonus.value.available) return;
+                        
+                        user.value.energy += dailyBonus.value.amount;
+                        dailyBonus.value.lastClaimed = new Date();
+                        dailyBonus.value.available = false;
+                        dailyBonus.value.progress = 0;
+                        
+                        showNotify(`Бонус получен! +${dailyBonus.value.amount} энергии`);
+                    };
+                    
+                    // Просмотр рекламы для бонуса
+                    const watchAdForBonus = () => {
+                        // Симуляция просмотра рекламы
+                        showNotify('Реклама просмотрена! Бонус доступен');
+                        dailyBonus.value.available = true;
+                        dailyBonus.value.progress = 100;
+                    };
+                    
+                    // Открыть модальное окно задания
+                    const openTaskModal = (task) => {
+                        selectedTask.value = task;
+                        showTaskModal.value = true;
+                    };
+                    
+                    // Закрыть модальное окно задания
+                    const closeTaskModal = () => {
+                        showTaskModal.value = false;
+                        selectedTask.value = null;
+                    };
+                    
+                    // Выполнить задание
+                    const completeTask = () => {
+                        if (!selectedTask.value) return;
+                        
+                        user.value.energy += selectedTask.value.reward;
+                        user.value.completedTasks.push(selectedTask.value.id);
+                        showNotify(`Задание выполнено! +${selectedTask.value.reward} энергии`);
+                        closeTaskModal();
+                    };
+                    
+                    // Открыть модальное окно оплаты
+                    const openPaymentModal = (item) => {
+                        selectedEnergyItem.value = item;
+                        showPaymentModal.value = true;
+                    };
+                    
+                    // Закрыть модальное окно оплаты
+                    const closePaymentModal = () => {
+                        showPaymentModal.value = false;
+                        selectedEnergyItem.value = null;
+                    };
+                    
+                    // Обработка оплаты
+                    const processPayment = () => {
+                        if (!selectedEnergyItem.value) return;
+                        
+                        // Симуляция успешной оплаты
+                        user.value.energy += selectedEnergyItem.value.amount;
+                        showNotify(`Оплата прошла успешно! +${selectedEnergyItem.value.amount} энергии`);
+                        closePaymentModal();
+                    };
+                    
+                    // Покупка бустера
+                    const buyBooster = (booster) => {
+                        if (user.value.energy < booster.price) {
+                            showNotify('Недостаточно энергии', true);
+                            return;
+                        }
+                        
+                        user.value.energy -= booster.price;
+                        activeBoosters.value.push({
+                            ...booster,
+                            activatedAt: new Date(),
+                            expiresAt: new Date(Date.now() + booster.duration)
+                        });
+                        
+                        showNotify(`Бустер "${booster.name}" активирован!`);
+                    };
+                    
+                    // Копирование реферальной ссылки
+                    const copyReferralLink = () => {
+                        navigator.clipboard.writeText(referralLink.value)
+                            .then(() => showNotify('Ссылка скопирована!'))
+                            .catch(() => showNotify('Ошибка копирования', true));
+                    };
+                    
+                    // Копирование кода
+                    const copyCode = (code) => {
+                        navigator.clipboard.writeText(code)
+                            .then(() => showNotify('Код скопирован!'))
+                            .catch(() => showNotify('Ошибка копирования', true));
+                    };
+                    
+                    // Начать игру поиска кодов
+                    const startGame = () => {
+                        activeSection.value = 'game';
+                        startNewGame();
+                    };
+                    
+                    // Начать новую игру
+                    const startNewGame = () => {
+                        gameCells.value = Array(9).fill().map(() => ({
+                            opened: false,
+                            failed: false,
+                            success: false,
+                            value: ''
+                        }));
+                        
+                        selectedCell.value = null;
+                        openedCells.value = 0;
+                        codeParts.value = ['', '', ''];
+                        gameStatus.value = 'playing';
+                        
+                        // Генерация случайного кода
+                        const code1 = Math.random().toString(36).substring(2, 6).toUpperCase();
+                        const code2 = Math.random().toString(36).substring(2, 6).toUpperCase();
+                        const code3 = Math.random().toString(36).substring(2, 6).toUpperCase();
+                        
+                        // Случайное размещение частей кода и ловушек
+                        const codePositions = [0, 1, 2];
+                        const trapPositions = [3, 4, 5, 6, 7, 8];
+                        
+                        // Размещаем части кода
+                        codeParts.value = [code1, code2, code3];
+                        gameCells.value[codePositions[0]].value = code1;
+                        gameCells.value[codePositions[1]].value = code2;
+                        gameCells.value[codePositions[2]].value = code3;
+                        
+                        // Размещаем ловушки
+                        trapPositions.forEach(pos => {
+                            gameCells.value[pos].value = 'TRAP';
+                        });
+                    };
+                    
+                    // Выбор ячейки
+                    const selectCell = (index) => {
+                        if (gameCells.value[index].opened || gameStatus.value !== 'playing') return;
+                        selectedCell.value = index;
+                    };
+                    
+                    // Открыть ячейку
+                    const openCell = () => {
+                        if (selectedCell.value === null || !canOpenCell.value || openedCells.value >= 3) return;
+                        
+                        const cell = gameCells.value[selectedCell.value];
+                        
+                        // Проверка энергии
+                        if (!hasFreeOpens.value && user.value.energy < currentCost.value) {
+                            showNotify('Недостаточно энергии', true);
+                            return;
+                        }
+                        
+                        // Списание энергии если нет бесплатных открытий
+                        if (!hasFreeOpens.value) {
+                            user.value.energy -= currentCost.value;
+                        } else {
+                            // Использование бесплатного открытия
+                            user.value.freeOpens = Math.max(0, user.value.freeOpens - 1);
+                        }
+                        
+                        cell.opened = true;
+                        openedCells.value++;
+                        user.value.gamesPlayed++;
+                        
+                        // Проверка результата
+                        if (cell.value === 'TRAP') {
+                            cell.failed = true;
+                            gameStatus.value = 'failure';
+                            showNotify('Ловушка! Попробуйте еще раз', true);
+                        } else {
+                            cell.success = true;
+                            
+                            // Заполняем часть кода
+                            const partIndex = codeParts.value.indexOf(cell.value);
+                            if (partIndex !== -1) {
+                                codeParts.value[partIndex] = cell.value;
+                            }
+                            
+                            // Проверяем завершение игры
+                            if (openedCells.value === 3) {
+                                gameStatus.value = 'success';
+                                showNotify('Код найден! Поздравляем!');
+                            }
+                        }
+                        
+                        selectedCell.value = null;
+                    };
+                    
+                    // Забрать код
+                    const claimCode = () => {
+                        const codeValue = `VK-${codeParts.value[0]}-${codeParts.value[1]}-${codeParts.value[2]}`;
+                        const expiryDate = new Date();
+                        expiryDate.setDate(expiryDate.getDate() + 30); // Код действует 30 дней
+                        
+                        user.value.codes.push({
+                            value: codeValue,
+                            expiry: expiryDate,
+                            status: 'available'
+                        });
+                        
+                        showNotify(`Код ${codeValue} добавлен в вашу коллекцию!`);
+                        activeSection.value = 'codes';
+                    };
+                    
+                    // Открыть правила
+                    const openRules = () => {
+                        showNotify('Раздел правил в разработке');
+                    };
+                    
+                    // Открыть помощь
+                    const openHelp = () => {
+                        showNotify('Раздел помощи в разработке');
+                    };
+                    
+                    // Инициализация при загрузке
+                    onMounted(() => {
+                        initVKBridge();
+                        updateDailyBonus();
+                        
+                        // Загрузка данных из localStorage
+                        const savedUser = localStorage.getItem('energyUser');
+                        if (savedUser) {
+                            const parsed = JSON.parse(savedUser);
+                            user.value = { ...user.value, ...parsed };
+                        }
+                        
+                        // Загрузка бонусов
+                        const savedBonus = localStorage.getItem('dailyBonus');
+                        if (savedBonus) {
+                            dailyBonus.value = JSON.parse(savedBonus);
+                        }
+                        
+                        // Обновление бонуса при загрузке
+                        updateDailyBonus();
+                    });
+                    
+                    // Сохранение данных при изменении
+                    watch(user, (newValue) => {
+                        localStorage.setItem('energyUser', JSON.stringify(newValue));
+                    }, { deep: true });
+                    
+                    watch(dailyBonus, (newValue) => {
+                        localStorage.setItem('dailyBonus', JSON.stringify(newValue));
+                    }, { deep: true });
+                    
+                    // Обработка смены темы
+                    watch(darkTheme, (newValue) => {
+                        if (newValue) {
+                            document.body.classList.add('dark-theme');
+                        } else {
+                            document.body.classList.remove('dark-theme');
+                        }
+                        localStorage.setItem('darkTheme', newValue);
+                    });
+                    
+                    return {
+                        activeSection,
+                        activeProfileTab,
+                        darkTheme,
+                        showTaskModal,
+                        showPaymentModal,
+                        showNotification,
+                        notificationMessage,
+                        notificationError,
+                        promoCode,
+                        selectedTask,
+                        selectedEnergyItem,
+                        selectedPaymentMethod,
+                        gameCells,
+                        selectedCell,
+                        openedCells,
+                        codeParts,
+                        currentCost,
+                        winProbability,
+                        gameStatus,
+                        dailyBonus,
+                        activeBoosters,
+                        user,
+                        referralLink,
+                        referralsList,
+                        allTasks,
+                        energyShopItems,
+                        boosters,
+                        availableTasks,
+                        hasFreeOpens,
+                        canOpenCell,
+                        getHeaderTitle,
+                        getCodeStatusText,
+                        getCodeStatusClass,
+                        formatNumber,
+                        formatDate,
+                        showNotify,
+                        claimDailyBonus,
+                        watchAdForBonus,
+                        openTaskModal,
+                        closeTaskModal,
+                        completeTask,
+                        openPaymentModal,
+                        closePaymentModal,
+                        processPayment,
+                        buyBooster,
+                        copyReferralLink,
+                        copyCode,
+                        startGame,
+                        startNewGame,
+                        selectCell,
+                        openCell,
+                        claimCode,
+                        openRules,
+                        openHelp
+                    };
+                }
+            }).mount('#app');
+        </script>
+    </div>
+</body>
+</html>
